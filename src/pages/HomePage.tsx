@@ -15,43 +15,92 @@ const features = [
   {
     img: screenshots.schedule,
     title: 'Your Day, Organized',
-    desc: 'See every job, project, and earning at a glance. Route-optimized automatically.',
+    desc: 'Your entire day on one screen. Jobs, projects, earnings, and drive time — all at a glance.',
+    bullets: [
+      'Calendar view with Today, Tomorrow, and Week tabs',
+      'Live job count, completed count, and earnings total',
+      'See each job\'s customer, address, time window, and progress',
+      'One-tap route optimization saves 20+ minutes of driving daily',
+      'Real-time job timer with persistence across app restarts',
+    ],
     alt: 'FlowBoss schedule screen showing daily jobs, projects, and route optimization',
   },
   {
     img: screenshots.route,
-    title: 'Save Drive Time',
-    desc: 'One tap to reorder your day. Save 20+ minutes of driving, every day.',
+    title: 'Route Optimization',
+    desc: 'Stop zigzagging across town. FlowBoss reorders your day to cut drive time and fit more jobs in.',
+    bullets: [
+      'One tap to optimize your entire day\'s route',
+      'See total miles, drive time, and time saved before you leave',
+      'Drag to manually reorder if you need to prioritize a job',
+      'Works with your existing schedule — no extra setup',
+      'Saves 20+ minutes per day for most contractors',
+    ],
     alt: 'Route optimization showing 22 minutes saved with optimized schedule',
   },
   {
     img: screenshots.invoice,
-    title: 'Get Paid Faster',
-    desc: 'Create invoices on-site. Stripe payment links. Get paid before you leave.',
+    title: 'Invoice On-Site, Get Paid On-Site',
+    desc: 'Create professional invoices the moment you finish. Send a Stripe payment link and get paid before you leave the driveway.',
+    bullets: [
+      'Build invoices with line items from your auto-learning pricebook',
+      'Send Stripe payment links via text or email — instant collection',
+      'QuickBooks sync pushes invoices and auto-reconciles payments',
+      'Track paid, unpaid, and overdue at a glance on Financials tab',
+      'Photo attachments for documentation and proof of work',
+    ],
     alt: 'Invoice screen with line items and Stripe payment link',
   },
   {
     img: screenshots.project,
-    title: 'Track Every Phase',
-    desc: 'Big jobs broken into phases, tasks, and materials. Complete a whole phase with one tap.',
+    title: 'Multi-Phase Project Tracking',
+    desc: 'Big jobs like repipes, panel upgrades, and HVAC installs broken into phases with tasks and materials. Complete an entire phase with one tap.',
+    bullets: [
+      'Templates pre-loaded for your trade — plumbing, HVAC, electrical',
+      'Break projects into phases, each with its own tasks and materials',
+      'Track material quantities, costs, and markup per phase',
+      'One-tap "Complete All" to finish an entire phase at once',
+      'See project progress percentage and remaining work at a glance',
+    ],
     alt: 'Project detail showing phases, tasks, materials, and Complete All button',
   },
   {
     img: screenshots.addJob,
-    title: 'GC Jobs, One Tap',
-    desc: 'Track which contractors send you work. See revenue per GC. The only app that gets how subs work.',
+    title: 'Built for Subs & GC Relationships',
+    desc: 'The only field service app that understands how subcontractors actually work. Track which GCs send you jobs, see revenue per contractor, and know where your money comes from.',
+    bullets: [
+      'Toggle any job as GC-referred and tag the general contractor',
+      'See total revenue, job count, and average ticket per GC',
+      'AI job suggestions based on your work history and trade',
+      'Track direct vs GC revenue split across your entire business',
+      'Customer auto-links so you know who referred every client',
+    ],
     alt: 'Add Job screen with GC toggle and AI job suggestions',
   },
   {
     img: screenshots.insights,
-    title: 'Know Your Numbers',
-    desc: 'Which jobs earn the most per hour? Insights breaks it down so you can scale smart.',
+    title: 'Know Your Numbers Cold',
+    desc: 'Revenue per hour, profit margins, top-earning job types, expense breakdown — the financial clarity you need to stop guessing and start scaling.',
+    bullets: [
+      'Revenue per hour tells you which jobs are actually worth your time',
+      'Profit margin breakdown by job type, customer, and time period',
+      'See your top earners and underperformers side by side',
+      'Monthly and weekly revenue trends with visual charts',
+      'Expense tracking so you know your real take-home, not just gross',
+    ],
     alt: 'Insights dashboard showing revenue per hour, profit margin, and top earners',
   },
   {
     img: screenshots.history,
-    title: 'Every Job, Tracked',
-    desc: 'Filter by customer, date, type. See direct vs GC revenue at a glance.',
+    title: 'Complete Work History',
+    desc: 'Every job and project you\'ve ever done, searchable and filterable. See patterns in your business you\'d never spot on paper.',
+    bullets: [
+      'Filter by customer, date range, job type, or GC source',
+      'See direct vs GC-referred revenue split at a glance',
+      'Job intelligence detects patterns — repeat customers, seasonal trends',
+      'Commingled view of jobs and multi-phase projects in one timeline',
+      'Export-ready data for tax season or business planning',
+    ],
     alt: 'Work History with filters, GC badges, and revenue split',
   },
 ];
@@ -59,13 +108,16 @@ const features = [
 const pricingFeatures = [
   'Unlimited jobs & invoices',
   'Route optimization',
-  'Stripe payment links',
-  'Project & phase tracking',
-  'GC / subcontractor tracking',
-  'Revenue insights & analytics',
-  'Work history & filters',
+  'Stripe payment links & on-site collection',
+  'QuickBooks invoice sync',
+  'Multi-phase project tracking',
+  'GC & subcontractor revenue tracking',
+  'Auto-learning pricebook',
+  'Financial insights & revenue per hour',
+  'Customer CRM & work history',
   'AI job suggestions',
-  'Priority support',
+  'Photo documentation',
+  'Trade-specific templates',
 ];
 
 const testimonials = [
@@ -235,8 +287,18 @@ export function HomePage() {
                     </div>
                   </div>
                   <div className="w-full md:w-1/2">
-                    <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">{f.title}</h3>
-                    <p className="text-lg text-gray-600 leading-relaxed max-w-md">{f.desc}</p>
+                    <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">{f.title}</h3>
+                    <p className="text-lg text-gray-600 leading-relaxed max-w-md mb-5">{f.desc}</p>
+                    {f.bullets && (
+                      <ul className="space-y-2.5 max-w-md">
+                        {f.bullets.map((b) => (
+                          <li key={b} className="flex items-start gap-2.5">
+                            <CheckCircle2 className="w-4.5 h-4.5 text-blue-500 shrink-0 mt-0.5" />
+                            <span className="text-gray-600 text-[15px] leading-relaxed">{b}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                   </div>
                 </div>
               );
@@ -252,52 +314,66 @@ export function HomePage() {
             Simple, Transparent Pricing
           </h2>
           <p className="text-center text-gray-600 mb-14 max-w-xl mx-auto text-lg">
-            One plan. Everything included. No hidden fees.
+            Everything included. No per-user fees. No hidden costs. Start free for 14 days.
           </p>
-          <div className="max-w-md mx-auto">
-            <div className="bg-white rounded-3xl border border-gray-200 shadow-xl overflow-hidden">
-              <div className="p-8 md:p-10">
-                <div className="text-center mb-8">
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-50 text-green-700 text-sm font-medium mb-4">
-                    14-day free trial
-                  </div>
-                  <div className="flex items-baseline justify-center gap-1">
-                    <span className="text-5xl font-extrabold text-gray-900">$29.99</span>
-                    <span className="text-gray-500 text-lg">/mo</span>
-                  </div>
-                  <div className="mt-3 text-gray-500">
-                    or <span className="font-semibold text-gray-900">$199.99/yr</span>{' '}
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 text-xs font-semibold">
-                      Save 44%
-                    </span>
-                  </div>
-                  <p className="mt-2 text-sm text-gray-500">No credit card required to start</p>
+          <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+            {/* Monthly */}
+            <div className="bg-white rounded-3xl border border-gray-200 shadow-lg overflow-hidden flex flex-col">
+              <div className="p-8 flex-1 flex flex-col">
+                <h3 className="text-lg font-bold text-gray-900 mb-1">Monthly</h3>
+                <p className="text-sm text-gray-500 mb-6">Pay as you go, cancel anytime</p>
+                <div className="flex items-baseline gap-1 mb-6">
+                  <span className="text-4xl font-extrabold text-gray-900">$29.99</span>
+                  <span className="text-gray-500">/mo</span>
                 </div>
-                <ul className="space-y-3 mb-8">
+                <ul className="space-y-3 mb-8 flex-1">
                   {pricingFeatures.map((f) => (
                     <li key={f} className="flex items-center gap-3">
-                      <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" />
-                      <span className="text-gray-700">{f}</span>
+                      <CheckCircle2 className="w-4.5 h-4.5 text-green-500 shrink-0" />
+                      <span className="text-gray-700 text-sm">{f}</span>
                     </li>
                   ))}
                 </ul>
-                <div className="flex gap-3">
-                  <a
-                    href="https://apps.apple.com/app/id6761025816"
-                    className="flex-1 text-center px-4 py-3.5 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/25"
-                  >
-                    App Store
-                  </a>
-                  <a
-                    href="https://play.google.com/store/apps/details?id=com.flowboss.app"
-                    className="flex-1 text-center px-4 py-3.5 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/25"
-                  >
-                    Google Play
-                  </a>
+                <a
+                  href="https://apps.apple.com/app/id6761025816"
+                  className="block w-full text-center px-6 py-3.5 bg-gray-900 text-white font-semibold rounded-xl hover:bg-gray-800 transition-all"
+                >
+                  Start Free Trial
+                </a>
+              </div>
+            </div>
+
+            {/* Annual */}
+            <div className="bg-white rounded-3xl border-2 border-blue-500 shadow-xl overflow-hidden flex flex-col relative">
+              <div className="absolute top-0 left-0 right-0 bg-blue-600 text-white text-center text-sm font-semibold py-1.5">
+                Best Value — Save $160/yr
+              </div>
+              <div className="p-8 pt-12 flex-1 flex flex-col">
+                <h3 className="text-lg font-bold text-gray-900 mb-1">Annual</h3>
+                <p className="text-sm text-gray-500 mb-6">Lock in the lowest price</p>
+                <div className="flex items-baseline gap-1 mb-1">
+                  <span className="text-4xl font-extrabold text-gray-900">$16.67</span>
+                  <span className="text-gray-500">/mo</span>
                 </div>
+                <p className="text-sm text-gray-500 mb-6">Billed annually at $199.99/yr</p>
+                <ul className="space-y-3 mb-8 flex-1">
+                  {pricingFeatures.map((f) => (
+                    <li key={f} className="flex items-center gap-3">
+                      <CheckCircle2 className="w-4.5 h-4.5 text-green-500 shrink-0" />
+                      <span className="text-gray-700 text-sm">{f}</span>
+                    </li>
+                  ))}
+                </ul>
+                <a
+                  href="https://apps.apple.com/app/id6761025816"
+                  className="block w-full text-center px-6 py-3.5 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/25"
+                >
+                  Start Free Trial
+                </a>
               </div>
             </div>
           </div>
+          <p className="text-center text-sm text-gray-500 mt-6">14-day free trial on both plans. No credit card required.</p>
         </div>
       </section>
 

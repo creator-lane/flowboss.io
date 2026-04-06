@@ -59,10 +59,10 @@ export function Layout() {
               Log In
             </button>
             <a
-              href="https://play.google.com/store/apps/details?id=com.creatorlane.flowboss"
+              href="https://apps.apple.com/app/id6761025816"
               className="hidden sm:inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-all shadow-sm"
             >
-              Start Free Trial
+              Get the App
             </a>
           </div>
         </div>

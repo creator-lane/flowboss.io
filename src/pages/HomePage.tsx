@@ -1,4 +1,5 @@
-import { ArrowRight, CheckCircle2, Star } from 'lucide-react';
+import { ArrowRight, CheckCircle2, Star, X } from 'lucide-react';
+import { useState } from 'react';
 
 const screenshots = {
   schedule: '/screenshots/Screenshot_20260327-151517.png',
@@ -101,8 +102,33 @@ function PhoneFrame({ src, alt, className = '' }: { src: string; alt: string; cl
 }
 
 export function HomePage() {
+  const [showDemo, setShowDemo] = useState(false);
+
   return (
     <>
+      {/* Demo Video Modal */}
+      {showDemo && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm" onClick={() => setShowDemo(false)}>
+          <div className="relative w-full max-w-sm mx-4" onClick={(e) => e.stopPropagation()}>
+            <button
+              onClick={() => setShowDemo(false)}
+              className="absolute -top-10 right-0 text-white hover:text-gray-300 transition-colors"
+            >
+              <X className="w-6 h-6" />
+            </button>
+            <div className="rounded-2xl overflow-hidden shadow-2xl" style={{ aspectRatio: '9/16' }}>
+              <iframe
+                src="https://www.youtube.com/embed/PBBHT10QigI?autoplay=1"
+                title="FlowBoss Demo"
+                allow="autoplay; encrypted-media"
+                allowFullScreen
+                className="w-full h-full"
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Hero */}
       <section className="relative overflow-hidden py-20 md:py-32">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-white" />
@@ -124,20 +150,25 @@ export function HomePage() {
               </p>
               <div className="mt-10 flex flex-col sm:flex-row items-start gap-4">
                 <a
-                  href="https://play.google.com/store/apps/details?id=com.creatorlane.flowboss"
-                  className="inline-flex items-center gap-2 px-7 py-3.5 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/25 text-lg"
+                  href="https://apps.apple.com/app/id6761025816"
+                  className="inline-flex items-center gap-2 px-7 py-3.5 bg-gray-900 text-white font-semibold rounded-xl hover:bg-gray-800 transition-all shadow-lg text-lg"
                 >
-                  Start Free Trial
-                  <ArrowRight className="w-5 h-5" />
+                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+                  App Store
                 </a>
                 <a
-                  href="https://youtube.com/shorts/PBBHT10QigI"
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  href="https://play.google.com/store/apps/details?id=com.flowboss.app"
+                  className="inline-flex items-center gap-2 px-7 py-3.5 bg-gray-900 text-white font-semibold rounded-xl hover:bg-gray-800 transition-all shadow-lg text-lg"
+                >
+                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M3.18 23.67c-.41-.2-.68-.6-.68-1.06V1.39c0-.46.27-.86.68-1.06l11.4 11.67L3.18 23.67zm1.72.28L16.22 13.2l2.76 2.83-12.24 7.1c-.26.15-.55.18-.84.12zm0-23.9c.29-.06.58-.03.84.12l12.24 7.1-2.76 2.83L4.9.05zM20.54 13.85L17.2 12l3.34-1.85c.66.38 1.06 1.08 1.06 1.85s-.4 1.47-1.06 1.85z"/></svg>
+                  Google Play
+                </a>
+                <button
+                  onClick={() => setShowDemo(true)}
                   className="inline-flex items-center gap-2 px-7 py-3.5 bg-white text-gray-700 font-semibold rounded-xl border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all text-lg"
                 >
                   ▶ Watch Demo
-                </a>
+                </button>
               </div>
               <p className="mt-4 text-sm text-gray-500">14-day free trial. No credit card required.</p>
             </div>
@@ -250,12 +281,20 @@ export function HomePage() {
                     </li>
                   ))}
                 </ul>
-                <a
-                  href="https://play.google.com/store/apps/details?id=com.creatorlane.flowboss"
-                  className="block w-full text-center px-6 py-3.5 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/25 text-lg"
-                >
-                  Start Free Trial
-                </a>
+                <div className="flex gap-3">
+                  <a
+                    href="https://apps.apple.com/app/id6761025816"
+                    className="flex-1 text-center px-4 py-3.5 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/25"
+                  >
+                    App Store
+                  </a>
+                  <a
+                    href="https://play.google.com/store/apps/details?id=com.flowboss.app"
+                    className="flex-1 text-center px-4 py-3.5 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/25"
+                  >
+                    Google Play
+                  </a>
+                </div>
               </div>
             </div>
           </div>
@@ -301,13 +340,22 @@ export function HomePage() {
           <p className="text-gray-400 mb-10 max-w-md mx-auto text-lg">
             Join contractors already using FlowBoss to schedule smarter, invoice faster, and earn more.
           </p>
-          <a
-            href="https://play.google.com/store/apps/details?id=com.creatorlane.flowboss"
-            className="inline-flex items-center gap-2 px-8 py-4 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/30 text-lg"
-          >
-            Start Your Free Trial
-            <ArrowRight className="w-5 h-5" />
-          </a>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <a
+              href="https://apps.apple.com/app/id6761025816"
+              className="inline-flex items-center gap-2 px-8 py-4 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/30 text-lg"
+            >
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+              App Store
+            </a>
+            <a
+              href="https://play.google.com/store/apps/details?id=com.flowboss.app"
+              className="inline-flex items-center gap-2 px-8 py-4 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/30 text-lg"
+            >
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M3.18 23.67c-.41-.2-.68-.6-.68-1.06V1.39c0-.46.27-.86.68-1.06l11.4 11.67L3.18 23.67zm1.72.28L16.22 13.2l2.76 2.83-12.24 7.1c-.26.15-.55.18-.84.12zm0-23.9c.29-.06.58-.03.84.12l12.24 7.1-2.76 2.83L4.9.05zM20.54 13.85L17.2 12l3.34-1.85c.66.38 1.06 1.08 1.06 1.85s-.4 1.47-1.06 1.85z"/></svg>
+              Google Play
+            </a>
+          </div>
           <p className="mt-4 text-sm text-gray-500">14-day free trial. No credit card required.</p>
         </div>
       </section>

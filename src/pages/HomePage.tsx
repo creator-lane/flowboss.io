@@ -270,19 +270,19 @@ export function HomePage() {
           <h2 className="text-3xl md:text-4xl font-bold text-center text-gray-900 mb-4">
             Everything You Need in the Field
           </h2>
-          <p className="text-center text-gray-600 mb-20 max-w-2xl mx-auto text-lg">
+          <p className="text-center text-gray-600 mb-12 max-w-2xl mx-auto text-lg">
             Stop juggling spreadsheets, paper invoices, and separate apps. FlowBoss handles it all.
           </p>
-          <div className="space-y-24 md:space-y-32">
+          <div className="space-y-16 md:space-y-20">
             {features.map((f, i) => {
               const isReversed = i % 2 === 1;
               return (
                 <div
                   key={f.title}
-                  className={`flex flex-col ${isReversed ? 'md:flex-row-reverse' : 'md:flex-row'} items-center gap-12 md:gap-16`}
+                  className={`flex flex-col ${isReversed ? 'md:flex-row-reverse' : 'md:flex-row'} items-center gap-8 md:gap-12`}
                 >
                   <div className="w-full md:w-1/2 flex justify-center">
-                    <div className={`w-[240px] sm:w-[280px] transform ${isReversed ? '-rotate-2' : 'rotate-2'} hover:rotate-0 transition-transform duration-500`}>
+                    <div className={`w-[200px] sm:w-[240px] transform ${isReversed ? '-rotate-2' : 'rotate-2'} hover:rotate-0 transition-transform duration-500`}>
                       <PhoneFrame src={f.img} alt={f.alt} />
                     </div>
                   </div>

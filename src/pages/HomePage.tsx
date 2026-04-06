@@ -322,10 +322,11 @@ export function HomePage() {
               <div className="p-8 flex-1 flex flex-col">
                 <h3 className="text-lg font-bold text-gray-900 mb-1">Monthly</h3>
                 <p className="text-sm text-gray-500 mb-6">Pay as you go, cancel anytime</p>
-                <div className="flex items-baseline gap-1 mb-6">
+                <div className="flex items-baseline gap-1">
                   <span className="text-4xl font-extrabold text-gray-900">$29.99</span>
                   <span className="text-gray-500">/mo</span>
                 </div>
+                <p className="text-sm text-gray-500 mt-1 mb-6">&nbsp;</p>
                 <ul className="space-y-3 mb-8 flex-1">
                   {pricingFeatures.map((f) => (
                     <li key={f} className="flex items-center gap-3">
@@ -351,11 +352,11 @@ export function HomePage() {
               <div className="p-8 pt-12 flex-1 flex flex-col">
                 <h3 className="text-lg font-bold text-gray-900 mb-1">Annual</h3>
                 <p className="text-sm text-gray-500 mb-6">Lock in the lowest price</p>
-                <div className="flex items-baseline gap-1 mb-1">
+                <div className="flex items-baseline gap-1">
                   <span className="text-4xl font-extrabold text-gray-900">$16.67</span>
                   <span className="text-gray-500">/mo</span>
                 </div>
-                <p className="text-sm text-gray-500 mb-6">Billed annually at $199.99/yr</p>
+                <p className="text-sm text-gray-500 mt-1 mb-6">Billed annually at $199.99/yr</p>
                 <ul className="space-y-3 mb-8 flex-1">
                   {pricingFeatures.map((f) => (
                     <li key={f} className="flex items-center gap-3">

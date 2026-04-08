@@ -197,36 +197,40 @@ function EmailCaptureForm({ variant = 'inline' }: { variant?: 'inline' | 'popup'
   const selectBg = variant === 'popup' ? 'bg-gray-50 border-gray-200 text-gray-900' : 'bg-white/10 border-white/20 text-white';
   const btnBg = variant === 'popup' ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-white text-gray-900 hover:bg-gray-100';
 
+  const isPopup = variant === 'popup';
+
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 w-full max-w-lg mx-auto">
-      <input
-        type="email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        placeholder="you@company.com"
-        required
-        className={`flex-1 px-4 py-3 rounded-xl border ${inputBg} focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm`}
-      />
-      <select
-        value={trade}
-        onChange={(e) => setTrade(e.target.value)}
-        className={`px-4 py-3 rounded-xl border ${selectBg} text-sm cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-400`}
-      >
-        <option value="">Your trade</option>
-        <option value="plumbing">Plumbing</option>
-        <option value="hvac">HVAC</option>
-        <option value="electrical">Electrical</option>
-        <option value="other">Other</option>
-      </select>
+    <form onSubmit={handleSubmit} className={`w-full ${isPopup ? 'space-y-2.5' : 'flex flex-col sm:flex-row gap-3 max-w-lg mx-auto'}`}>
+      <div className={isPopup ? 'flex gap-2.5' : 'contents'}>
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="you@company.com"
+          required
+          className={`${isPopup ? 'flex-1' : 'flex-1'} px-4 py-3 rounded-xl border ${inputBg} focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm`}
+        />
+        <select
+          value={trade}
+          onChange={(e) => setTrade(e.target.value)}
+          className={`px-4 py-3 rounded-xl border ${selectBg} text-sm cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-400`}
+        >
+          <option value="">Your trade</option>
+          <option value="plumbing">Plumbing</option>
+          <option value="hvac">HVAC</option>
+          <option value="electrical">Electrical</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
       <button
         type="submit"
         disabled={status === 'loading'}
-        className={`px-6 py-3 rounded-xl font-semibold text-sm transition-all ${btnBg} disabled:opacity-60`}
+        className={`${isPopup ? 'w-full' : ''} px-6 py-3 rounded-xl font-semibold text-sm transition-all ${btnBg} disabled:opacity-60`}
       >
         {status === 'loading' ? 'Sending...' : 'Get Updates'}
       </button>
       {status === 'error' && (
-        <p className="text-red-400 text-xs mt-1 sm:absolute sm:bottom-[-20px]">Something went wrong. Try again.</p>
+        <p className="text-red-400 text-xs mt-1">Something went wrong. Try again.</p>
       )}
     </form>
   );
@@ -234,29 +238,25 @@ function EmailCaptureForm({ variant = 'inline' }: { variant?: 'inline' | 'popup'
 
 function EmailPopup({ onClose }: { onClose: () => void }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={onClose}>
-      <div
-        className="relative bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 p-8 animate-in"
-        onClick={(e) => e.stopPropagation()}
+    <div className="fixed bottom-4 right-4 z-50 w-[360px] max-w-[calc(100vw-2rem)] bg-white rounded-2xl shadow-2xl border border-gray-200 p-6 animate-slide-up">
+      <button
+        onClick={onClose}
+        className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 transition-colors"
       >
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
-        >
-          <X className="w-5 h-5" />
-        </button>
-        <div className="text-center mb-6">
-          <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-            <Mail className="w-6 h-6 text-blue-600" />
-          </div>
-          <h3 className="text-xl font-bold text-gray-900 mb-2">Stay in the Loop</h3>
-          <p className="text-gray-600 text-sm leading-relaxed">
-            Get contractor tips, feature updates, and exclusive offers. No spam — just useful stuff for your trade.
+        <X className="w-4 h-4" />
+      </button>
+      <div className="flex items-start gap-3 mb-4">
+        <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center shrink-0">
+          <Mail className="w-5 h-5 text-blue-600" />
+        </div>
+        <div>
+          <h3 className="text-base font-bold text-gray-900">Stay in the Loop</h3>
+          <p className="text-gray-500 text-xs leading-relaxed mt-0.5">
+            Contractor tips, feature updates, and exclusive offers.
           </p>
         </div>
-        <EmailCaptureForm variant="popup" />
-        <p className="text-center text-xs text-gray-400 mt-4">Unsubscribe anytime. We respect your inbox.</p>
       </div>
+      <EmailCaptureForm variant="popup" />
     </div>
   );
 }

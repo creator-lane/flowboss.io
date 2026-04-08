@@ -329,7 +329,7 @@ export function HomePage() {
               </thead>
               <tbody>
                 {[
-                  { feature: 'Starting price', fb: '$16.67/mo', st: '$$$', jb: '$39/mo', hc: '$49/mo' },
+                  { feature: 'Starting price', fb: '$29.99/mo', st: '$398/mo', jb: '$39/mo', hc: '$49/mo' },
                   { feature: 'No per-user fees', fb: true, st: false, jb: false, hc: false },
                   { feature: 'Route optimization', fb: true, st: true, jb: true, hc: true },
                   { feature: 'GC / sub tracking', fb: true, st: false, jb: false, hc: false },

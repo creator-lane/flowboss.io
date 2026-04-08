@@ -271,10 +271,16 @@ export function HomePage() {
     const dismissed = localStorage.getItem('fb_popup_dismissed');
     if (subscribed || dismissed) return;
 
-    const timer = setTimeout(() => {
-      setShowEmailPopup(true);
-    }, 7000);
-    return () => clearTimeout(timer);
+    const handleScroll = () => {
+      const scrollPercent = window.scrollY / (document.body.scrollHeight - window.innerHeight);
+      if (scrollPercent > 0.4) {
+        setShowEmailPopup(true);
+        window.removeEventListener('scroll', handleScroll);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   return (

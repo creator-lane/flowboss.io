@@ -1,5 +1,5 @@
-import { ArrowRight, CheckCircle2, Star, X } from 'lucide-react';
-import { useState } from 'react';
+import { ArrowRight, CheckCircle2, Mail, Star, X } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
 const screenshots = {
   schedule: '/screenshots/Screenshot_20260327-151517.png',
@@ -153,8 +153,129 @@ function PhoneFrame({ src, alt, className = '' }: { src: string; alt: string; cl
   );
 }
 
+async function submitEmail(email: string, trade: string): Promise<boolean> {
+  try {
+    const res = await fetch('/api/subscribe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, trade }),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+function EmailCaptureForm({ variant = 'inline' }: { variant?: 'inline' | 'popup' }) {
+  const [email, setEmail] = useState('');
+  const [trade, setTrade] = useState('');
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) return;
+    setStatus('loading');
+    const ok = await submitEmail(email, trade);
+    setStatus(ok ? 'success' : 'error');
+    if (ok) {
+      localStorage.setItem('fb_subscribed', '1');
+    }
+  };
+
+  if (status === 'success') {
+    return (
+      <div className="text-center py-4">
+        <CheckCircle2 className="w-8 h-8 text-green-500 mx-auto mb-2" />
+        <p className={`font-semibold text-lg ${variant === 'popup' ? 'text-gray-900' : 'text-white'}`}>
+          You're in! We'll be in touch.
+        </p>
+      </div>
+    );
+  }
+
+  const inputBg = variant === 'popup' ? 'bg-gray-50 border-gray-200' : 'bg-white/10 border-white/20 text-white placeholder:text-gray-300';
+  const selectBg = variant === 'popup' ? 'bg-gray-50 border-gray-200 text-gray-900' : 'bg-white/10 border-white/20 text-white';
+  const btnBg = variant === 'popup' ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-white text-gray-900 hover:bg-gray-100';
+
+  return (
+    <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 w-full max-w-lg mx-auto">
+      <input
+        type="email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        placeholder="you@company.com"
+        required
+        className={`flex-1 px-4 py-3 rounded-xl border ${inputBg} focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm`}
+      />
+      <select
+        value={trade}
+        onChange={(e) => setTrade(e.target.value)}
+        className={`px-4 py-3 rounded-xl border ${selectBg} text-sm cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-400`}
+      >
+        <option value="">Your trade</option>
+        <option value="plumbing">Plumbing</option>
+        <option value="hvac">HVAC</option>
+        <option value="electrical">Electrical</option>
+        <option value="other">Other</option>
+      </select>
+      <button
+        type="submit"
+        disabled={status === 'loading'}
+        className={`px-6 py-3 rounded-xl font-semibold text-sm transition-all ${btnBg} disabled:opacity-60`}
+      >
+        {status === 'loading' ? 'Sending...' : 'Get Updates'}
+      </button>
+      {status === 'error' && (
+        <p className="text-red-400 text-xs mt-1 sm:absolute sm:bottom-[-20px]">Something went wrong. Try again.</p>
+      )}
+    </form>
+  );
+}
+
+function EmailPopup({ onClose }: { onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={onClose}>
+      <div
+        className="relative bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 p-8 animate-in"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+        >
+          <X className="w-5 h-5" />
+        </button>
+        <div className="text-center mb-6">
+          <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-4">
+            <Mail className="w-6 h-6 text-blue-600" />
+          </div>
+          <h3 className="text-xl font-bold text-gray-900 mb-2">Stay in the Loop</h3>
+          <p className="text-gray-600 text-sm leading-relaxed">
+            Get contractor tips, feature updates, and exclusive offers. No spam — just useful stuff for your trade.
+          </p>
+        </div>
+        <EmailCaptureForm variant="popup" />
+        <p className="text-center text-xs text-gray-400 mt-4">Unsubscribe anytime. We respect your inbox.</p>
+      </div>
+    </div>
+  );
+}
+
 export function HomePage() {
   const [showDemo, setShowDemo] = useState(false);
+  const [showEmailPopup, setShowEmailPopup] = useState(false);
+
+  useEffect(() => {
+    // Don't show popup if already subscribed or dismissed recently
+    const subscribed = localStorage.getItem('fb_subscribed');
+    const dismissed = localStorage.getItem('fb_popup_dismissed');
+    if (subscribed || dismissed) return;
+
+    const timer = setTimeout(() => {
+      setShowEmailPopup(true);
+    }, 7000);
+    return () => clearTimeout(timer);
+  }, []);
 
   return (
     <>
@@ -179,6 +300,16 @@ export function HomePage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Email Popup */}
+      {showEmailPopup && (
+        <EmailPopup
+          onClose={() => {
+            setShowEmailPopup(false);
+            localStorage.setItem('fb_popup_dismissed', Date.now().toString());
+          }}
+        />
       )}
 
       {/* Hero */}
@@ -461,6 +592,21 @@ export function HomePage() {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* Email Capture */}
+      <section className="py-16 bg-blue-600">
+        <div className="max-w-3xl mx-auto px-6 text-center">
+          <Mail className="w-8 h-8 text-blue-200 mx-auto mb-4" />
+          <h2 className="text-2xl md:text-3xl font-bold text-white mb-3">
+            Contractor Tips & Feature Updates
+          </h2>
+          <p className="text-blue-100 mb-8 max-w-md mx-auto">
+            Join the FlowBoss list for trade tips, product updates, and exclusive offers. No spam — we keep it useful.
+          </p>
+          <EmailCaptureForm variant="inline" />
+          <p className="text-blue-200/60 text-xs mt-4">Unsubscribe anytime. We respect your inbox.</p>
         </div>
       </section>
 

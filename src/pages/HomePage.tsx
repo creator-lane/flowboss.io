@@ -307,8 +307,63 @@ export function HomePage() {
         </div>
       </section>
 
+      {/* Comparison Chart */}
+      <section className="py-20 bg-gray-50">
+        <div className="max-w-5xl mx-auto px-6">
+          <h2 className="text-3xl md:text-4xl font-bold text-center text-gray-900 mb-4">
+            How FlowBoss Compares
+          </h2>
+          <p className="text-center text-gray-600 mb-12 max-w-xl mx-auto text-lg">
+            Built for contractors who actually work in the field — not enterprise sales teams.
+          </p>
+          <div className="overflow-x-auto -mx-6 px-6">
+            <table className="w-full text-sm border-collapse">
+              <thead>
+                <tr>
+                  <th className="text-left py-4 px-4 font-medium text-gray-500 bg-white sticky left-0 z-10 min-w-[160px]"></th>
+                  <th className="py-4 px-4 text-center bg-blue-600 text-white font-bold rounded-t-xl text-base min-w-[120px]">FlowBoss</th>
+                  <th className="py-4 px-4 text-center text-gray-700 font-semibold bg-gray-100 min-w-[120px]">ServiceTitan</th>
+                  <th className="py-4 px-4 text-center text-gray-700 font-semibold bg-gray-100 min-w-[120px]">Jobber</th>
+                  <th className="py-4 px-4 text-center text-gray-700 font-semibold bg-gray-100 min-w-[120px]">HouseCall Pro</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  { feature: 'Starting price', fb: '$16.67/mo', st: '$$$', jb: '$39/mo', hc: '$49/mo' },
+                  { feature: 'No per-user fees', fb: true, st: false, jb: false, hc: false },
+                  { feature: 'Route optimization', fb: true, st: true, jb: true, hc: true },
+                  { feature: 'GC / sub tracking', fb: true, st: false, jb: false, hc: false },
+                  { feature: 'Stripe payment links', fb: true, st: false, jb: false, hc: false },
+                  { feature: 'QuickBooks sync', fb: true, st: true, jb: true, hc: true },
+                  { feature: 'Multi-phase projects', fb: true, st: true, jb: false, hc: false },
+                  { feature: 'Trade-specific templates', fb: true, st: true, jb: false, hc: false },
+                  { feature: 'AI job suggestions', fb: true, st: false, jb: false, hc: false },
+                  { feature: 'Built for solo/small crews', fb: true, st: false, jb: true, hc: true },
+                  { feature: 'Free trial', fb: '14 days', st: false, jb: '14 days', hc: '14 days' },
+                ].map((row, i) => (
+                  <tr key={row.feature} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}>
+                    <td className="py-3.5 px-4 font-medium text-gray-900 sticky left-0 z-10 bg-inherit">{row.feature}</td>
+                    {[row.fb, row.st, row.jb, row.hc].map((val, j) => (
+                      <td key={j} className={`py-3.5 px-4 text-center ${j === 0 ? 'bg-blue-50/50 font-semibold' : ''}`}>
+                        {val === true ? (
+                          <CheckCircle2 className="w-5 h-5 text-green-500 mx-auto" />
+                        ) : val === false ? (
+                          <span className="text-gray-300 text-lg">—</span>
+                        ) : (
+                          <span className={j === 0 ? 'text-blue-600 font-bold' : 'text-gray-600'}>{val}</span>
+                        )}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
       {/* Pricing */}
-      <section id="pricing" className="py-20 bg-gray-50">
+      <section id="pricing" className="py-20">
         <div className="max-w-6xl mx-auto px-6">
           <h2 className="text-3xl md:text-4xl font-bold text-center text-gray-900 mb-4">
             Simple, Transparent Pricing
@@ -316,6 +371,7 @@ export function HomePage() {
           <p className="text-center text-gray-600 mb-14 max-w-xl mx-auto text-lg">
             Everything included. No per-user fees. No hidden costs. Start free for 14 days.
           </p>
+
           <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
             {/* Monthly */}
             <div className="bg-white rounded-3xl border border-gray-200 shadow-lg overflow-hidden flex flex-col">

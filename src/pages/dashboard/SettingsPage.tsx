@@ -19,7 +19,12 @@ import {
 } from 'lucide-react';
 import { PricebookManager } from '../../components/settings/PricebookManager';
 
-const TRADE_OPTIONS = ['Plumbing', 'HVAC', 'Electrical'];
+const TRADE_OPTIONS = [
+  { value: 'plumbing', label: 'Plumbing' },
+  { value: 'hvac', label: 'HVAC' },
+  { value: 'electrical', label: 'Electrical' },
+  { value: 'general_contractor', label: 'General Contractor' },
+];
 
 const TABS = [
   { key: 'profile', label: 'Profile', icon: Building2 },
@@ -232,8 +237,8 @@ export function SettingsPage() {
                       >
                         <option value="">Select trade</option>
                         {TRADE_OPTIONS.map((t) => (
-                          <option key={t} value={t}>
-                            {t}
+                          <option key={t.value} value={t.value}>
+                            {t.label}
                           </option>
                         ))}
                       </select>

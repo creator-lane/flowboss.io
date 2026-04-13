@@ -1,16 +1,16 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../lib/api';
 import {
   Plus,
-  Building2,
   MapPin,
   DollarSign,
   Users,
   FolderKanban,
   Activity,
   Search,
+  Inbox,
 } from 'lucide-react';
 import { CreateGCProjectModal } from '../../components/gc/CreateGCProjectModal';
 
@@ -51,72 +51,129 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
-function OrgSetupCard({ onSetup }: { onSetup: () => void }) {
-  const [name, setName] = useState('');
-  const queryClient = useQueryClient();
-
-  const createOrg = useMutation({
-    mutationFn: () => api.createOrganization({ name: name.trim() || 'My Company', type: 'gc' }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['gc-org'] });
-      queryClient.invalidateQueries({ queryKey: ['gc-projects'] });
-      onSetup();
-    },
-  });
+function ProjectCard({ project, onClick }: { project: any; onClick: () => void }) {
+  const trades: any[] = project.trades || [];
+  const totalTasks = trades.reduce((s: number, t: any) => s + (t.tasks?.length || 0), 0);
+  const doneTasks = trades.reduce(
+    (s: number, t: any) => s + (t.tasks?.filter((tk: any) => tk.done).length || 0),
+    0
+  );
+  const progress = totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0;
+  const assigned = trades.filter((t: any) => t.assignedUserId || t.assignedOrgId).length;
 
   return (
-    <div className="max-w-lg mx-auto mt-16 text-center">
-      <div className="w-16 h-16 bg-brand-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
-        <Building2 className="w-8 h-8 text-brand-600" />
+    <div
+      onClick={onClick}
+      className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md hover:border-gray-300 transition-all cursor-pointer"
+    >
+      <div className="flex items-start justify-between mb-3">
+        <h3 className="text-base font-semibold text-gray-900 line-clamp-1">{project.name}</h3>
+        <StatusBadge status={project.status} />
       </div>
-      <h2 className="text-2xl font-bold text-gray-900 mb-2">Set Up Your GC Account</h2>
-      <p className="text-gray-500 mb-8">Create your organization to start managing projects, trades, and subs.</p>
-      <div className="flex flex-col gap-3 max-w-sm mx-auto">
-        <input
-          type="text"
-          placeholder="Company name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
-        />
-        <button
-          onClick={() => createOrg.mutate()}
-          disabled={createOrg.isPending}
-          className="w-full px-4 py-2.5 bg-brand-500 text-white rounded-lg text-sm font-medium hover:bg-brand-600 transition-colors disabled:opacity-60"
-        >
-          {createOrg.isPending ? 'Creating...' : 'Create Organization'}
-        </button>
+
+      {(project.city || project.state) && (
+        <div className="flex items-center gap-1.5 text-sm text-gray-500 mb-3">
+          <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
+          {[project.city, project.state].filter(Boolean).join(', ')}
+        </div>
+      )}
+
+      {/* Progress */}
+      <div className="mb-3">
+        <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
+          <span>{doneTasks} of {totalTasks} tasks</span>
+          <span>{progress}%</span>
+        </div>
+        <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+          <div
+            className="h-full bg-brand-500 rounded-full transition-all"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+      </div>
+
+      {/* Trade pills */}
+      {trades.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 mb-3">
+          {trades.slice(0, 5).map((t: any) => (
+            <span
+              key={t.id}
+              className={`px-2 py-0.5 rounded text-xs font-medium ${
+                TRADE_COLORS[t.trade] || 'bg-gray-100 text-gray-600'
+              }`}
+            >
+              {t.trade}
+            </span>
+          ))}
+          {trades.length > 5 && (
+            <span className="px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-500">
+              +{trades.length - 5}
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* Footer */}
+      <div className="flex items-center justify-between pt-3 border-t border-gray-100 text-xs text-gray-500">
+        <span>{assigned} of {trades.length} trades assigned</span>
+        {project.budget && (
+          <span className="font-medium text-gray-700">{formatCurrency(project.budget)}</span>
+        )}
       </div>
     </div>
   );
+}
+
+/** Auto-creates the org silently if it doesn't exist, returns true when ready */
+function useAutoOrg() {
+  const queryClient = useQueryClient();
+  const orgQuery = useQuery({
+    queryKey: ['gc-org'],
+    queryFn: () => api.getOrganization(),
+  });
+
+  const createOrg = useMutation({
+    mutationFn: () => api.createOrganization({ name: 'My Company', type: 'gc' }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['gc-org'] });
+      queryClient.invalidateQueries({ queryKey: ['gc-projects'] });
+    },
+  });
+
+  const org = orgQuery.data?.data;
+  const isLoading = orgQuery.isLoading;
+  const needsOrg = !isLoading && !org;
+
+  // Auto-create org silently when needed
+  useEffect(() => {
+    if (needsOrg && !createOrg.isPending && !createOrg.isSuccess) {
+      createOrg.mutate();
+    }
+  }, [needsOrg, createOrg.isPending, createOrg.isSuccess]);
+
+  const ready = !isLoading && (!!org || createOrg.isSuccess);
+  return { ready, isLoading: isLoading || createOrg.isPending };
 }
 
 export function GCDashboardPage() {
   const navigate = useNavigate();
   const [showCreate, setShowCreate] = useState(false);
   const [search, setSearch] = useState('');
-  const [orgReady, setOrgReady] = useState<boolean | null>(null);
 
-  const orgQuery = useQuery({
-    queryKey: ['gc-org'],
-    queryFn: () => api.getOrganization(),
+  const { data: settingsData, isLoading: settingsLoading } = useQuery({
+    queryKey: ['settings'],
+    queryFn: () => api.getSettings(),
   });
+  const trade = settingsData?.data?.trade;
+  const isGC = trade === 'general_contractor';
+
+  const { ready: orgReady, isLoading: orgLoading } = useAutoOrg();
 
   const projectsQuery = useQuery({
     queryKey: ['gc-projects'],
     queryFn: () => api.getGCProjects(),
-    enabled: orgReady !== false,
+    enabled: orgReady,
   });
-
-  // Determine org readiness
-  const org = orgQuery.data?.data;
-  if (orgReady === null && !orgQuery.isLoading) {
-    if (org) {
-      if (orgReady !== true) setOrgReady(true);
-    } else {
-      if (orgReady !== false) setOrgReady(false);
-    }
-  }
 
   const projects: any[] = projectsQuery.data?.data || [];
 
@@ -141,7 +198,7 @@ export function GCDashboardPage() {
     0
   );
 
-  if (orgQuery.isLoading) {
+  if (orgLoading || settingsLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="w-8 h-8 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
@@ -149,16 +206,130 @@ export function GCDashboardPage() {
     );
   }
 
-  if (orgReady === false) {
-    return <OrgSetupCard onSetup={() => setOrgReady(true)} />;
+  // ── Sub-contractor view ──────────────────────────────────────────────
+  if (!isGC) {
+    // TODO: Replace with real invited-projects query when backend supports it
+    const invitedProjects: any[] = [];
+    const ownProjects = projects;
+    const hasNothing = invitedProjects.length === 0 && ownProjects.length === 0;
+
+    if (hasNothing) {
+      return (
+        <div className="p-4 lg:p-6 max-w-7xl mx-auto">
+          {/* Breadcrumb */}
+          <div className="text-sm text-gray-400 mb-4">
+            <span>GC Projects</span>
+          </div>
+
+          <div className="text-center py-20">
+            <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+              <Inbox className="w-8 h-8 text-gray-400" />
+            </div>
+            <h2 className="text-xl font-bold text-gray-900 mb-2">No GC projects yet</h2>
+            <p className="text-sm text-gray-500 mb-2 max-w-md mx-auto">
+              When a general contractor adds you to a project, it will appear here.
+            </p>
+            <p className="text-sm text-gray-500 mb-6">Or start managing your own projects:</p>
+            <button
+              onClick={() => setShowCreate(true)}
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-500 text-white rounded-lg text-sm font-medium hover:bg-brand-600 transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              Create Project
+            </button>
+          </div>
+
+          <CreateGCProjectModal open={showCreate} onClose={() => setShowCreate(false)} />
+        </div>
+      );
+    }
+
+    // Split view for subs with some data
+    return (
+      <div className="p-4 lg:p-6 max-w-7xl mx-auto">
+        {/* Breadcrumb */}
+        <div className="text-sm text-gray-400 mb-4">
+          <span>GC Projects</span>
+        </div>
+
+        {/* Invited projects section */}
+        {invitedProjects.length > 0 && (
+          <div className="mb-10">
+            <h2 className="text-lg font-bold text-gray-900 mb-1">Projects You're Invited To</h2>
+            <p className="text-sm text-gray-500 mb-4">Projects where a GC has assigned you as a sub-contractor.</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+              {invitedProjects.map((project: any) => (
+                <ProjectCard
+                  key={project.id}
+                  project={project}
+                  onClick={() => navigate(`/dashboard/gc/${project.id}`)}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Own projects section */}
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-lg font-bold text-gray-900 mb-1">
+                {invitedProjects.length > 0 ? 'Your Own Projects' : 'My Projects'}
+              </h2>
+              <p className="text-sm text-gray-500">Manage your own construction projects and trade assignments.</p>
+            </div>
+            <button
+              onClick={() => setShowCreate(true)}
+              className="flex items-center gap-2 px-4 py-2.5 bg-brand-500 text-white rounded-lg text-sm font-medium hover:bg-brand-600 transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              New Project
+            </button>
+          </div>
+
+          {ownProjects.length === 0 ? (
+            <div className="bg-white rounded-xl border border-gray-200 border-dashed p-10 text-center">
+              <FolderKanban className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+              <h3 className="text-base font-medium text-gray-900 mb-1">Start managing your own projects</h3>
+              <p className="text-sm text-gray-500 mb-4">Create a project to coordinate trades and subs.</p>
+              <button
+                onClick={() => setShowCreate(true)}
+                className="inline-flex items-center gap-2 px-4 py-2.5 bg-brand-500 text-white rounded-lg text-sm font-medium hover:bg-brand-600 transition-colors"
+              >
+                <Plus className="w-4 h-4" />
+                Create Project
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+              {ownProjects.map((project: any) => (
+                <ProjectCard
+                  key={project.id}
+                  project={project}
+                  onClick={() => navigate(`/dashboard/gc/${project.id}`)}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+
+        <CreateGCProjectModal open={showCreate} onClose={() => setShowCreate(false)} />
+      </div>
+    );
   }
 
+  // ── GC view ──────────────────────────────────────────────────────────
   return (
     <div className="p-4 lg:p-6 max-w-7xl mx-auto">
+      {/* Breadcrumb */}
+      <div className="text-sm text-gray-400 mb-4">
+        <span>My Projects</span>
+      </div>
+
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">GC Projects</h1>
+          <h1 className="text-2xl font-bold text-gray-900">My Projects</h1>
           <p className="text-sm text-gray-500 mt-1">Manage your construction projects and trade assignments</p>
         </div>
         <button
@@ -225,7 +396,7 @@ export function GCDashboardPage() {
         <div className="text-center py-16">
           <FolderKanban className="w-12 h-12 text-gray-300 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-1">No projects yet</h3>
-          <p className="text-sm text-gray-500 mb-6">Create your first GC project to get started.</p>
+          <p className="text-sm text-gray-500 mb-6">Create your first project to get started.</p>
           <button
             onClick={() => setShowCreate(true)}
             className="inline-flex items-center gap-2 px-4 py-2.5 bg-brand-500 text-white rounded-lg text-sm font-medium hover:bg-brand-600 transition-colors"
@@ -236,79 +407,13 @@ export function GCDashboardPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {filtered.map((project: any) => {
-            const trades: any[] = project.trades || [];
-            const totalTasks = trades.reduce((s: number, t: any) => s + (t.tasks?.length || 0), 0);
-            const doneTasks = trades.reduce(
-              (s: number, t: any) => s + (t.tasks?.filter((tk: any) => tk.done).length || 0),
-              0
-            );
-            const progress = totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0;
-            const assigned = trades.filter((t: any) => t.assignedUserId || t.assignedOrgId).length;
-
-            return (
-              <div
-                key={project.id}
-                onClick={() => navigate(`/dashboard/gc/${project.id}`)}
-                className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md hover:border-gray-300 transition-all cursor-pointer"
-              >
-                <div className="flex items-start justify-between mb-3">
-                  <h3 className="text-base font-semibold text-gray-900 line-clamp-1">{project.name}</h3>
-                  <StatusBadge status={project.status} />
-                </div>
-
-                {(project.city || project.state) && (
-                  <div className="flex items-center gap-1.5 text-sm text-gray-500 mb-3">
-                    <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
-                    {[project.city, project.state].filter(Boolean).join(', ')}
-                  </div>
-                )}
-
-                {/* Progress */}
-                <div className="mb-3">
-                  <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
-                    <span>{doneTasks} of {totalTasks} tasks</span>
-                    <span>{progress}%</span>
-                  </div>
-                  <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-brand-500 rounded-full transition-all"
-                      style={{ width: `${progress}%` }}
-                    />
-                  </div>
-                </div>
-
-                {/* Trade pills */}
-                {trades.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5 mb-3">
-                    {trades.slice(0, 5).map((t: any) => (
-                      <span
-                        key={t.id}
-                        className={`px-2 py-0.5 rounded text-xs font-medium ${
-                          TRADE_COLORS[t.trade] || 'bg-gray-100 text-gray-600'
-                        }`}
-                      >
-                        {t.trade}
-                      </span>
-                    ))}
-                    {trades.length > 5 && (
-                      <span className="px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-500">
-                        +{trades.length - 5}
-                      </span>
-                    )}
-                  </div>
-                )}
-
-                {/* Footer */}
-                <div className="flex items-center justify-between pt-3 border-t border-gray-100 text-xs text-gray-500">
-                  <span>{assigned} of {trades.length} trades assigned</span>
-                  {project.budget && (
-                    <span className="font-medium text-gray-700">{formatCurrency(project.budget)}</span>
-                  )}
-                </div>
-              </div>
-            );
-          })}
+          {filtered.map((project: any) => (
+            <ProjectCard
+              key={project.id}
+              project={project}
+              onClick={() => navigate(`/dashboard/gc/${project.id}`)}
+            />
+          ))}
         </div>
       )}
 

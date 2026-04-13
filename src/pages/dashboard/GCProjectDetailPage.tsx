@@ -119,6 +119,18 @@ export function GCProjectDetailPage() {
   const [viewMode, setViewMode] = useState<'visual' | 'board'>('visual');
   const [selectedTradeId, setSelectedTradeId] = useState<string | null>(null);
   const [inviteModalTrade, setInviteModalTrade] = useState<{ id: string; name: string } | null>(null);
+  const [showAddTradeVisual, setShowAddTradeVisual] = useState(false);
+  const [addTradeValue, setAddTradeValue] = useState('');
+
+  const addTradeMutation = useMutation({
+    mutationFn: (trade: string) => api.addGCTrade(id!, { trade }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['gc-project', id] });
+      queryClient.invalidateQueries({ queryKey: ['gc-projects'] });
+      setShowAddTradeVisual(false);
+      setAddTradeValue('');
+    },
+  });
 
   const projectQuery = useQuery({
     queryKey: ['gc-project', id],
@@ -255,7 +267,40 @@ export function GCProjectDetailPage() {
             overallProgress={overallProgress}
             selectedTradeId={selectedTradeId}
             onSelectTrade={(tradeId) => setSelectedTradeId(tradeId === selectedTradeId ? null : tradeId)}
+            onAddTrade={() => setShowAddTradeVisual(true)}
           />
+
+          {/* Quick Add Trade Popup (Visual View) */}
+          {showAddTradeVisual && (
+            <div className="absolute top-4 right-4 z-30 bg-white rounded-xl border border-gray-200 shadow-lg p-4 w-64">
+              <h3 className="font-medium text-sm text-gray-900 mb-3">Add Trade</h3>
+              <select
+                value={addTradeValue}
+                onChange={(e) => setAddTradeValue(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white mb-3 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
+              >
+                <option value="">Select trade...</option>
+                {TRADE_OPTIONS.map((t) => (
+                  <option key={t} value={t}>{t}</option>
+                ))}
+              </select>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => { setShowAddTradeVisual(false); setAddTradeValue(''); }}
+                  className="flex-1 px-3 py-2 text-xs font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => addTradeValue && addTradeMutation.mutate(addTradeValue)}
+                  disabled={!addTradeValue || addTradeMutation.isPending}
+                  className="flex-1 px-3 py-2 text-xs font-medium text-white bg-brand-500 rounded-lg hover:bg-brand-600 transition-colors disabled:opacity-60"
+                >
+                  {addTradeMutation.isPending ? 'Adding...' : 'Add'}
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Slide-in detail panel */}
           <TradeDetailPanel
@@ -310,12 +355,14 @@ function HubSpokeDiagram({
   overallProgress,
   selectedTradeId,
   onSelectTrade,
+  onAddTrade,
 }: {
   project: any;
   trades: any[];
   overallProgress: number;
   selectedTradeId: string | null;
   onSelectTrade: (id: string) => void;
+  onAddTrade: () => void;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState({ width: 900, height: 600 });
@@ -429,8 +476,8 @@ function HubSpokeDiagram({
           </div>
 
           {/* Inner content */}
-          <div className="absolute inset-[6px] rounded-full bg-white flex flex-col items-center justify-center">
-            <span className="text-[13px] font-bold text-gray-900 text-center leading-tight px-4 max-w-[120px] line-clamp-2">
+          <div className="absolute inset-[6px] rounded-full bg-white flex flex-col items-center justify-center overflow-hidden">
+            <span className="text-[11px] font-bold text-gray-900 text-center leading-tight px-3 max-w-[110px] truncate">
               {project.name}
             </span>
             <div className={`mt-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium ${statusCfg.bg} ${statusCfg.text}`}>
@@ -454,11 +501,30 @@ function HubSpokeDiagram({
         />
       ))}
 
-      {/* Empty state */}
+      {/* Empty state + Add Trade button */}
       {trades.length === 0 && (
-        <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
-          <p className="text-gray-400 text-sm mt-32">No trades yet. Switch to Board view to add trades.</p>
+        <div className="absolute left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-3" style={{ top: centerY + 100 }}>
+          <p className="text-gray-400 text-sm">No trades yet</p>
+          <button
+            onClick={onAddTrade}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-brand-500 text-white text-sm font-medium rounded-lg hover:bg-brand-600 transition-colors shadow-sm"
+          >
+            <Plus className="w-4 h-4" />
+            Add Trade
+          </button>
         </div>
+      )}
+
+      {/* Add Trade button when trades exist */}
+      {trades.length > 0 && (
+        <button
+          onClick={onAddTrade}
+          className="absolute z-20 inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 text-gray-600 text-xs font-medium rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-colors shadow-sm"
+          style={{ left: centerX, bottom: 16, transform: 'translateX(-50%)' }}
+        >
+          <Plus className="w-3.5 h-3.5" />
+          Add Trade
+        </button>
       )}
     </div>
   );

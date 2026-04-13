@@ -17,12 +17,31 @@ export function Signup() {
   const [searchParams] = useSearchParams();
   const plan = searchParams.get('plan') || 'monthly';
 
+  // Invite params from the GC invite link
+  const inviteProjectId = searchParams.get('invite');
+  const inviteTradeId = searchParams.get('trade');
+  const isInvite = !!(inviteProjectId && inviteTradeId);
+
   const [businessName, setBusinessName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [trade, setTrade] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  // Fetch project name for invite context
+  const [inviteProjectName, setInviteProjectName] = useState<string | null>(null);
+  useEffect(() => {
+    if (!inviteProjectId) return;
+    supabase
+      .from('gc_projects')
+      .select('name')
+      .eq('id', inviteProjectId)
+      .single()
+      .then(({ data }) => {
+        if (data?.name) setInviteProjectName(data.name);
+      });
+  }, [inviteProjectId]);
 
   useEffect(() => {
     if (!loading && session) {
@@ -67,7 +86,49 @@ export function Signup() {
         }
       }
 
-      // 3. Redirect to checkout
+      // 3. If this is an invite signup, link the sub to the GC project
+      if (isInvite && signUpData.user) {
+        try {
+          const newUserId = signUpData.user.id;
+
+          // Get the project to find the org_id
+          const { data: project } = await supabase
+            .from('gc_projects')
+            .select('id, org_id, name')
+            .eq('id', inviteProjectId)
+            .single();
+
+          if (project) {
+            // Assign the sub to the trade
+            await supabase
+              .from('gc_project_trades')
+              .update({ assigned_user_id: newUserId })
+              .eq('id', inviteTradeId);
+
+            // Add as org member
+            await supabase
+              .from('org_members')
+              .insert({
+                org_id: project.org_id,
+                user_id: newUserId,
+                role: 'sub_contractor',
+                status: 'active',
+                invited_by: null,
+                joined_at: new Date().toISOString(),
+              });
+          }
+
+          // Redirect to the GC project view (skip checkout for invited subs)
+          navigate(`/dashboard/gc-projects/${inviteProjectId}`, { replace: true });
+        } catch (inviteErr) {
+          console.error('Invite linking failed:', inviteErr);
+          // Still redirect to the project even if linking partially failed
+          navigate(`/dashboard/gc-projects/${inviteProjectId}`, { replace: true });
+        }
+        return;
+      }
+
+      // 4. Normal signup: redirect to checkout
       navigate(`/checkout?plan=${plan}`, { replace: true });
     } catch (err: any) {
       setError(err.message || 'Something went wrong. Please try again.');
@@ -93,8 +154,25 @@ export function Signup() {
             <div className="w-12 h-12 bg-brand-500 rounded-xl flex items-center justify-center mb-3">
               <Wrench className="w-6 h-6 text-white" />
             </div>
-            <h1 className="text-xl font-bold text-gray-900">Start Your 14-Day Free Trial</h1>
-            <p className="text-sm text-gray-500 mt-1">14-day free trial. Credit card required.</p>
+            {isInvite ? (
+              <>
+                <h1 className="text-xl font-bold text-gray-900">Join Project on FlowBoss</h1>
+                <p className="text-sm text-gray-500 mt-1 text-center">
+                  You've been invited to join
+                  {inviteProjectName ? (
+                    <span className="font-semibold text-gray-700"> {inviteProjectName}</span>
+                  ) : (
+                    ' a project'
+                  )}
+                </p>
+                <p className="text-xs text-green-600 mt-1 font-medium">Free for invited subs</p>
+              </>
+            ) : (
+              <>
+                <h1 className="text-xl font-bold text-gray-900">Start Your 14-Day Free Trial</h1>
+                <p className="text-sm text-gray-500 mt-1">14-day free trial. Credit card required.</p>
+              </>
+            )}
           </div>
 
           {/* Error */}
@@ -175,14 +253,21 @@ export function Signup() {
               disabled={submitting}
               className="w-full py-2.5 bg-brand-500 text-white text-sm font-medium rounded-lg hover:bg-brand-600 transition-colors disabled:opacity-50"
             >
-              {submitting ? 'Creating account...' : 'Start Free Trial'}
+              {submitting
+                ? 'Creating account...'
+                : isInvite
+                  ? 'Join Project'
+                  : 'Start Free Trial'}
             </button>
           </form>
 
           {/* Login link */}
           <p className="text-center text-sm text-gray-500 mt-5">
             Already have an account?{' '}
-            <Link to="/login" className="text-brand-500 hover:text-brand-600 font-medium">
+            <Link
+              to={isInvite ? `/login?redirect=/dashboard/gc-projects/${inviteProjectId}` : '/login'}
+              className="text-brand-500 hover:text-brand-600 font-medium"
+            >
               Log in
             </Link>
           </p>

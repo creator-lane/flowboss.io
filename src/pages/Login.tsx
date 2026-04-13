@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Wrench } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../lib/auth';
@@ -9,6 +9,10 @@ type AuthMode = 'password' | 'magic-link';
 export function Login() {
   const { session, loading } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirectTo = searchParams.get('redirect');
+
+  const getPostLoginPath = () => redirectTo || '/dashboard';
 
   const [mode, setMode] = useState<AuthMode>('password');
   const [email, setEmail] = useState('');
@@ -19,7 +23,7 @@ export function Login() {
 
   useEffect(() => {
     if (!loading && session) {
-      navigate('/dashboard', { replace: true });
+      navigate(getPostLoginPath(), { replace: true });
     }
   }, [session, loading, navigate]);
 
@@ -34,7 +38,7 @@ export function Login() {
       setError(error.message);
       setSubmitting(false);
     } else {
-      navigate('/dashboard', { replace: true });
+      navigate(getPostLoginPath(), { replace: true });
     }
   };
 

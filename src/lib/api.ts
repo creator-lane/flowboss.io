@@ -1715,4 +1715,71 @@ export const api = {
     // Placeholder — real invite flow needs an edge function
     return { data: { invited: true, email } };
   },
+
+  // GC Sub Directory — all unique subs across all GC projects
+  getGCSubDirectory: async () => {
+    try {
+      // Get all GC projects with their trades
+      const { data: projects, error } = await supabase
+        .from('gc_projects')
+        .select('id, name, trades:gc_project_trades(id, trade, assigned_user_id, notes, status)');
+
+      if (error) return { data: [] };
+
+      // Collect unique assigned users
+      const subMap = new Map<string, { userId: string; trades: string[]; projectCount: number; projects: { id: string; name: string }[] }>();
+
+      for (const project of (projects || [])) {
+        for (const trade of (project.trades || [])) {
+          const uid = (trade as any).assigned_user_id;
+          if (!uid) continue;
+          const existing = subMap.get(uid) || { userId: uid, trades: [] as string[], projectCount: 0, projects: [] as { id: string; name: string }[] };
+          if (!existing.trades.includes((trade as any).trade)) existing.trades.push((trade as any).trade);
+          if (!existing.projects.find((p) => p.id === project.id)) {
+            existing.projects.push({ id: project.id, name: project.name });
+            existing.projectCount++;
+          }
+          subMap.set(uid, existing);
+        }
+      }
+
+      // Fetch profiles for each sub
+      const userIds = Array.from(subMap.keys());
+      if (userIds.length === 0) return { data: [] };
+
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, business_name, phone, trade')
+        .in('id', userIds);
+
+      // Fetch emails from auth — profiles table may not have email
+      // We'll try to get it from auth.users via the profiles join or skip
+
+      const subs = Array.from(subMap.values()).map(sub => {
+        const profile = (profiles || []).find((p: any) => p.id === sub.userId);
+        return {
+          ...sub,
+          businessName: profile?.business_name || 'Unknown',
+          phone: profile?.phone || '',
+          tradePrimary: profile?.trade || sub.trades[0] || '',
+        };
+      });
+
+      return { data: subs };
+    } catch {
+      return { data: [] };
+    }
+  },
+
+  // Assign an existing sub to a trade on a project
+  assignSubToTrade: async (tradeId: string, userId: string) => {
+    const { data, error } = await supabase
+      .from('gc_project_trades')
+      .update({ assigned_user_id: userId })
+      .eq('id', tradeId)
+      .select()
+      .single();
+    if (error) throw new Error(error.message);
+    return { data: camelify(data) };
+  },
 };

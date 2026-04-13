@@ -1184,6 +1184,304 @@ export const api = {
     return { data };
   },
 
+  // -- Projects ---------------------------------------------------------------
+  getProjects: async () => {
+    const { data, error } = await supabase
+      .from('projects')
+      .select(`
+        *,
+        customer:customers(*),
+        property:properties(*),
+        phases:project_phases(
+          *,
+          tasks:phase_tasks(*),
+          materials:phase_materials(*)
+        )
+      `)
+      .order('created_at', { ascending: false });
+
+    if (error) throw new Error(error.message);
+    return { data: camelify(data || []) };
+  },
+
+  getProject: async (id: string) => {
+    const { data, error } = await supabase
+      .from('projects')
+      .select(`
+        *,
+        customer:customers(*),
+        property:properties(*),
+        phases:project_phases(
+          *,
+          tasks:phase_tasks(*),
+          materials:phase_materials(*)
+        )
+      `)
+      .eq('id', id)
+      .single();
+
+    if (error) throw new Error(error.message);
+    return { data: camelify(data) };
+  },
+
+  createProject: async (projectData: any) => {
+    const userId = await getUserId();
+    const { phases, ...project } = projectData;
+
+    const { data, error } = await supabase
+      .from('projects')
+      .insert({ ...snakeify(project), user_id: userId })
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+
+    if (phases?.length && data) {
+      const phaseResults = await Promise.all(
+        phases.map((phase: any, i: number) => {
+          const { tasks: _t, materials: _m, ...phaseFields } = phase;
+          return supabase
+            .from('project_phases')
+            .insert({ ...snakeify(phaseFields), project_id: data.id, sort_order: i })
+            .select()
+            .single();
+        })
+      );
+
+      await Promise.all(
+        phaseResults.map(({ data: phaseData }, i: number) => {
+          if (!phaseData) return Promise.resolve();
+          const { tasks, materials } = phases[i];
+          const inserts: Promise<any>[] = [];
+
+          if (tasks?.length) {
+            inserts.push(
+              Promise.resolve(supabase.from('phase_tasks').insert(
+                tasks.map((t: any, ti: number) => ({
+                  phase_id: phaseData.id,
+                  name: t.name,
+                  done: t.done || false,
+                  sort_order: ti,
+                }))
+              ))
+            );
+          }
+
+          if (materials?.length) {
+            inserts.push(
+              Promise.resolve(supabase.from('phase_materials').insert(
+                materials.map((m: any) => ({
+                  phase_id: phaseData.id,
+                  name: m.name,
+                  cost: m.cost || 0,
+                  purchased: m.purchased || false,
+                }))
+              ))
+            );
+          }
+
+          return Promise.all(inserts);
+        })
+      );
+    }
+
+    return { data: camelify(data) };
+  },
+
+  updateProject: async (id: string, updates: any) => {
+    const { data, error } = await supabase
+      .from('projects')
+      .update(snakeify(updates))
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+    return { data: camelify(data) };
+  },
+
+  deleteProject: async (id: string) => {
+    const userId = await getUserId();
+    const { data: phases } = await supabase
+      .from('project_phases')
+      .select('id')
+      .eq('project_id', id);
+
+    if (phases?.length) {
+      const phaseIds = phases.map(p => p.id);
+      await supabase.from('phase_tasks').delete().in('phase_id', phaseIds);
+      await supabase.from('phase_materials').delete().in('phase_id', phaseIds);
+      await supabase.from('project_phases').delete().eq('project_id', id);
+    }
+
+    const { error } = await supabase
+      .from('projects')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', userId);
+
+    if (error) throw new Error(error.message);
+  },
+
+  duplicateProject: async (sourceProject: any) => {
+    const userId = await getUserId();
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const { data, error } = await supabase
+      .from('projects')
+      .insert({
+        user_id: userId,
+        customer_id: sourceProject.customerId || sourceProject.customer_id,
+        property_id: sourceProject.propertyId || sourceProject.property_id,
+        name: `${sourceProject.name} (Copy)`,
+        description: sourceProject.description,
+        notes: sourceProject.notes,
+        budget: sourceProject.budget,
+        status: 'NOT_STARTED',
+        start_date: tomorrow.toISOString(),
+      })
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+
+    const phases = sourceProject.phases || [];
+    if (phases.length && data) {
+      for (let i = 0; i < phases.length; i++) {
+        const srcPhase = phases[i];
+        const { data: phaseData, error: phaseError } = await supabase
+          .from('project_phases')
+          .insert({
+            project_id: data.id,
+            name: srcPhase.name,
+            status: 'NOT_STARTED',
+            sort_order: srcPhase.sortOrder ?? srcPhase.sort_order ?? i,
+            labor_hours: 0,
+            labor_rate: srcPhase.laborRate || srcPhase.labor_rate || 0,
+          })
+          .select()
+          .single();
+
+        if (phaseError) throw new Error(phaseError.message);
+
+        const tasks = srcPhase.tasks || [];
+        if (tasks.length && phaseData) {
+          await supabase.from('phase_tasks').insert(
+            tasks.map((t: any, ti: number) => ({
+              phase_id: phaseData.id,
+              name: t.name,
+              done: false,
+              sort_order: ti,
+            }))
+          );
+        }
+
+        const materials = srcPhase.materials || [];
+        if (materials.length && phaseData) {
+          await supabase.from('phase_materials').insert(
+            materials.map((m: any) => ({
+              phase_id: phaseData.id,
+              name: m.name,
+              cost: m.cost || 0,
+              purchased: false,
+            }))
+          );
+        }
+      }
+    }
+
+    return { data: camelify(data) };
+  },
+
+  // Phase/Task/Material direct mutations
+  addPhase: async (projectId: string, phase: { name: string; sortOrder?: number }) => {
+    const { data, error } = await supabase
+      .from('project_phases')
+      .insert({ project_id: projectId, name: phase.name, status: 'NOT_STARTED', sort_order: phase.sortOrder || 0 })
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+    return { data: camelify(data) };
+  },
+
+  updatePhase: async (phaseId: string, updates: any) => {
+    const { data, error } = await supabase
+      .from('project_phases')
+      .update(snakeify(updates))
+      .eq('id', phaseId)
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+    return { data: camelify(data) };
+  },
+
+  addTask: async (phaseId: string, task: { name: string; sortOrder?: number }) => {
+    const { data, error } = await supabase
+      .from('phase_tasks')
+      .insert({ phase_id: phaseId, name: task.name, done: false, sort_order: task.sortOrder || 0 })
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+    return { data: camelify(data) };
+  },
+
+  updateTask: async (taskId: string, updates: any) => {
+    const { data, error } = await supabase
+      .from('phase_tasks')
+      .update(snakeify(updates))
+      .eq('id', taskId)
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+    return { data: camelify(data) };
+  },
+
+  deleteTask: async (taskId: string) => {
+    const { error } = await supabase
+      .from('phase_tasks')
+      .delete()
+      .eq('id', taskId);
+
+    if (error) throw new Error(error.message);
+  },
+
+  addMaterial: async (phaseId: string, material: { name: string; cost?: number }) => {
+    const { data, error } = await supabase
+      .from('phase_materials')
+      .insert({ phase_id: phaseId, name: material.name, cost: material.cost || 0, purchased: false })
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+    return { data: camelify(data) };
+  },
+
+  updateMaterial: async (materialId: string, updates: any) => {
+    const { data, error } = await supabase
+      .from('phase_materials')
+      .update(snakeify(updates))
+      .eq('id', materialId)
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+    return { data: camelify(data) };
+  },
+
+  deleteMaterial: async (materialId: string) => {
+    const { error } = await supabase
+      .from('phase_materials')
+      .delete()
+      .eq('id', materialId);
+
+    if (error) throw new Error(error.message);
+  },
+
   // -- Job Photos (read-only on web) -----------------------------------------
   getJobPhotos: async (jobId: string) => {
     const { data, error } = await supabase

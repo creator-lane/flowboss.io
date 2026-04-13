@@ -6,11 +6,14 @@ import {
   Briefcase,
   Users,
   FileText,
+  FolderKanban,
+  HardHat,
   BarChart3,
   Settings,
   LogOut,
   Menu,
   X,
+  MoreHorizontal,
 } from 'lucide-react';
 import { useAuth } from '../../lib/auth';
 
@@ -25,13 +28,16 @@ const navItems: NavItem[] = [
   { to: '/dashboard/jobs', label: 'Jobs', icon: Briefcase },
   { to: '/dashboard/customers', label: 'Customers', icon: Users },
   { to: '/dashboard/invoices', label: 'Invoices', icon: FileText },
+  { to: '/dashboard/projects', label: 'Projects', icon: FolderKanban },
+  { to: '/dashboard/contractors', label: 'Contractors', icon: HardHat },
   { to: '/dashboard/financials', label: 'Financials', icon: BarChart3 },
   { to: '/dashboard/settings', label: 'Settings', icon: Settings },
 ];
 
-const mobileNavItems = navItems.filter(
-  (item) => item.label !== 'Financials'
-);
+// Show first 4 items + a "More" toggle for the rest on mobile
+const MOBILE_PRIMARY_COUNT = 4;
+const mobilePrimaryItems = navItems.filter((item) => item.label !== 'Settings').slice(0, MOBILE_PRIMARY_COUNT);
+const mobileOverflowItems = navItems.filter((item) => item.label !== 'Settings').slice(MOBILE_PRIMARY_COUNT);
 
 function getUserInitials(email: string | undefined): string {
   if (!email) return '?';
@@ -46,6 +52,7 @@ function getUserInitials(email: string | undefined): string {
 export function DashboardLayout() {
   const { user, signOut } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [moreMenuOpen, setMoreMenuOpen] = useState(false);
 
   const initials = getUserInitials(user?.email);
 
@@ -145,11 +152,37 @@ export function DashboardLayout() {
 
       {/* Mobile bottom nav */}
       <nav className="fixed bottom-0 inset-x-0 z-30 bg-white border-t border-gray-200 lg:hidden">
+        {/* More menu overflow */}
+        {moreMenuOpen && (
+          <>
+            <div className="fixed inset-0 z-20" onClick={() => setMoreMenuOpen(false)} />
+            <div className="absolute bottom-16 right-2 z-30 bg-white rounded-xl shadow-lg border border-gray-200 py-2 min-w-[160px]">
+              {mobileOverflowItems.map(({ to, label, icon: Icon }) => (
+                <NavLink
+                  key={to}
+                  to={to}
+                  onClick={() => setMoreMenuOpen(false)}
+                  className={({ isActive }) =>
+                    `flex items-center gap-3 px-4 py-2.5 text-sm transition-colors ${
+                      isActive
+                        ? 'text-brand-600 bg-brand-50 font-medium'
+                        : 'text-gray-600 hover:bg-gray-50'
+                    }`
+                  }
+                >
+                  <Icon className="w-4 h-4" />
+                  {label}
+                </NavLink>
+              ))}
+            </div>
+          </>
+        )}
         <div className="flex items-center justify-around h-16">
-          {mobileNavItems.map(({ to, label, icon: Icon }) => (
+          {mobilePrimaryItems.map(({ to, label, icon: Icon }) => (
             <NavLink
               key={to}
               to={to}
+              onClick={() => setMoreMenuOpen(false)}
               className={({ isActive }) =>
                 `flex flex-col items-center justify-center gap-0.5 flex-1 h-full text-xs transition-colors ${
                   isActive
@@ -162,6 +195,16 @@ export function DashboardLayout() {
               <span>{label}</span>
             </NavLink>
           ))}
+          <button
+            type="button"
+            onClick={() => setMoreMenuOpen((v) => !v)}
+            className={`flex flex-col items-center justify-center gap-0.5 flex-1 h-full text-xs transition-colors ${
+              moreMenuOpen ? 'text-brand-500' : 'text-gray-400 hover:text-gray-600'
+            }`}
+          >
+            <MoreHorizontal className="w-5 h-5" />
+            <span>More</span>
+          </button>
         </div>
       </nav>
     </div>

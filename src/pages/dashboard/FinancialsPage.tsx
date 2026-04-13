@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../lib/api';
+import { CreateExpenseModal } from '../../components/expenses/CreateExpenseModal';
 import {
   format,
   startOfWeek,
@@ -285,6 +286,7 @@ function HorizontalBarChart({
 export function FinancialsPage() {
   const navigate = useNavigate();
   const [period, setPeriod] = useState<Period>('month');
+  const [showExpenseModal, setShowExpenseModal] = useState(false);
 
   // ── Data fetches ────────────────────────────────────────────────────
   const { data: financialsRes, isLoading: finLoading } = useQuery({
@@ -563,6 +565,13 @@ export function FinancialsPage() {
           <h1 className="text-2xl font-bold text-neutral-900">Financials</h1>
           <p className="text-sm text-neutral-500 mt-0.5">Track revenue, expenses, and business health</p>
         </div>
+        <div className="flex items-center gap-3">
+        <button
+          onClick={() => setShowExpenseModal(true)}
+          className="px-4 py-2 text-sm font-semibold text-white bg-brand-600 rounded-lg hover:bg-brand-700 transition-colors whitespace-nowrap"
+        >
+          + Add Expense
+        </button>
         <div className="flex bg-neutral-100 rounded-lg p-1">
           {(['week', 'month', 'year'] as Period[]).map((p) => (
             <button
@@ -578,7 +587,10 @@ export function FinancialsPage() {
             </button>
           ))}
         </div>
+        </div>
       </div>
+
+      <CreateExpenseModal open={showExpenseModal} onClose={() => setShowExpenseModal(false)} />
 
       {/* ── Section 1: Summary Cards ───────────────────────────────────── */}
       {isLoading ? (

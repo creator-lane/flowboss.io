@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../../lib/api';
@@ -12,7 +13,9 @@ import {
   FileText,
   Home,
   User,
+  Star,
 } from 'lucide-react';
+import { EditCustomerModal } from '../../components/customers/EditCustomerModal';
 
 const JOB_STATUS_STYLE: Record<string, string> = {
   COMPLETED: 'bg-green-100 text-green-700',
@@ -69,6 +72,7 @@ function Section({
 export function CustomerDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [editOpen, setEditOpen] = useState(false);
 
   const {
     data,
@@ -165,9 +169,17 @@ export function CustomerDetailPage() {
               </span>
             </div>
             <div>
-              <h1 className="text-xl font-bold text-neutral-900">
-                {customer.firstName} {customer.lastName}
-              </h1>
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl font-bold text-neutral-900">
+                  {customer.firstName} {customer.lastName}
+                </h1>
+                {(customer.jobs?.length ?? 0) >= 3 && (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-100 text-amber-700 text-xs font-semibold rounded-full">
+                    <Star className="w-3 h-3" />
+                    VIP
+                  </span>
+                )}
+              </div>
               <div className="flex flex-wrap items-center gap-4 mt-2">
                 {customer.phone && (
                   <a
@@ -188,6 +200,11 @@ export function CustomerDetailPage() {
                   </a>
                 )}
               </div>
+              {customer.leadSource && (
+                <p className="text-xs text-neutral-400 mt-1">
+                  Lead source: <span className="text-neutral-600">{customer.leadSource}</span>
+                </p>
+              )}
               {outstandingBalance > 0 && (
                 <p className="text-sm font-semibold text-red-600 mt-2">
                   Outstanding balance: {formatCurrency(outstandingBalance)}
@@ -195,15 +212,37 @@ export function CustomerDetailPage() {
               )}
             </div>
           </div>
-          <button
-            onClick={() => alert('Edit Customer form coming soon')}
-            className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-neutral-600 border border-neutral-200 rounded-lg hover:bg-neutral-50 transition-colors"
-          >
-            <Pencil className="w-3.5 h-3.5" />
-            Edit
-          </button>
+          <div className="flex items-center gap-2">
+            {customer.phone && (
+              <a
+                href={`tel:${customer.phone}`}
+                className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-neutral-600 border border-neutral-200 rounded-lg hover:bg-neutral-50 transition-colors"
+              >
+                <Phone className="w-3.5 h-3.5" />
+                Call
+              </a>
+            )}
+            {customer.email && (
+              <a
+                href={`mailto:${customer.email}`}
+                className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-neutral-600 border border-neutral-200 rounded-lg hover:bg-neutral-50 transition-colors"
+              >
+                <Mail className="w-3.5 h-3.5" />
+                Email
+              </a>
+            )}
+            <button
+              onClick={() => setEditOpen(true)}
+              className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-neutral-600 border border-neutral-200 rounded-lg hover:bg-neutral-50 transition-colors"
+            >
+              <Pencil className="w-3.5 h-3.5" />
+              Edit
+            </button>
+          </div>
         </div>
       </div>
+
+      <EditCustomerModal open={editOpen} onClose={() => setEditOpen(false)} customer={customer} />
 
       <div className="space-y-6">
         {/* Properties */}

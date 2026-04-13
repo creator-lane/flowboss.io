@@ -19,8 +19,12 @@ import {
   Truck,
   CalendarDays,
   DollarSign,
+  Copy,
+  Loader2,
+  Save,
 } from 'lucide-react';
 import { CreateInvoiceModal } from '../../components/invoices/CreateInvoiceModal';
+import { EditableLineItems } from '../../components/jobs/EditableLineItems';
 
 const STATUS_FLOW = ['SCHEDULED', 'EN_ROUTE', 'IN_PROGRESS', 'COMPLETED'] as const;
 const STATUS_LABELS: Record<string, string> = {
@@ -148,6 +152,61 @@ export function JobDetailPage() {
       navigate('/dashboard/schedule');
     },
   });
+
+  // Duplicate mutation
+  const duplicateMutation = useMutation({
+    mutationFn: () => api.duplicateJob(job),
+    onSuccess: (result: any) => {
+      queryClient.invalidateQueries({ queryKey: ['jobs'] });
+      const newId = result?.data?.id;
+      if (newId) navigate(`/dashboard/jobs/${newId}`);
+    },
+  });
+
+  // Schedule editing
+  const [editingSchedule, setEditingSchedule] = useState(false);
+  const [scheduleDate, setScheduleDate] = useState('');
+  const [scheduleStartTime, setScheduleStartTime] = useState('');
+  const [scheduleEndTime, setScheduleEndTime] = useState('');
+
+  const initScheduleEdit = () => {
+    const startIso = job?.scheduledStart || job?.scheduled_start;
+    const endIso = job?.scheduledEnd || job?.scheduled_end;
+    if (startIso) {
+      const d = new Date(startIso);
+      setScheduleDate(format(d, 'yyyy-MM-dd'));
+      setScheduleStartTime(format(d, 'HH:mm'));
+    } else {
+      setScheduleDate('');
+      setScheduleStartTime('');
+    }
+    if (endIso) {
+      setScheduleEndTime(format(new Date(endIso), 'HH:mm'));
+    } else {
+      setScheduleEndTime('');
+    }
+    setEditingSchedule(true);
+  };
+
+  const scheduleMutation = useMutation({
+    mutationFn: (updates: { scheduled_start: string; scheduled_end: string }) =>
+      api.updateJob(id!, updates),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['job', id] });
+      queryClient.invalidateQueries({ queryKey: ['jobs'] });
+      setEditingSchedule(false);
+    },
+  });
+
+  const handleScheduleSave = () => {
+    if (!scheduleDate || !scheduleStartTime) return;
+    const startStr = `${scheduleDate}T${scheduleStartTime}:00`;
+    const endStr = scheduleEndTime ? `${scheduleDate}T${scheduleEndTime}:00` : `${scheduleDate}T${scheduleStartTime}:00`;
+    scheduleMutation.mutate({
+      scheduled_start: new Date(startStr).toISOString(),
+      scheduled_end: new Date(endStr).toISOString(),
+    });
+  };
 
   const handleDelete = () => {
     if (window.confirm('Are you sure you want to delete this job? This action cannot be undone.')) {
@@ -303,38 +362,96 @@ export function JobDetailPage() {
           title="Schedule"
           icon={Clock}
           action={
-            <button
-              type="button"
-              onClick={() => alert('Schedule editing coming soon')}
-              className="p-1.5 rounded-md hover:bg-gray-100 text-neutral-400 hover:text-neutral-600 transition-colors"
-              aria-label="Edit schedule"
-            >
-              <Pencil className="w-3.5 h-3.5" />
-            </button>
+            !editingSchedule ? (
+              <button
+                type="button"
+                onClick={initScheduleEdit}
+                className="p-1.5 rounded-md hover:bg-gray-100 text-neutral-400 hover:text-neutral-600 transition-colors"
+                aria-label="Edit schedule"
+              >
+                <Pencil className="w-3.5 h-3.5" />
+              </button>
+            ) : undefined
           }
         >
-          <div className="space-y-3">
-            <div>
-              <p className="text-xs text-neutral-400 uppercase tracking-wider mb-1">Date</p>
-              <p className="text-sm font-medium text-neutral-900">
-                {formatDateTime(job.scheduledStart || job.scheduled_start)}
-              </p>
-            </div>
-            <div className="flex gap-6">
+          {editingSchedule ? (
+            <div className="space-y-3">
               <div>
-                <p className="text-xs text-neutral-400 uppercase tracking-wider mb-1">Start</p>
-                <p className="text-sm font-medium text-neutral-700">
-                  {formatTime(job.scheduledStart || job.scheduled_start) || '-'}
+                <label className="text-xs text-neutral-400 uppercase tracking-wider mb-1 block">Date</label>
+                <input
+                  type="date"
+                  value={scheduleDate}
+                  onChange={(e) => setScheduleDate(e.target.value)}
+                  className="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 outline-none"
+                />
+              </div>
+              <div className="flex gap-4">
+                <div className="flex-1">
+                  <label className="text-xs text-neutral-400 uppercase tracking-wider mb-1 block">Start Time</label>
+                  <input
+                    type="time"
+                    value={scheduleStartTime}
+                    onChange={(e) => setScheduleStartTime(e.target.value)}
+                    className="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 outline-none"
+                  />
+                </div>
+                <div className="flex-1">
+                  <label className="text-xs text-neutral-400 uppercase tracking-wider mb-1 block">End Time</label>
+                  <input
+                    type="time"
+                    value={scheduleEndTime}
+                    onChange={(e) => setScheduleEndTime(e.target.value)}
+                    className="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 outline-none"
+                  />
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleScheduleSave}
+                  disabled={scheduleMutation.isPending || !scheduleDate || !scheduleStartTime}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-brand-500 text-white text-sm font-medium rounded-lg hover:bg-brand-600 disabled:opacity-50 transition"
+                >
+                  {scheduleMutation.isPending ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Save className="w-3.5 h-3.5" />
+                  )}
+                  Save
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEditingSchedule(false)}
+                  className="px-3 py-1.5 text-sm font-medium text-neutral-600 rounded-lg hover:bg-neutral-100 transition"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <div>
+                <p className="text-xs text-neutral-400 uppercase tracking-wider mb-1">Date</p>
+                <p className="text-sm font-medium text-neutral-900">
+                  {formatDateTime(job.scheduledStart || job.scheduled_start)}
                 </p>
               </div>
-              <div>
-                <p className="text-xs text-neutral-400 uppercase tracking-wider mb-1">End</p>
-                <p className="text-sm font-medium text-neutral-700">
-                  {formatTime(job.scheduledEnd || job.scheduled_end) || '-'}
-                </p>
+              <div className="flex gap-6">
+                <div>
+                  <p className="text-xs text-neutral-400 uppercase tracking-wider mb-1">Start</p>
+                  <p className="text-sm font-medium text-neutral-700">
+                    {formatTime(job.scheduledStart || job.scheduled_start) || '-'}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-neutral-400 uppercase tracking-wider mb-1">End</p>
+                  <p className="text-sm font-medium text-neutral-700">
+                    {formatTime(job.scheduledEnd || job.scheduled_end) || '-'}
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </Section>
 
         {/* Invoice section */}
@@ -381,74 +498,12 @@ export function JobDetailPage() {
       </div>
 
       {/* Line items table */}
-      <Section
-        title="Line Items"
-        icon={FileText}
-        action={
-          <button
-            type="button"
-            onClick={() => alert('Add line item feature coming soon')}
-            className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-brand-600 hover:bg-brand-50 rounded-md transition-colors"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            Add Item
-          </button>
-        }
-      >
-        {lineItems.length > 0 ? (
-          <div className="overflow-x-auto -mx-5 px-5">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-gray-100">
-                  <th className="text-left text-xs font-semibold text-neutral-500 uppercase tracking-wider py-2 pr-4">
-                    Description
-                  </th>
-                  <th className="text-right text-xs font-semibold text-neutral-500 uppercase tracking-wider py-2 px-4 w-16">
-                    Qty
-                  </th>
-                  <th className="text-right text-xs font-semibold text-neutral-500 uppercase tracking-wider py-2 px-4 w-28">
-                    Unit Price
-                  </th>
-                  <th className="text-right text-xs font-semibold text-neutral-500 uppercase tracking-wider py-2 pl-4 w-28">
-                    Total
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {lineItems.map((li: any, idx: number) => {
-                  const qty = li.quantity || 1;
-                  const price = li.unitPrice || li.unit_price || 0;
-                  return (
-                    <tr key={li.id || idx}>
-                      <td className="py-3 pr-4 text-neutral-700">{li.description || '-'}</td>
-                      <td className="py-3 px-4 text-right text-neutral-500">{qty}</td>
-                      <td className="py-3 px-4 text-right text-neutral-500">
-                        {formatCurrency(price)}
-                      </td>
-                      <td className="py-3 pl-4 text-right font-medium text-neutral-700">
-                        {formatCurrency(qty * price)}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-              <tfoot>
-                <tr className="border-t border-gray-200">
-                  <td colSpan={3} className="py-3 pr-4 text-right text-sm font-semibold text-neutral-900">
-                    Total
-                  </td>
-                  <td className="py-3 pl-4 text-right text-sm font-bold text-neutral-900">
-                    {formatCurrency(lineItemsTotal)}
-                  </td>
-                </tr>
-              </tfoot>
-            </table>
-          </div>
-        ) : (
-          <p className="text-sm text-neutral-400 text-center py-4">
-            No line items yet. Add items to track work and pricing.
-          </p>
-        )}
+      <Section title="Line Items" icon={FileText}>
+        <EditableLineItems
+          jobId={id!}
+          initialItems={lineItems}
+          onSave={() => queryClient.invalidateQueries({ queryKey: ['job', id] })}
+        />
       </Section>
 
       {/* Notes section */}
@@ -494,8 +549,21 @@ export function JobDetailPage() {
         </Section>
       )}
 
-      {/* Delete button */}
-      <div className="pt-4 pb-8">
+      {/* Action buttons */}
+      <div className="pt-4 pb-8 flex flex-wrap gap-3">
+        <button
+          type="button"
+          onClick={() => duplicateMutation.mutate()}
+          disabled={duplicateMutation.isPending}
+          className="inline-flex items-center gap-2 px-4 py-2.5 border border-neutral-200 text-neutral-700 rounded-lg text-sm font-medium hover:bg-neutral-50 transition-colors disabled:opacity-50"
+        >
+          {duplicateMutation.isPending ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <Copy className="w-4 h-4" />
+          )}
+          {duplicateMutation.isPending ? 'Duplicating...' : 'Duplicate Job'}
+        </button>
         <button
           type="button"
           onClick={handleDelete}

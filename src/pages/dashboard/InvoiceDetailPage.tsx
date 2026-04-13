@@ -17,6 +17,7 @@ import {
   User,
   Calendar,
   StickyNote,
+  ExternalLink,
 } from 'lucide-react';
 
 const STATUS_STYLE: Record<string, { badge: string; label: string }> = {
@@ -525,16 +526,39 @@ export function InvoiceDetailPage() {
                       Payment Link Ready
                     </span>
                   </div>
-                  <p className="text-xs text-brand-600 truncate mb-2">
+                  <p
+                    className="text-xs text-brand-600 truncate mb-2 select-all"
+                    title={paymentLink}
+                  >
                     {paymentLink}
                   </p>
                   <button
                     onClick={handleCopyLink}
                     className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-white border border-brand-200 rounded-md text-xs font-semibold text-brand-600 hover:bg-brand-50 transition-colors"
                   >
-                    <Copy className="w-3.5 h-3.5" />
-                    {copied ? 'Copied!' : 'Copy to Clipboard'}
+                    {copied ? (
+                      <CheckCircle className="w-3.5 h-3.5 text-green-500" />
+                    ) : (
+                      <Copy className="w-3.5 h-3.5" />
+                    )}
+                    {copied ? (
+                      <span className="text-green-600">Copied!</span>
+                    ) : (
+                      'Copy Link'
+                    )}
                   </button>
+                  <a
+                    href={paymentLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full flex items-center justify-center gap-2 px-3 py-2 mt-2 bg-white border border-neutral-200 rounded-md text-xs font-semibold text-neutral-600 hover:bg-neutral-50 transition-colors"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" />
+                    Open in Browser
+                  </a>
+                  <p className="text-[11px] text-brand-500 mt-2 text-center">
+                    Copy this link and text it to your customer
+                  </p>
                 </div>
               )}
 

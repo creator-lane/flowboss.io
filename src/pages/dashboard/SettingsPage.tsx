@@ -84,16 +84,21 @@ export function SettingsPage() {
 
   // Stripe connect
   const [connectingStripe, setConnectingStripe] = useState(false);
+  const [stripeConnectUrl, setStripeConnectUrl] = useState('');
+  const [stripeConnectError, setStripeConnectError] = useState('');
 
   const handleConnectStripe = async () => {
     setConnectingStripe(true);
+    setStripeConnectError('');
     try {
       const result = await api.getStripeConnectUrl();
       if (result.url) {
-        window.open(result.url, '_blank');
+        setStripeConnectUrl(result.url);
+      } else {
+        setStripeConnectError('Could not generate Stripe connect URL');
       }
     } catch {
-      // Silently handle
+      setStripeConnectError('Failed to get Stripe connect URL. Please try again.');
     } finally {
       setConnectingStripe(false);
     }
@@ -252,19 +257,42 @@ export function SettingsPage() {
               <span className="text-sm text-neutral-400 font-mono">{maskedAccountId}</span>
             )}
           </div>
-        ) : (
-          <button
-            onClick={handleConnectStripe}
-            disabled={connectingStripe}
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-500 text-white font-semibold rounded-lg hover:bg-brand-600 disabled:opacity-50 transition text-sm"
-          >
-            {connectingStripe ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
+        ) : stripeConnectUrl ? (
+          <div className="space-y-3">
+            <p className="text-sm text-neutral-600">
+              You'll be redirected to Stripe to complete setup.
+            </p>
+            <a
+              href={stripeConnectUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-500 text-white font-semibold rounded-lg hover:bg-brand-600 transition text-sm"
+            >
               <ExternalLink className="w-4 h-4" />
+              Continue to Stripe
+            </a>
+            <p className="text-xs text-neutral-400 truncate max-w-md" title={stripeConnectUrl}>
+              {stripeConnectUrl}
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            <button
+              onClick={handleConnectStripe}
+              disabled={connectingStripe}
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-500 text-white font-semibold rounded-lg hover:bg-brand-600 disabled:opacity-50 transition text-sm"
+            >
+              {connectingStripe ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <ExternalLink className="w-4 h-4" />
+              )}
+              Connect Stripe
+            </button>
+            {stripeConnectError && (
+              <p className="text-sm text-red-600">{stripeConnectError}</p>
             )}
-            Connect Stripe
-          </button>
+          </div>
         )}
       </div>
 

@@ -1,0 +1,507 @@
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { api } from '../../lib/api';
+import { useAuth } from '../../lib/auth';
+import { format } from 'date-fns';
+import {
+  ArrowLeft,
+  Clock,
+  MapPin,
+  FileText,
+  Camera,
+  Trash2,
+  ChevronRight,
+  Pencil,
+  Plus,
+  AlertTriangle,
+  CheckCircle,
+  Truck,
+  CalendarDays,
+  DollarSign,
+} from 'lucide-react';
+
+const STATUS_FLOW = ['SCHEDULED', 'EN_ROUTE', 'IN_PROGRESS', 'COMPLETED'] as const;
+const STATUS_LABELS: Record<string, string> = {
+  SCHEDULED: 'Scheduled',
+  EN_ROUTE: 'En Route',
+  IN_PROGRESS: 'In Progress',
+  COMPLETED: 'Completed',
+};
+const STATUS_BADGE: Record<string, { bg: string; text: string }> = {
+  SCHEDULED: { bg: 'bg-blue-100', text: 'text-status-scheduled' },
+  EN_ROUTE: { bg: 'bg-amber-100', text: 'text-warning' },
+  IN_PROGRESS: { bg: 'bg-cyan-100', text: 'text-status-inProgress' },
+  COMPLETED: { bg: 'bg-green-100', text: 'text-status-completed' },
+};
+const STATUS_ICONS: Record<string, React.ElementType> = {
+  SCHEDULED: CalendarDays,
+  EN_ROUTE: Truck,
+  IN_PROGRESS: Clock,
+  COMPLETED: CheckCircle,
+};
+
+const formatCurrency = (n: number) =>
+  new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 2,
+  }).format(n);
+
+function Section({
+  title,
+  icon: Icon,
+  children,
+  action,
+}: {
+  title: string;
+  icon: React.ElementType;
+  children: React.ReactNode;
+  action?: React.ReactNode;
+}) {
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+        <div className="flex items-center gap-2">
+          <Icon className="w-4 h-4 text-neutral-400" />
+          <h2 className="text-sm font-semibold text-neutral-900">{title}</h2>
+        </div>
+        {action}
+      </div>
+      <div className="p-5">{children}</div>
+    </div>
+  );
+}
+
+export function JobDetailPage() {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  // Fetch job
+  const { data: jobData, isLoading } = useQuery({
+    queryKey: ['job', id],
+    queryFn: () => api.getJob(id!),
+    enabled: !!id,
+  });
+
+  // Fetch photos
+  const { data: photosData } = useQuery({
+    queryKey: ['job-photos', id],
+    queryFn: () => api.getJobPhotos(id!),
+    enabled: !!id,
+  });
+
+  // Fetch invoices for this job
+  const { data: invoicesData } = useQuery({
+    queryKey: ['job-invoices', id],
+    queryFn: () => api.getInvoicesByJob(id!),
+    enabled: !!id,
+  });
+
+  const job = jobData?.data || jobData;
+  const photos = photosData?.data || [];
+  const invoices = invoicesData?.data || [];
+
+  // Notes editing
+  const [notes, setNotes] = useState('');
+  const [notesInitialized, setNotesInitialized] = useState(false);
+
+  useEffect(() => {
+    if (job && !notesInitialized) {
+      setNotes(job.notes || '');
+      setNotesInitialized(true);
+    }
+  }, [job, notesInitialized]);
+
+  // Status mutation
+  const statusMutation = useMutation({
+    mutationFn: async (newStatus: string) => {
+      const updates: any = { status: newStatus };
+      if (newStatus === 'IN_PROGRESS') updates.started_at = new Date().toISOString();
+      if (newStatus === 'COMPLETED') updates.completed_at = new Date().toISOString();
+      return api.updateJob(id!, updates);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['job', id] });
+      queryClient.invalidateQueries({ queryKey: ['jobs'] });
+    },
+  });
+
+  // Notes mutation
+  const notesMutation = useMutation({
+    mutationFn: (newNotes: string) => api.updateJob(id!, { notes: newNotes }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['job', id] });
+    },
+  });
+
+  // Delete mutation
+  const deleteMutation = useMutation({
+    mutationFn: () => api.deleteJob(id!),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['jobs'] });
+      navigate('/dashboard/schedule');
+    },
+  });
+
+  const handleDelete = () => {
+    if (window.confirm('Are you sure you want to delete this job? This action cannot be undone.')) {
+      deleteMutation.mutate();
+    }
+  };
+
+  const currentStatusIdx = STATUS_FLOW.indexOf(job?.status as any);
+  const canAdvance = currentStatusIdx >= 0 && currentStatusIdx < STATUS_FLOW.length - 1;
+  const nextStatus = canAdvance ? STATUS_FLOW[currentStatusIdx + 1] : null;
+
+  const customerName = job
+    ? [job.customer?.firstName, job.customer?.lastName].filter(Boolean).join(' ') ||
+      'Unknown Customer'
+    : '';
+  const address = job?.property
+    ? [job.property.street || job.property.address, job.property.city, job.property.state]
+        .filter(Boolean)
+        .join(', ')
+    : '';
+
+  const lineItems: any[] = job?.lineItems || [];
+  const lineItemsTotal = lineItems.reduce(
+    (sum: number, li: any) => sum + (li.quantity || 1) * (li.unitPrice || li.unit_price || 0),
+    0,
+  );
+
+  const formatDateTime = (iso: string | undefined) => {
+    if (!iso) return '-';
+    return format(new Date(iso), 'EEEE, MMM d, yyyy');
+  };
+
+  const formatTime = (iso: string | undefined) => {
+    if (!iso) return '';
+    return format(new Date(iso), 'h:mm a');
+  };
+
+  if (isLoading) {
+    return (
+      <div className="p-4 sm:p-6 lg:p-8 max-w-4xl mx-auto">
+        <div className="animate-pulse space-y-6">
+          <div className="h-6 bg-gray-200 rounded w-32" />
+          <div className="h-8 bg-gray-200 rounded w-64" />
+          <div className="h-40 bg-gray-100 rounded-xl" />
+          <div className="h-40 bg-gray-100 rounded-xl" />
+        </div>
+      </div>
+    );
+  }
+
+  if (!job) {
+    return (
+      <div className="p-4 sm:p-6 lg:p-8 max-w-4xl mx-auto">
+        <div className="text-center py-20">
+          <AlertTriangle className="w-10 h-10 text-neutral-300 mx-auto mb-3" />
+          <p className="text-lg font-medium text-neutral-500">Job not found</p>
+          <Link
+            to="/dashboard/schedule"
+            className="text-sm text-brand-500 hover:text-brand-600 mt-2 inline-block"
+          >
+            Back to schedule
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-4 sm:p-6 lg:p-8 max-w-4xl mx-auto space-y-6">
+      {/* Back button */}
+      <button
+        type="button"
+        onClick={() => navigate(-1)}
+        className="inline-flex items-center gap-1.5 text-sm text-neutral-500 hover:text-neutral-700 transition-colors"
+      >
+        <ArrowLeft className="w-4 h-4" />
+        Back
+      </button>
+
+      {/* Header */}
+      <div>
+        <h1 className="text-2xl font-bold text-neutral-900">{customerName}</h1>
+        {address && (
+          <p className="text-sm text-neutral-500 mt-1 flex items-center gap-1.5">
+            <MapPin className="w-4 h-4 text-neutral-400" />
+            {address}
+          </p>
+        )}
+        {job.description && (
+          <p className="text-sm text-neutral-400 mt-1">{job.description}</p>
+        )}
+      </div>
+
+      {/* Status section */}
+      <div className="bg-white rounded-xl border border-gray-200 p-5">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-sm font-semibold text-neutral-900">Status</h2>
+          {(() => {
+            const cfg = STATUS_BADGE[job.status] || STATUS_BADGE.SCHEDULED;
+            const Icon = STATUS_ICONS[job.status] || CalendarDays;
+            return (
+              <span
+                className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium ${cfg.bg} ${cfg.text}`}
+              >
+                <Icon className="w-4 h-4" />
+                {STATUS_LABELS[job.status] || job.status}
+              </span>
+            );
+          })()}
+        </div>
+
+        {/* Status flow buttons */}
+        <div className="flex items-center gap-2 flex-wrap">
+          {STATUS_FLOW.map((s, idx) => {
+            const isCurrent = job.status === s;
+            const isPast = idx < currentStatusIdx;
+            const isNext = s === nextStatus;
+            const StIcon = STATUS_ICONS[s] || CalendarDays;
+
+            return (
+              <button
+                key={s}
+                type="button"
+                disabled={!isNext}
+                onClick={() => isNext && statusMutation.mutate(s)}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+                  isCurrent
+                    ? 'bg-brand-500 text-white'
+                    : isPast
+                      ? 'bg-gray-100 text-neutral-400'
+                      : isNext
+                        ? 'bg-brand-50 text-brand-600 hover:bg-brand-100 border border-brand-200'
+                        : 'bg-gray-50 text-neutral-300 cursor-not-allowed'
+                }`}
+              >
+                <StIcon className="w-3.5 h-3.5" />
+                {STATUS_LABELS[s]}
+                {idx < STATUS_FLOW.length - 1 && (
+                  <ChevronRight className="w-3 h-3 ml-0.5" />
+                )}
+              </button>
+            );
+          })}
+        </div>
+        {statusMutation.isPending && (
+          <p className="text-xs text-neutral-400 mt-2">Updating status...</p>
+        )}
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Schedule section */}
+        <Section
+          title="Schedule"
+          icon={Clock}
+          action={
+            <button
+              type="button"
+              onClick={() => alert('Schedule editing coming soon')}
+              className="p-1.5 rounded-md hover:bg-gray-100 text-neutral-400 hover:text-neutral-600 transition-colors"
+              aria-label="Edit schedule"
+            >
+              <Pencil className="w-3.5 h-3.5" />
+            </button>
+          }
+        >
+          <div className="space-y-3">
+            <div>
+              <p className="text-xs text-neutral-400 uppercase tracking-wider mb-1">Date</p>
+              <p className="text-sm font-medium text-neutral-900">
+                {formatDateTime(job.scheduledStart || job.scheduled_start)}
+              </p>
+            </div>
+            <div className="flex gap-6">
+              <div>
+                <p className="text-xs text-neutral-400 uppercase tracking-wider mb-1">Start</p>
+                <p className="text-sm font-medium text-neutral-700">
+                  {formatTime(job.scheduledStart || job.scheduled_start) || '-'}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-neutral-400 uppercase tracking-wider mb-1">End</p>
+                <p className="text-sm font-medium text-neutral-700">
+                  {formatTime(job.scheduledEnd || job.scheduled_end) || '-'}
+                </p>
+              </div>
+            </div>
+          </div>
+        </Section>
+
+        {/* Invoice section */}
+        <Section title="Invoices" icon={DollarSign}>
+          {Array.isArray(invoices) && invoices.length > 0 ? (
+            <div className="space-y-2">
+              {invoices.map((inv: any) => (
+                <Link
+                  key={inv.id}
+                  to={`/dashboard/invoices/${inv.id}`}
+                  className="flex items-center justify-between p-3 rounded-lg border border-gray-100 hover:bg-gray-50 transition-colors"
+                >
+                  <div>
+                    <p className="text-sm font-medium text-neutral-900">
+                      Invoice #{inv.invoiceNumber || inv.invoice_number || '-'}
+                    </p>
+                    <p className="text-xs text-neutral-400">
+                      {inv.status?.toUpperCase() || 'DRAFT'}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-semibold text-neutral-700">
+                      {formatCurrency(Number(inv.total || 0))}
+                    </span>
+                    <ChevronRight className="w-4 h-4 text-neutral-300" />
+                  </div>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-4">
+              <p className="text-sm text-neutral-400 mb-3">No invoices for this job yet.</p>
+              <button
+                type="button"
+                onClick={() => navigate('/dashboard/invoices')}
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-brand-50 text-brand-600 rounded-lg text-sm font-medium hover:bg-brand-100 transition-colors"
+              >
+                <Plus className="w-4 h-4" />
+                Create Invoice
+              </button>
+            </div>
+          )}
+        </Section>
+      </div>
+
+      {/* Line items table */}
+      <Section
+        title="Line Items"
+        icon={FileText}
+        action={
+          <button
+            type="button"
+            onClick={() => alert('Add line item feature coming soon')}
+            className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-brand-600 hover:bg-brand-50 rounded-md transition-colors"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            Add Item
+          </button>
+        }
+      >
+        {lineItems.length > 0 ? (
+          <div className="overflow-x-auto -mx-5 px-5">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-100">
+                  <th className="text-left text-xs font-semibold text-neutral-500 uppercase tracking-wider py-2 pr-4">
+                    Description
+                  </th>
+                  <th className="text-right text-xs font-semibold text-neutral-500 uppercase tracking-wider py-2 px-4 w-16">
+                    Qty
+                  </th>
+                  <th className="text-right text-xs font-semibold text-neutral-500 uppercase tracking-wider py-2 px-4 w-28">
+                    Unit Price
+                  </th>
+                  <th className="text-right text-xs font-semibold text-neutral-500 uppercase tracking-wider py-2 pl-4 w-28">
+                    Total
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {lineItems.map((li: any, idx: number) => {
+                  const qty = li.quantity || 1;
+                  const price = li.unitPrice || li.unit_price || 0;
+                  return (
+                    <tr key={li.id || idx}>
+                      <td className="py-3 pr-4 text-neutral-700">{li.description || '-'}</td>
+                      <td className="py-3 px-4 text-right text-neutral-500">{qty}</td>
+                      <td className="py-3 px-4 text-right text-neutral-500">
+                        {formatCurrency(price)}
+                      </td>
+                      <td className="py-3 pl-4 text-right font-medium text-neutral-700">
+                        {formatCurrency(qty * price)}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+              <tfoot>
+                <tr className="border-t border-gray-200">
+                  <td colSpan={3} className="py-3 pr-4 text-right text-sm font-semibold text-neutral-900">
+                    Total
+                  </td>
+                  <td className="py-3 pl-4 text-right text-sm font-bold text-neutral-900">
+                    {formatCurrency(lineItemsTotal)}
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        ) : (
+          <p className="text-sm text-neutral-400 text-center py-4">
+            No line items yet. Add items to track work and pricing.
+          </p>
+        )}
+      </Section>
+
+      {/* Notes section */}
+      <Section title="Notes" icon={FileText}>
+        <textarea
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          onBlur={() => {
+            if (notes !== (job.notes || '')) {
+              notesMutation.mutate(notes);
+            }
+          }}
+          placeholder="Add notes about this job..."
+          rows={4}
+          className="w-full rounded-lg border border-gray-200 px-4 py-3 text-sm text-neutral-700 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent resize-y"
+        />
+        {notesMutation.isPending && (
+          <p className="text-xs text-neutral-400 mt-1">Saving...</p>
+        )}
+        {notesMutation.isSuccess && (
+          <p className="text-xs text-status-completed mt-1">Saved</p>
+        )}
+      </Section>
+
+      {/* Photos section */}
+      {Array.isArray(photos) && photos.length > 0 && (
+        <Section title="Photos" icon={Camera}>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+            {photos.map((photo: any) => (
+              <div
+                key={photo.id}
+                className="aspect-square rounded-lg overflow-hidden bg-gray-100"
+              >
+                <img
+                  src={photo.url || photo.publicUrl || photo.public_url}
+                  alt={photo.caption || 'Job photo'}
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                />
+              </div>
+            ))}
+          </div>
+        </Section>
+      )}
+
+      {/* Delete button */}
+      <div className="pt-4 pb-8">
+        <button
+          type="button"
+          onClick={handleDelete}
+          disabled={deleteMutation.isPending}
+          className="inline-flex items-center gap-2 px-4 py-2.5 border border-red-200 text-red-600 rounded-lg text-sm font-medium hover:bg-red-50 transition-colors disabled:opacity-50"
+        >
+          <Trash2 className="w-4 h-4" />
+          {deleteMutation.isPending ? 'Deleting...' : 'Delete Job'}
+        </button>
+      </div>
+    </div>
+  );
+}

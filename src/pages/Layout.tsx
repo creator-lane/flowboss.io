@@ -1,10 +1,8 @@
-import { Outlet, Link, useLocation } from 'react-router-dom';
+import { Outlet, Link } from 'react-router-dom';
 import { Wrench } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 export function Layout() {
-  const { pathname } = useLocation();
-  const [showComingSoon, setShowComingSoon] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -15,13 +13,6 @@ export function Layout() {
 
   return (
     <div className="min-h-screen flex flex-col bg-white scroll-smooth">
-      {/* Coming Soon Toast */}
-      {showComingSoon && (
-        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-lg text-sm font-medium animate-fade-in">
-          Web dashboard coming soon! Use the mobile app for now.
-        </div>
-      )}
-
       {/* Nav */}
       <nav
         className={`sticky top-0 z-40 transition-all duration-200 ${
@@ -49,15 +40,12 @@ export function Layout() {
             </a>
           </div>
           <div className="flex items-center gap-4">
-            <button
-              onClick={() => {
-                setShowComingSoon(true);
-                setTimeout(() => setShowComingSoon(false), 2500);
-              }}
+            <Link
+              to="/login"
               className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
             >
               Log In
-            </button>
+            </Link>
             <a
               href="https://apps.apple.com/app/id6761025816"
               className="hidden sm:inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-all shadow-sm"

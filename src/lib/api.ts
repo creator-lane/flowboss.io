@@ -1,0 +1,1198 @@
+import { supabase } from './supabase';
+
+// Normalize Supabase snake_case to camelCase for UI consumption
+function camelify(obj: any): any {
+  if (!obj || typeof obj !== 'object') return obj;
+  if (Array.isArray(obj)) return obj.map(camelify);
+  const out: any = {};
+  for (const [k, v] of Object.entries(obj)) {
+    const camel = k.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
+    out[camel] = (v && typeof v === 'object') ? camelify(v) : v;
+    // Also keep original key for backwards compat
+    if (camel !== k) out[k] = out[camel];
+  }
+  return out;
+}
+
+// Convert camelCase keys to snake_case for Supabase writes
+function snakeify(obj: any): any {
+  if (!obj || typeof obj !== 'object') return obj;
+  if (Array.isArray(obj)) return obj.map(snakeify);
+  const out: any = {};
+  for (const [k, v] of Object.entries(obj)) {
+    if (v === undefined) continue; // strip undefined
+    const snake = k.replace(/[A-Z]/g, c => '_' + c.toLowerCase());
+    out[snake] = (v && typeof v === 'object' && !(v instanceof Date)) ? snakeify(v) : v;
+  }
+  return out;
+}
+
+async function getUserId(): Promise<string> {
+  // Try getSession first (reads from memory/storage)
+  const { data: { session } } = await supabase.auth.getSession();
+  if (session?.user?.id) return session.user.id;
+
+  // Fallback: getUser() does a fresh token check with Supabase
+  const { data: { user } } = await supabase.auth.getUser();
+  if (user?.id) return user.id;
+
+  throw new Error('You must be signed in to do that. Please log in and try again.');
+}
+
+const SUPABASE_FN_URL = 'https://besbtasjpqmfqjkudmgu.supabase.co/functions/v1';
+const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJlc2J0YXNqcHFtZnFqa3VkbWd1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2OTA1MTAsImV4cCI6MjA4OTI2NjUxMH0.0AJitLQfphKvlV-xveWkZAhd-CBslFgxt9-38QX8GT8';
+
+export const api = {
+  // -- Jobs ------------------------------------------------------------------
+  getTodaysJobs: async (_technicianId?: string, range?: 'today' | 'tomorrow' | 'week' | 'month', specificDate?: string) => {
+    const start = specificDate ? new Date(specificDate + 'T00:00:00') : new Date();
+    start.setHours(0, 0, 0, 0);
+    if (!specificDate && range === 'tomorrow') start.setDate(start.getDate() + 1);
+
+    const end = new Date(start);
+    if (range === 'month') {
+      // Full current month: 1st of this month to 1st of next month
+      start.setDate(1);
+      end.setFullYear(start.getFullYear(), start.getMonth() + 1, 1);
+    } else if (range === 'week') {
+      end.setDate(end.getDate() + 7);
+    } else {
+      end.setDate(end.getDate() + 1);
+    }
+
+    const { data, error } = await supabase
+      .from('jobs')
+      .select('*, customer:customers(*), property:properties(*)')
+      .gte('scheduled_start', start.toISOString())
+      .lt('scheduled_start', end.toISOString())
+      .order('scheduled_start', { ascending: true });
+
+    if (error) throw new Error(error.message);
+    return { data: camelify(data || []) };
+  },
+
+  getJob: async (id: string) => {
+    const { data, error } = await supabase
+      .from('jobs')
+      .select('*, customer:customers(*), property:properties(*), lineItems:job_line_items(*)')
+      .eq('id', id)
+      .single();
+
+    if (error) throw new Error(error.message);
+    return { data: camelify(data) };
+  },
+
+  createJob: async (jobData: any) => {
+    const userId = await getUserId();
+    const clean = snakeify({ ...jobData, userId });
+    const { data, error } = await supabase
+      .from('jobs')
+      .insert(clean)
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+    return { data: camelify(data) };
+  },
+
+  updateJob: async (id: string, updates: any) => {
+    const { data, error } = await supabase
+      .from('jobs')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+    return { data };
+  },
+
+  deleteJob: async (id: string) => {
+    const userId = await getUserId();
+    // Delete child line items first
+    await supabase.from('job_line_items').delete().eq('job_id', id);
+
+    const { error } = await supabase
+      .from('jobs')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', userId);
+
+    if (error) throw new Error(error.message);
+  },
+
+  addLineItem: async (jobId: string, item: any) => {
+    const { data, error } = await supabase
+      .from('job_line_items')
+      .insert({ ...item, job_id: jobId })
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+    return { data };
+  },
+
+  saveJobLineItems: async (jobId: string, items: { description: string; quantity: number; unitPrice: number }[]) => {
+    // Delete existing line items and replace with new set
+    await supabase.from('job_line_items').delete().eq('job_id', jobId);
+
+    if (items.length === 0) return { data: [] };
+
+    const rows = items.map(li => ({
+      job_id: jobId,
+      description: li.description,
+      quantity: li.quantity,
+      unit_price: li.unitPrice,
+    }));
+
+    const { data, error } = await supabase
+      .from('job_line_items')
+      .insert(rows)
+      .select();
+
+    if (error) throw new Error(error.message);
+    return { data };
+  },
+
+  // -- Job History + Intelligence --------------------------------------------
+
+  getCompletedJobs: async (params?: { search?: string; customerId?: string; limit?: number; offset?: number }) => {
+    const userId = await getUserId();
+    let query = supabase
+      .from('jobs')
+      .select('*, customer:customers(id, first_name, last_name, phone), lineItems:job_line_items(*)')
+      .eq('user_id', userId)
+      .eq('status', 'COMPLETED')
+      .order('completed_at', { ascending: false, nullsFirst: false })
+      .order('scheduled_start', { ascending: false });
+
+    if (params?.search) {
+      query = query.ilike('description', `%${params.search}%`);
+    }
+    if (params?.customerId) {
+      query = query.eq('customer_id', params.customerId);
+    }
+    const limit = params?.limit || 50;
+    const offset = params?.offset || 0;
+    query = query.range(offset, offset + limit - 1);
+
+    const { data, error } = await query;
+    if (error) throw new Error(error.message);
+    return { data: camelify(data || []) };
+  },
+
+  getJobIntelligenceData: async () => {
+    const userId = await getUserId();
+    const [jobsRes, invoicesRes] = await Promise.all([
+      supabase
+        .from('jobs')
+        .select('*, lineItems:job_line_items(*)')
+        .eq('user_id', userId)
+        .eq('status', 'COMPLETED'),
+      supabase
+        .from('invoices')
+        .select('*, lineItems:invoice_line_items(*)')
+        .eq('user_id', userId)
+        .not('job_id', 'is', null),
+    ]);
+    return {
+      data: {
+        jobs: camelify(jobsRes.data || []),
+        invoices: camelify(invoicesRes.data || []),
+      },
+    };
+  },
+
+  duplicateJob: async (sourceJob: any) => {
+    const userId = await getUserId();
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(9, 0, 0, 0);
+
+    const { data, error } = await supabase
+      .from('jobs')
+      .insert({
+        user_id: userId,
+        customer_id: sourceJob.customerId || sourceJob.customer_id,
+        property_id: sourceJob.propertyId || sourceJob.property_id,
+        description: sourceJob.description,
+        notes: sourceJob.notes,
+        priority: 'NORMAL',
+        status: 'SCHEDULED',
+        estimated_duration: sourceJob.estimatedDuration || sourceJob.estimated_duration,
+        scheduled_start: tomorrow.toISOString(),
+        scheduled_end: new Date(tomorrow.getTime() + 2 * 3600000).toISOString(),
+      })
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+
+    // Copy line items from source job
+    const sourceItems = sourceJob.lineItems || sourceJob.line_items || [];
+    if (sourceItems.length > 0 && data) {
+      const rows = sourceItems.map((li: any) => ({
+        job_id: data.id,
+        description: li.description,
+        quantity: li.quantity,
+        unit_price: li.unitPrice || li.unit_price,
+      }));
+      await supabase.from('job_line_items').insert(rows);
+    }
+
+    return { data: camelify(data) };
+  },
+
+  // -- Customers -------------------------------------------------------------
+  getCustomers: async (params?: Record<string, string>) => {
+    let query = supabase
+      .from('customers')
+      .select('*, properties(*), invoices(id, total, status, balance_due)')
+      .order('created_at', { ascending: false });
+
+    if (params?.search) {
+      query = query.or(
+        `first_name.ilike.%${params.search}%,last_name.ilike.%${params.search}%,phone.ilike.%${params.search}%,email.ilike.%${params.search}%`
+      );
+    }
+
+    const { data, error } = await query;
+    if (error) throw new Error(error.message);
+    return { data: camelify(data || []) };
+  },
+
+  getCustomer: async (id: string) => {
+    const { data, error } = await supabase
+      .from('customers')
+      .select('*, properties(*), jobs(*), invoices(*), projects(*)')
+      .eq('id', id)
+      .single();
+
+    if (error) throw new Error(error.message);
+    return { data: camelify(data) };
+  },
+
+  createCustomer: async (customerData: any) => {
+    const userId = await getUserId();
+    const { property, ...customer } = customerData;
+
+    // Strip undefined values -- PostgREST rejects them
+    const clean = Object.fromEntries(
+      Object.entries({ ...customer, user_id: userId }).filter(([_, v]) => v !== undefined)
+    );
+
+    const { data, error } = await supabase
+      .from('customers')
+      .insert(clean)
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+
+    // If property data provided, create it
+    if (property && data) {
+      const cleanProp = Object.fromEntries(
+        Object.entries({ ...property, customer_id: data.id }).filter(([_, v]) => v !== undefined)
+      );
+      await supabase
+        .from('properties')
+        .insert(cleanProp);
+    }
+
+    return { data };
+  },
+
+  updateCustomer: async (id: string, updates: any) => {
+    const { data, error } = await supabase
+      .from('customers')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+    return { data };
+  },
+
+  // -- Pricebook -------------------------------------------------------------
+  getPricebook: async (params?: Record<string, string>) => {
+    let query = supabase
+      .from('pricebook_items')
+      .select('*')
+      .order('use_count', { ascending: false, nullsFirst: false });
+
+    // Secondary sort by name for items with same use_count
+    query = query.order('name');
+
+    if (params?.search) {
+      query = query.ilike('name', `%${params.search}%`);
+    }
+    if (params?.category) {
+      query = query.eq('category', params.category);
+    }
+
+    const { data, error } = await query;
+    if (error) throw new Error(error.message);
+    return { data: data || [] };
+  },
+
+  getSmartPricebook: async (search?: string) => {
+    // Returns pricebook items sorted by frequency (most used first)
+    // with price intelligence data
+    let query = supabase
+      .from('pricebook_items')
+      .select('*')
+      .order('use_count', { ascending: false, nullsFirst: false })
+      .order('name');
+
+    if (search && search.trim()) {
+      query = query.ilike('name', `%${search.trim()}%`);
+    }
+
+    const { data, error } = await query;
+    if (error) throw new Error(error.message);
+    return { data: data || [] };
+  },
+
+  createPricebookItem: async (item: {
+    name: string;
+    default_price: number;
+    category?: string;
+    description?: string;
+    unit?: string;
+  }) => {
+    const userId = await getUserId();
+    const { data, error } = await supabase
+      .from('pricebook_items')
+      .insert({ ...item, user_id: userId })
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+    return { data };
+  },
+
+  updatePricebookItem: async (id: string, updates: any) => {
+    const { data, error } = await supabase
+      .from('pricebook_items')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+    return { data };
+  },
+
+  deletePricebookItem: async (id: string) => {
+    const userId = await getUserId();
+    const { error } = await supabase
+      .from('pricebook_items')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', userId);
+
+    if (error) throw new Error(error.message);
+    return { success: true };
+  },
+
+  // Record prices used on an invoice/estimate/job -- builds the adaptive pricebook
+  recordPriceUsage: async (lineItems: { description: string; unitPrice: number; quantity: number }[], source: 'invoice' | 'estimate' | 'job', sourceId?: string) => {
+    const userId = await getUserId();
+    if (!userId) return;
+
+    // Call learn_price for each line item
+    for (const item of lineItems) {
+      if (!item.description.trim()) continue;
+      await supabase.rpc('learn_price', {
+        p_user_id: userId,
+        p_item_name: item.description,
+        p_price: item.unitPrice,
+        p_quantity: item.quantity,
+        p_source: source,
+        p_source_id: sourceId || null,
+        p_category: null,
+      });
+    }
+  },
+
+  getPriceHistory: async (pricebookItemId: string) => {
+    const { data, error } = await supabase
+      .from('price_history')
+      .select('*')
+      .eq('pricebook_item_id', pricebookItemId)
+      .order('used_at', { ascending: false })
+      .limit(20);
+
+    if (error) throw new Error(error.message);
+    return { data: data || [] };
+  },
+
+  getStaleItems: async () => {
+    // Items not used in 6+ months -- candidates for price increase nudges
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+    const { data, error } = await supabase
+      .from('pricebook_items')
+      .select('*')
+      .gt('use_count', 0)
+      .lt('last_used_at', sixMonthsAgo.toISOString())
+      .order('use_count', { ascending: false });
+
+    if (error) throw new Error(error.message);
+    return { data: data || [] };
+  },
+
+  seedDefaultPricebook: async (trade: string = 'plumbing') => {
+    const userId = await getUserId();
+    if (!userId) return;
+
+    // Check if user already has items
+    const { data: existing } = await supabase
+      .from('pricebook_items')
+      .select('id')
+      .limit(1);
+
+    if (existing && existing.length > 0) return; // Already has items
+
+    const TRADE_PRICEBOOKS: Record<string, { name: string; default_price: number; category: string; unit: string }[]> = {
+      plumbing: [
+        { name: 'Service Call / Diagnostic', default_price: 89, category: 'General', unit: 'ea' },
+        { name: 'Kitchen Drain - Snake', default_price: 175, category: 'Drain Clearing', unit: 'ea' },
+        { name: 'Bathroom Drain - Snake', default_price: 150, category: 'Drain Clearing', unit: 'ea' },
+        { name: 'Main Line - Cable Machine', default_price: 350, category: 'Drain Clearing', unit: 'ea' },
+        { name: 'Camera Inspection', default_price: 225, category: 'Drain Clearing', unit: 'ea' },
+        { name: 'Hydro Jetting', default_price: 550, category: 'Drain Clearing', unit: 'ea' },
+        { name: '40 Gal Tank Install', default_price: 1800, category: 'Water Heaters', unit: 'ea' },
+        { name: '50 Gal Tank Install', default_price: 2100, category: 'Water Heaters', unit: 'ea' },
+        { name: 'Tankless Install', default_price: 3500, category: 'Water Heaters', unit: 'ea' },
+        { name: 'Water Heater Repair', default_price: 350, category: 'Water Heaters', unit: 'ea' },
+        { name: 'Tank Flush Service', default_price: 150, category: 'Water Heaters', unit: 'ea' },
+        { name: 'Faucet Install - Kitchen', default_price: 285, category: 'Fixtures', unit: 'ea' },
+        { name: 'Faucet Install - Bath', default_price: 245, category: 'Fixtures', unit: 'ea' },
+        { name: 'Toilet Install', default_price: 375, category: 'Fixtures', unit: 'ea' },
+        { name: 'Garbage Disposal Install', default_price: 325, category: 'Fixtures', unit: 'ea' },
+        { name: 'Shower Valve Replace', default_price: 450, category: 'Fixtures', unit: 'ea' },
+        { name: 'Leak Repair - Accessible', default_price: 250, category: 'Pipe & Repair', unit: 'ea' },
+        { name: 'Pipe Burst Repair', default_price: 450, category: 'Pipe & Repair', unit: 'ea' },
+        { name: 'Repipe Section', default_price: 45, category: 'Pipe & Repair', unit: 'ft' },
+        { name: 'Slab Leak Repair', default_price: 2200, category: 'Pipe & Repair', unit: 'ea' },
+        { name: 'Gas Line Repair', default_price: 400, category: 'Pipe & Repair', unit: 'ea' },
+        { name: 'After-Hours Surcharge', default_price: 150, category: 'General', unit: 'ea' },
+        { name: 'Permit Fee', default_price: 200, category: 'General', unit: 'ea' },
+        { name: 'Labor', default_price: 95, category: 'General', unit: 'hr' },
+      ],
+      hvac: [
+        { name: 'Service Call / Diagnostic', default_price: 89, category: 'General', unit: 'ea' },
+        { name: 'AC Tune-Up', default_price: 150, category: 'Maintenance', unit: 'ea' },
+        { name: 'Furnace Tune-Up', default_price: 150, category: 'Maintenance', unit: 'ea' },
+        { name: 'Filter Replacement', default_price: 45, category: 'Maintenance', unit: 'ea' },
+        { name: 'Duct Cleaning (per vent)', default_price: 35, category: 'Maintenance', unit: 'ea' },
+        { name: 'Refrigerant Recharge (R-410A)', default_price: 350, category: 'Repair', unit: 'ea' },
+        { name: 'Capacitor Replace', default_price: 225, category: 'Repair', unit: 'ea' },
+        { name: 'Contactor Replace', default_price: 250, category: 'Repair', unit: 'ea' },
+        { name: 'Blower Motor Replace', default_price: 650, category: 'Repair', unit: 'ea' },
+        { name: 'Compressor Replace', default_price: 1800, category: 'Repair', unit: 'ea' },
+        { name: 'Evaporator Coil Replace', default_price: 1500, category: 'Repair', unit: 'ea' },
+        { name: 'Thermostat Install - Basic', default_price: 175, category: 'Install', unit: 'ea' },
+        { name: 'Thermostat Install - Smart', default_price: 325, category: 'Install', unit: 'ea' },
+        { name: 'Central AC Install (3 ton)', default_price: 5500, category: 'Install', unit: 'ea' },
+        { name: 'Central AC Install (4 ton)', default_price: 6500, category: 'Install', unit: 'ea' },
+        { name: 'Furnace Install - Gas', default_price: 4500, category: 'Install', unit: 'ea' },
+        { name: 'Heat Pump Install', default_price: 7000, category: 'Install', unit: 'ea' },
+        { name: 'Mini-Split Install (single zone)', default_price: 3500, category: 'Install', unit: 'ea' },
+        { name: 'Ductwork Repair', default_price: 400, category: 'Repair', unit: 'ea' },
+        { name: 'Ductwork Install (per linear ft)', default_price: 35, category: 'Install', unit: 'ft' },
+        { name: 'UV Light Install', default_price: 450, category: 'IAQ', unit: 'ea' },
+        { name: 'Whole-Home Dehumidifier', default_price: 1800, category: 'IAQ', unit: 'ea' },
+        { name: 'After-Hours Surcharge', default_price: 150, category: 'General', unit: 'ea' },
+        { name: 'Labor', default_price: 95, category: 'General', unit: 'hr' },
+      ],
+      electrical: [
+        { name: 'Service Call / Diagnostic', default_price: 89, category: 'General', unit: 'ea' },
+        { name: 'Outlet Install - Standard', default_price: 175, category: 'Outlets & Switches', unit: 'ea' },
+        { name: 'Outlet Install - GFCI', default_price: 225, category: 'Outlets & Switches', unit: 'ea' },
+        { name: 'Outlet Install - 240V', default_price: 350, category: 'Outlets & Switches', unit: 'ea' },
+        { name: 'Switch Install - Standard', default_price: 150, category: 'Outlets & Switches', unit: 'ea' },
+        { name: 'Switch Install - Dimmer', default_price: 200, category: 'Outlets & Switches', unit: 'ea' },
+        { name: 'Light Fixture Install', default_price: 185, category: 'Lighting', unit: 'ea' },
+        { name: 'Recessed Light Install', default_price: 225, category: 'Lighting', unit: 'ea' },
+        { name: 'Ceiling Fan Install', default_price: 275, category: 'Lighting', unit: 'ea' },
+        { name: 'Under-Cabinet LED Install', default_price: 350, category: 'Lighting', unit: 'ea' },
+        { name: 'Landscape Lighting (per fixture)', default_price: 150, category: 'Lighting', unit: 'ea' },
+        { name: 'Panel Upgrade - 200A', default_price: 2500, category: 'Panel & Wiring', unit: 'ea' },
+        { name: 'Breaker Replace', default_price: 200, category: 'Panel & Wiring', unit: 'ea' },
+        { name: 'Circuit Install - New', default_price: 450, category: 'Panel & Wiring', unit: 'ea' },
+        { name: 'Whole-House Rewire', default_price: 12000, category: 'Panel & Wiring', unit: 'ea' },
+        { name: 'EV Charger Install - Level 2', default_price: 1200, category: 'Specialty', unit: 'ea' },
+        { name: 'Generator Install - Standby', default_price: 8500, category: 'Specialty', unit: 'ea' },
+        { name: 'Generator Install - Portable Hookup', default_price: 1500, category: 'Specialty', unit: 'ea' },
+        { name: 'Smoke Detector Install', default_price: 125, category: 'Safety', unit: 'ea' },
+        { name: 'CO Detector Install', default_price: 125, category: 'Safety', unit: 'ea' },
+        { name: 'Surge Protector - Whole House', default_price: 450, category: 'Safety', unit: 'ea' },
+        { name: 'Troubleshooting (per hour)', default_price: 125, category: 'General', unit: 'hr' },
+        { name: 'After-Hours Surcharge', default_price: 150, category: 'General', unit: 'ea' },
+        { name: 'Labor', default_price: 95, category: 'General', unit: 'hr' },
+      ],
+    };
+
+    const defaults = TRADE_PRICEBOOKS[trade] || TRADE_PRICEBOOKS.plumbing;
+    const items = defaults.map(d => ({ ...d, user_id: userId }));
+    await supabase.from('pricebook_items').insert(items);
+  },
+
+  // -- Invoices --------------------------------------------------------------
+  getInvoices: async () => {
+    const { data, error } = await supabase
+      .from('invoices')
+      .select('*, customer:customers(id, first_name, last_name, phone, email), lineItems:invoice_line_items(*)')
+      .order('created_at', { ascending: false });
+
+    if (error) throw new Error(error.message);
+    return { data: (data || []).map(camelify) };
+  },
+
+  getInvoice: async (id: string) => {
+    const { data, error } = await supabase
+      .from('invoices')
+      .select('*, customer:customers(*), lineItems:invoice_line_items(*)')
+      .eq('id', id)
+      .single();
+
+    if (error) throw new Error(error.message);
+    return { data: camelify(data) };
+  },
+
+  createInvoice: async (invoiceData: any) => {
+    const userId = await getUserId();
+    const { lineItems, ...invoice } = invoiceData;
+
+    // Insert invoice (invoice_number auto-generated by trigger)
+    const clean = snakeify({ ...invoice, userId });
+    Object.keys(clean).forEach(k => clean[k] === undefined && delete clean[k]);
+    clean.invoice_number = clean.invoice_number || '';
+    const { data, error } = await supabase
+      .from('invoices')
+      .insert(clean)
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+
+    // Insert line items
+    if (lineItems?.length && data) {
+      const items = lineItems.map((li: any) => {
+        const row = snakeify({ ...li, invoiceId: data.id });
+        Object.keys(row).forEach(k => row[k] === undefined && delete row[k]);
+        return row;
+      });
+      const { error: liError } = await supabase
+        .from('invoice_line_items')
+        .insert(items);
+      if (liError) throw new Error(liError.message);
+    }
+
+    return { data };
+  },
+
+  updateInvoice: async (id: string, updates: any) => {
+    const clean = snakeify(updates);
+    const { data, error } = await supabase
+      .from('invoices')
+      .update(clean)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+    return { data };
+  },
+
+  deleteInvoice: async (id: string) => {
+    const userId = await getUserId();
+    await supabase.from('invoice_line_items').delete().eq('invoice_id', id);
+    const { error } = await supabase
+      .from('invoices')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', userId);
+    if (error) throw new Error(error.message);
+  },
+
+  getInvoicesByCustomer: async (customerId: string) => {
+    const { data, error } = await supabase
+      .from('invoices')
+      .select('*, customer:customers(id, first_name, last_name, phone, email), lineItems:invoice_line_items(*)')
+      .eq('customer_id', customerId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw new Error(error.message);
+    return { data: (data || []).map(camelify) };
+  },
+
+  getInvoicesByJob: async (jobId: string) => {
+    const { data, error } = await supabase
+      .from('invoices')
+      .select('*, customer:customers(id, first_name, last_name, phone, email), lineItems:invoice_line_items(*)')
+      .eq('job_id', jobId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw new Error(error.message);
+    return { data: (data || []).map(camelify) };
+  },
+
+  // -- Edge Functions: Stripe & Email ----------------------------------------
+  createPaymentLink: async (invoiceId: string, invoice?: any, companyName?: string) => {
+    // Fetch the contractor's Stripe account ID -- required to route money correctly
+    const userId = await getUserId();
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('stripe_account_id, stripe_onboarding_complete')
+      .eq('id', userId)
+      .single();
+
+    if (!profile?.stripe_account_id || !profile?.stripe_onboarding_complete) {
+      throw new Error('Connect your Stripe account first -- go to Settings -> Payment Processing.');
+    }
+
+    const body = {
+      invoiceId,
+      amount: Number(invoice?.total) || 0,
+      customerName: invoice?.customer ? `${invoice.customer.firstName} ${invoice.customer.lastName}` : undefined,
+      customerEmail: invoice?.customer?.email || undefined,
+      customerPhone: invoice?.customer?.phone || undefined,
+      description: invoice?.invoiceNumber ? `Invoice #${invoice.invoiceNumber}` : undefined,
+      companyName: companyName || undefined,
+      invoiceNumber: invoice?.invoiceNumber || invoice?.number || invoice?.invoice_number || undefined,
+      dueDate: invoice?.dueDate || invoice?.due_date || undefined,
+      lineItems: invoice?.lineItems?.map((li: any) => ({
+        description: li.description,
+        quantity: Number(li.quantity),
+        unitPrice: Number(li.unitPrice),
+      })) || undefined,
+      stripeAccountId: profile.stripe_account_id, // routes money to contractor's account
+    };
+
+    const resp = await fetch(`${SUPABASE_FN_URL}/create-payment-link`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${ANON_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (!resp.ok) {
+      const errText = await resp.text();
+      console.error('[FlowBoss] Stripe error:', resp.status, errText);
+      throw new Error(`Payment link failed (${resp.status}): ${errText}`);
+    }
+
+    const result = await resp.json();
+    return { url: result.url as string, id: result.sessionId as string };
+  },
+
+  getStripeConnectUrl: async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    const token = session?.access_token;
+    if (!token) throw new Error('Not authenticated');
+
+    const resp = await fetch(`${SUPABASE_FN_URL}/stripe-connect-onboard`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'apikey': ANON_KEY,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({}),
+    });
+    if (!resp.ok) {
+      const errText = await resp.text();
+      throw new Error(`Stripe Connect failed: ${errText}`);
+    }
+    return await resp.json() as { connected: boolean; url?: string; accountId?: string };
+  },
+
+  checkStripeConnectStatus: async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    const token = session?.access_token;
+    if (!token) throw new Error('Not authenticated');
+
+    const resp = await fetch(`${SUPABASE_FN_URL}/stripe-connect-status`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'apikey': ANON_KEY,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({}),
+    });
+    if (!resp.ok) {
+      const errText = await resp.text();
+      throw new Error(`Status check failed: ${errText}`);
+    }
+    return await resp.json() as { connected: boolean; accountId: string | null };
+  },
+
+  sendInvoiceEmail: async (invoice: any, payLink?: string, companyName?: string) => {
+    const customer = invoice?.customer || {};
+    const customerName = [customer.firstName, customer.lastName].filter(Boolean).join(' ') || 'Customer';
+    const customerEmail = customer.email;
+    if (!customerEmail) {
+      throw new Error('Customer has no email address on file');
+    }
+
+    const body = {
+      customerEmail,
+      customerName,
+      companyName: companyName || 'FlowBoss',
+      invoiceNumber: invoice?.invoiceNumber || invoice?.number || invoice?.invoice_number || invoice?.id?.slice(0, 8) || '',
+      amount: Number(invoice?.total) || 0,
+      subtotal: Number(invoice?.subtotal) || undefined,
+      taxRate: Number(invoice?.taxRate || invoice?.tax_rate) || undefined,
+      tax: Number(invoice?.tax) || undefined,
+      dueDate: invoice?.dueDate || invoice?.due_date || undefined,
+      notes: invoice?.notes || undefined,
+      payLink: payLink || undefined,
+      lineItems: (invoice?.lineItems || []).map((li: any) => ({
+        description: li.description,
+        quantity: Number(li.quantity),
+        unitPrice: Number(li.unitPrice || li.unit_price),
+      })),
+    };
+
+    const resp = await fetch(`${SUPABASE_FN_URL}/send-invoice-email`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${ANON_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (!resp.ok) {
+      const errText = await resp.text();
+      console.error('[FlowBoss] Email send error:', resp.status, errText);
+      throw new Error(`Email failed (${resp.status}): ${errText}`);
+    }
+
+    return resp.json();
+  },
+
+  // -- Expenses --------------------------------------------------------------
+  getExpenses: async (params?: Record<string, string>) => {
+    let query = supabase
+      .from('expenses')
+      .select('*')
+      .order('date', { ascending: false });
+
+    if (params?.category) {
+      query = query.eq('category', params.category);
+    }
+
+    const { data, error } = await query;
+    if (error) throw new Error(error.message);
+    return { data: data || [] };
+  },
+
+  createExpense: async (expenseData: any) => {
+    const userId = await getUserId();
+    const { data, error } = await supabase
+      .from('expenses')
+      .insert({ ...expenseData, user_id: userId })
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+    return { data };
+  },
+
+  // -- Financials (computed from jobs + invoices + expenses) ------------------
+  getFinancials: async (period: string) => {
+    const now = new Date();
+    let startDate: Date;
+
+    if (period === 'week') {
+      startDate = new Date(now);
+      startDate.setDate(startDate.getDate() - 7);
+    } else if (period === 'month') {
+      startDate = new Date(now);
+      startDate.setMonth(startDate.getMonth() - 1);
+    } else {
+      startDate = new Date(now);
+      startDate.setFullYear(startDate.getFullYear() - 1);
+    }
+
+    const start = startDate.toISOString();
+
+    // Fetch in parallel
+    const [invoicesRes, expensesRes, jobsRes] = await Promise.all([
+      supabase.from('invoices').select('*, customer:customers(first_name, last_name)').gte('created_at', start),
+      supabase.from('expenses').select('*').gte('date', start),
+      supabase.from('jobs').select('*').eq('status', 'COMPLETED').gte('scheduled_start', start),
+    ]);
+
+    const invoices = invoicesRes.data || [];
+    const expenses = expensesRes.data || [];
+    const jobs = jobsRes.data || [];
+
+    const revenue = invoices
+      .filter((i: any) => i.status?.toUpperCase() === 'PAID')
+      .reduce((sum: number, i: any) => sum + Number(i.total || 0), 0);
+    const totalExpenses = expenses.reduce((sum: number, e: any) => sum + Number(e.amount || 0), 0);
+    const outstanding = invoices
+      .filter((i: any) => i.status?.toUpperCase() !== 'PAID')
+      .reduce((sum: number, i: any) => sum + Number(i.balance_due || 0), 0);
+
+    const recentPayments = invoices
+      .filter((i: any) => i.paid_at)
+      .map((i: any) => ({
+        id: i.id,
+        customerName: [i.customer?.first_name, i.customer?.last_name].filter(Boolean).join(' ') || 'Customer',
+        amount: Number(i.total || 0),
+        date: i.paid_at,
+      }))
+      .slice(0, 5);
+
+    const recentExpenses = expenses.slice(0, 5);
+
+    return {
+      data: {
+        revenue,
+        expenses: totalExpenses,
+        outstanding,
+        jobsCompleted: jobs.length,
+        recentPayments,
+        recentExpenses,
+      },
+    };
+  },
+
+  // -- Users / Settings ------------------------------------------------------
+  getMe: async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) throw new Error('Not authenticated');
+
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', session.user.id)
+      .single();
+
+    if (error) throw new Error(error.message);
+    return { data: { ...data, email: session.user.email } };
+  },
+
+  getSettings: async () => {
+    const userId = await getUserId();
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single();
+
+    if (error) throw new Error(error.message);
+    return { data };
+  },
+
+  updateSettings: async (data: any) => {
+    const userId = await getUserId();
+    const { error } = await supabase
+      .from('profiles')
+      .update(data)
+      .eq('id', userId);
+
+    if (error) throw new Error(error.message);
+    return { data };
+  },
+
+  // -- Insights (bulk fetch for analytics) -----------------------------------
+  getInsightsData: async () => {
+    const [jobsRes, invoicesRes, expensesRes, customersRes, pricebookRes] = await Promise.all([
+      supabase.from('jobs').select('*, customer:customers(id, first_name, last_name, lead_source), property:properties(id, zip), lineItems:job_line_items(*)'),
+      supabase.from('invoices').select('*, customer:customers(id, first_name, last_name, lead_source), lineItems:invoice_line_items(*)'),
+      supabase.from('expenses').select('*'),
+      supabase.from('customers').select('*, properties(zip)'),
+      supabase.from('pricebook_items').select('*'),
+    ]);
+
+    return {
+      data: {
+        jobs: jobsRes.data || [],
+        invoices: invoicesRes.data || [],
+        expenses: expensesRes.data || [],
+        customers: customersRes.data || [],
+        pricebook: pricebookRes.data || [],
+      },
+    };
+  },
+
+  // -- QuickBooks Integration ------------------------------------------------
+  quickbooks: {
+    /** Get the OAuth authorization URL to start the connect flow */
+    getAuthUrl: async (): Promise<string> => {
+      const session = await supabase.auth.getSession();
+      const token = session.data.session?.access_token;
+      if (!token) throw new Error('Not authenticated');
+
+      const resp = await fetch(`${SUPABASE_FN_URL}/quickbooks-auth`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!resp.ok) throw new Error('Failed to get QuickBooks auth URL');
+      const data = await resp.json();
+      return data.authUrl;
+    },
+
+    /** Call the sync function with an action */
+    _call: async (body: any) => {
+      const session = await supabase.auth.getSession();
+      const token = session.data.session?.access_token;
+      if (!token) throw new Error('Not authenticated');
+
+      const resp = await fetch(`${SUPABASE_FN_URL}/quickbooks-sync`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      });
+
+      if (!resp.ok) {
+        const errText = await resp.text();
+        throw new Error(errText);
+      }
+      return await resp.json();
+    },
+
+    /** Get QB connection status */
+    getStatus: async () => {
+      try {
+        return await api.quickbooks._call({ action: 'get_status' });
+      } catch {
+        return { connected: false };
+      }
+    },
+
+    /** Update sync preferences (invoicingProvider, syncInvoices, etc.) */
+    setPreferences: async (prefs: {
+      invoicingProvider?: 'stripe' | 'quickbooks';
+      syncInvoices?: boolean;
+      syncCustomers?: boolean;
+      syncExpenses?: boolean;
+    }) => {
+      return await api.quickbooks._call({ action: 'set_preferences', ...prefs });
+    },
+
+    /** Sync a single customer to QuickBooks */
+    syncCustomer: async (customerId: string) => {
+      return await api.quickbooks._call({ action: 'sync_customer', customerId });
+    },
+
+    /** Sync an invoice to QuickBooks */
+    syncInvoice: async (invoiceId: string) => {
+      return await api.quickbooks._call({ action: 'sync_invoice', invoiceId });
+    },
+
+    /** Send an invoice email via QuickBooks (instead of FlowBoss/Stripe) */
+    sendInvoiceViaQB: async (invoiceId: string) => {
+      return await api.quickbooks._call({ action: 'send_qb_invoice', invoiceId });
+    },
+
+    /** Sync an expense to QuickBooks */
+    syncExpense: async (expenseId: string) => {
+      return await api.quickbooks._call({ action: 'sync_expense', expenseId });
+    },
+
+    /** Check if a QB invoice has been paid (polls QB API) */
+    checkPaymentStatus: async (invoiceId: string) => {
+      return await api.quickbooks._call({ action: 'check_payment_status', invoiceId });
+    },
+
+    /** Disconnect QuickBooks */
+    disconnect: async () => {
+      return await api.quickbooks._call({ action: 'disconnect' });
+    },
+  },
+
+  // -- Contractors (General Contractors) -------------------------------------
+  getContractors: async (params?: { search?: string }) => {
+    const userId = await getUserId();
+    let query = supabase
+      .from('contractors')
+      .select('*')
+      .eq('user_id', userId)
+      .order('company_name', { ascending: true });
+
+    if (params?.search) {
+      query = query.or(
+        `company_name.ilike.%${params.search}%,name.ilike.%${params.search}%`
+      );
+    }
+
+    const { data, error } = await query;
+    if (error) throw new Error(error.message);
+    return { data: camelify(data || []) };
+  },
+
+  getContractor: async (id: string) => {
+    const { data, error } = await supabase
+      .from('contractors')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) throw new Error(error.message);
+    return { data: camelify(data) };
+  },
+
+  createContractor: async (contractorData: any) => {
+    const userId = await getUserId();
+    const clean = Object.fromEntries(
+      Object.entries(snakeify({ ...contractorData, userId })).filter(([_, v]) => v !== undefined)
+    );
+
+    const { data, error } = await supabase
+      .from('contractors')
+      .insert(clean)
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+    return { data: camelify(data) };
+  },
+
+  updateContractor: async (id: string, updates: any) => {
+    const clean = snakeify(updates);
+    const { data, error } = await supabase
+      .from('contractors')
+      .update({ ...clean, updated_at: new Date().toISOString() })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+    return { data: camelify(data) };
+  },
+
+  deleteContractor: async (id: string) => {
+    const userId = await getUserId();
+    const { error } = await supabase
+      .from('contractors')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', userId);
+
+    if (error) throw new Error(error.message);
+    return { success: true };
+  },
+
+  getContractorStats: async (contractorId: string) => {
+    const userId = await getUserId();
+    const { data: jobs, error } = await supabase
+      .from('jobs')
+      .select('*, lineItems:job_line_items(*)')
+      .eq('user_id', userId)
+      .eq('contractor_id', contractorId);
+
+    if (error) throw new Error(error.message);
+
+    const jobList = jobs || [];
+    const totalRevenue = jobList.reduce((sum: number, j: any) => {
+      const items = j.line_items || [];
+      return sum + items.reduce((s: number, li: any) =>
+        s + (Number(li.unit_price || 0) * Number(li.quantity || 1)), 0);
+    }, 0);
+
+    return {
+      data: {
+        jobCount: jobList.length,
+        totalRevenue,
+      },
+    };
+  },
+
+  getContractorsWithStats: async () => {
+    const userId = await getUserId();
+
+    const [contractorsRes, jobsRes] = await Promise.all([
+      supabase
+        .from('contractors')
+        .select('*')
+        .eq('user_id', userId)
+        .order('company_name', { ascending: true }),
+      supabase
+        .from('jobs')
+        .select('contractor_id, lineItems:job_line_items(unit_price, quantity)')
+        .eq('user_id', userId)
+        .not('contractor_id', 'is', null),
+    ]);
+
+    if (contractorsRes.error) throw new Error(contractorsRes.error.message);
+
+    const contractors = camelify(contractorsRes.data || []);
+    const jobs = jobsRes.data || [];
+
+    // Aggregate stats per contractor
+    const statsMap: Record<string, { jobCount: number; totalRevenue: number }> = {};
+    for (const j of jobs) {
+      const cid = j.contractor_id;
+      if (!cid) continue;
+      if (!statsMap[cid]) statsMap[cid] = { jobCount: 0, totalRevenue: 0 };
+      statsMap[cid].jobCount++;
+      const items = (j as any).lineItems || (j as any).line_items || [];
+      for (const li of items) {
+        statsMap[cid].totalRevenue += Number(li.unit_price || 0) * Number(li.quantity || 1);
+      }
+    }
+
+    return {
+      data: contractors.map((c: any) => ({
+        ...c,
+        jobCount: statsMap[c.id]?.jobCount || 0,
+        totalRevenue: statsMap[c.id]?.totalRevenue || 0,
+      })),
+    };
+  },
+
+  // -- Team Members ----------------------------------------------------------
+  getTeamMembers: async () => {
+    const userId = await getUserId();
+    const { data, error } = await supabase
+      .from('team_members')
+      .select('*')
+      .eq('owner_id', userId)
+      .order('created_at', { ascending: false });
+    if (error) throw new Error(error.message);
+    return { data: data || [] };
+  },
+
+  inviteTeamMember: async (member: { name: string; email?: string; phone?: string; role: string }) => {
+    const userId = await getUserId();
+    const { data, error } = await supabase
+      .from('team_members')
+      .insert({ ...member, owner_id: userId, status: 'invited' })
+      .select()
+      .single();
+    if (error) throw new Error(error.message);
+    return { data };
+  },
+
+  // -- Job Photos (read-only on web) -----------------------------------------
+  getJobPhotos: async (jobId: string) => {
+    const { data, error } = await supabase
+      .from('job_photos')
+      .select('*')
+      .eq('job_id', jobId)
+      .order('created_at', { ascending: true });
+
+    if (error) throw new Error(error.message);
+    return { data: camelify(data || []) };
+  },
+};

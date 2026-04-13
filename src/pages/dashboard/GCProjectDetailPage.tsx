@@ -15,12 +15,14 @@ import {
   UserPlus,
   Share2,
   LayoutDashboard,
+  GanttChart,
   X,
   Phone,
   Mail,
   MessageSquare,
   ChevronRight,
 } from 'lucide-react';
+import { TimelineBoard } from '../../components/gc/TimelineBoard';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    Constants & Helpers
@@ -116,7 +118,7 @@ export function GCProjectDetailPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const [viewMode, setViewMode] = useState<'visual' | 'board'>('visual');
+  const [viewMode, setViewMode] = useState<'visual' | 'board' | 'timeline'>('visual');
   const [selectedTradeId, setSelectedTradeId] = useState<string | null>(null);
   const [inviteModalTrade, setInviteModalTrade] = useState<{ id: string; name: string } | null>(null);
   const [showAddTradeVisual, setShowAddTradeVisual] = useState(false);
@@ -242,6 +244,17 @@ export function GCProjectDetailPage() {
               <LayoutDashboard className="w-4 h-4" />
               Board
             </button>
+            <button
+              onClick={() => setViewMode('timeline')}
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                viewMode === 'timeline'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              <GanttChart className="w-4 h-4" />
+              Timeline
+            </button>
           </div>
 
           {/* Progress pill */}
@@ -325,6 +338,11 @@ export function GCProjectDetailPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* ─── Timeline View ─── */}
+      {viewMode === 'timeline' && (
+        <TimelineBoard project={project} trades={trades} projectId={id!} />
       )}
 
       {/* Messages */}

@@ -30,6 +30,8 @@ import { ContractorDetailPage } from './pages/dashboard/ContractorDetailPage';
 import { SettingsPage } from './pages/dashboard/SettingsPage';
 import { GCDashboardPage } from './pages/dashboard/GCDashboardPage';
 import { GCProjectDetailPage } from './pages/dashboard/GCProjectDetailPage';
+import { SubProjectViewPage } from './pages/dashboard/SubProjectViewPage';
+import { InviteLanding } from './pages/InviteLanding';
 
 export default function App() {
   return (
@@ -51,6 +53,7 @@ export default function App() {
       <Route path="/signup" element={<Signup />} />
       <Route path="/pricing" element={<Pricing />} />
       <Route path="/checkout" element={<Checkout />} />
+      <Route path="/invite/:projectId/:tradeId" element={<InviteLanding />} />
 
       {/* Dashboard (protected) */}
       <Route
@@ -75,6 +78,7 @@ export default function App() {
         <Route path="contractors/:id" element={<ContractorDetailPage />} />
         <Route path="gc" element={<GCDashboardPage />} />
         <Route path="gc/:id" element={<GCProjectDetailPage />} />
+        <Route path="gc-projects/:id" element={<SubProjectViewPage />} />
         <Route path="financials" element={<FinancialsPage />} />
         <Route path="insights" element={<InsightsPage />} />
         <Route path="settings" element={<SettingsPage />} />

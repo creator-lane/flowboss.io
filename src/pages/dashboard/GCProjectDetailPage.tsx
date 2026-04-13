@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useMemo } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../lib/api';
+import { InviteSubModal } from '../../components/gc/InviteSubModal';
 import {
   ArrowLeft,
   MapPin,
@@ -117,6 +118,7 @@ export function GCProjectDetailPage() {
 
   const [viewMode, setViewMode] = useState<'visual' | 'board'>('visual');
   const [selectedTradeId, setSelectedTradeId] = useState<string | null>(null);
+  const [inviteModalTrade, setInviteModalTrade] = useState<{ id: string; name: string } | null>(null);
 
   const projectQuery = useQuery({
     queryKey: ['gc-project', id],
@@ -261,6 +263,7 @@ export function GCProjectDetailPage() {
             projectId={id!}
             messages={messages}
             onClose={() => setSelectedTradeId(null)}
+            onInviteSub={(tradeId, tradeName) => setInviteModalTrade({ id: tradeId, name: tradeName })}
           />
         </div>
       )}
@@ -271,7 +274,7 @@ export function GCProjectDetailPage() {
           <div className="overflow-x-auto pb-4 -mx-4 px-4 lg:mx-0 lg:px-0">
             <div className="flex gap-4" style={{ minWidth: 'max-content' }}>
               {trades.map((trade: any) => (
-                <TradeColumn key={trade.id} trade={trade} projectId={id!} />
+                <TradeColumn key={trade.id} trade={trade} projectId={id!} onInviteSub={(tradeId, tradeName) => setInviteModalTrade({ id: tradeId, name: tradeName })} />
               ))}
               <AddTradeColumn projectId={id!} />
             </div>
@@ -283,6 +286,16 @@ export function GCProjectDetailPage() {
       <div className="mt-8">
         <MessageSection projectId={id!} messages={messages} />
       </div>
+
+      {/* Invite Sub Modal */}
+      <InviteSubModal
+        open={!!inviteModalTrade}
+        onClose={() => setInviteModalTrade(null)}
+        tradeId={inviteModalTrade?.id || ''}
+        tradeName={inviteModalTrade?.name || ''}
+        projectId={id!}
+        projectName={project.name}
+      />
     </div>
   );
 }
@@ -547,11 +560,13 @@ function TradeDetailPanel({
   projectId,
   messages,
   onClose,
+  onInviteSub,
 }: {
   trade: any | null;
   projectId: string;
   messages: any[];
   onClose: () => void;
+  onInviteSub?: (tradeId: string, tradeName: string) => void;
 }) {
   const queryClient = useQueryClient();
   const [newTask, setNewTask] = useState('');
@@ -587,6 +602,7 @@ function TradeDetailPanel({
       subName={subName}
       doneTasks={doneTasks}
       onClose={onClose}
+      onInviteSub={onInviteSub}
     />
   );
 }
@@ -602,6 +618,7 @@ function TradeDetailPanelInner({
   subName,
   doneTasks,
   onClose,
+  onInviteSub,
 }: {
   trade: any;
   projectId: string;
@@ -614,6 +631,7 @@ function TradeDetailPanelInner({
   subName: string | null;
   doneTasks: number;
   onClose: () => void;
+  onInviteSub?: (tradeId: string, tradeName: string) => void;
 }) {
   const queryClient = useQueryClient();
   const [newTask, setNewTask] = useState('');
@@ -750,7 +768,7 @@ function TradeDetailPanelInner({
               </div>
             ) : (
               <button
-                onClick={() => alert('Sub invitations coming soon! This feature will let you invite subs by email to collaborate on trades.')}
+                onClick={() => onInviteSub?.(trade.id, trade.trade)}
                 className="flex items-center gap-2 w-full px-3 py-3 border-2 border-dashed border-gray-200 rounded-lg text-sm text-brand-600 font-medium hover:border-brand-300 hover:bg-brand-50/50 transition-all"
               >
                 <UserPlus className="w-4 h-4" />
@@ -943,7 +961,7 @@ function ProjectStatusDropdown({ projectId, currentStatus }: { projectId: string
    Trade Column (Board View - preserved from original)
    ═══════════════════════════════════════════════════════════════════════════ */
 
-function TradeColumn({ trade, projectId }: { trade: any; projectId: string }) {
+function TradeColumn({ trade, projectId, onInviteSub }: { trade: any; projectId: string; onInviteSub?: (tradeId: string, tradeName: string) => void }) {
   const queryClient = useQueryClient();
   const [newTask, setNewTask] = useState('');
   const [statusOpen, setStatusOpen] = useState(false);
@@ -1041,7 +1059,7 @@ function TradeColumn({ trade, projectId }: { trade: any; projectId: string }) {
             <span className="text-gray-700 font-medium">Assigned</span>
           ) : (
             <button
-              onClick={() => alert('Sub invitations coming soon! This feature will let you invite subs by email to collaborate on trades.')}
+              onClick={() => onInviteSub?.(trade.id, trade.trade)}
               className="flex items-center gap-1 text-brand-600 hover:text-brand-700 font-medium"
             >
               <UserPlus className="w-3 h-3" />

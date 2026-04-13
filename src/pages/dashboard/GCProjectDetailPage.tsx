@@ -21,6 +21,11 @@ import {
   Mail,
   MessageSquare,
   ChevronRight,
+  Trash2,
+  Package,
+  Pencil,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import { TimelineBoard } from '../../components/gc/TimelineBoard';
 
@@ -89,6 +94,8 @@ const TRADE_EMOJI: Record<string, string> = {
   Landscaping: '\u{1F333}',
 };
 
+const MATERIAL_UNITS = ['ea', 'ft', 'sq ft', 'gal', 'box', 'roll', 'bag'];
+
 const formatCurrency = (n: number) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 }).format(n);
 
@@ -123,6 +130,7 @@ export function GCProjectDetailPage() {
   const [inviteModalTrade, setInviteModalTrade] = useState<{ id: string; name: string } | null>(null);
   const [showAddTradeVisual, setShowAddTradeVisual] = useState(false);
   const [addTradeValue, setAddTradeValue] = useState('');
+  const [showEditProject, setShowEditProject] = useState(false);
 
   const addTradeMutation = useMutation({
     mutationFn: (trade: string) => api.addGCTrade(id!, { trade }),
@@ -194,6 +202,13 @@ export function GCProjectDetailPage() {
             <div className="flex items-center gap-3 mb-1">
               <h1 className="text-2xl font-bold text-gray-900">{project.name}</h1>
               <ProjectStatusDropdown projectId={id!} currentStatus={project.status} />
+              <button
+                onClick={() => setShowEditProject(true)}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+              >
+                <Pencil className="w-3.5 h-3.5" />
+                Edit
+              </button>
             </div>
             <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
               {(project.city || project.state) && (
@@ -362,6 +377,15 @@ export function GCProjectDetailPage() {
         projectId={id!}
         projectName={project.name}
       />
+
+      {/* Edit Project Modal */}
+      {showEditProject && (
+        <EditGCProjectModal
+          project={project}
+          projectId={id!}
+          onClose={() => setShowEditProject(false)}
+        />
+      )}
     </div>
   );
 }
@@ -925,23 +949,16 @@ function TradeDetailPanelInner({
             )}
           </div>
 
-          {/* Budget & dates */}
-          {(trade.budget != null || trade.startDate || trade.endDate) && (
-            <div className="grid grid-cols-2 gap-3">
-              {trade.budget != null && (
-                <div className="bg-gray-50 rounded-lg p-3">
-                  <label className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Budget</label>
-                  <p className="text-sm font-semibold text-gray-900 mt-0.5">{formatCurrency(trade.budget)}</p>
-                </div>
-              )}
-              {(trade.startDate || trade.endDate) && (
-                <div className="bg-gray-50 rounded-lg p-3">
-                  <label className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Schedule</label>
-                  <p className="text-sm font-medium text-gray-700 mt-0.5">
-                    {formatDate(trade.startDate)}{trade.startDate && trade.endDate ? ' - ' : ''}{formatDate(trade.endDate)}
-                  </p>
-                </div>
-              )}
+          {/* Budget & Labor (Inline Editable) */}
+          <TradeBudgetEditor trade={trade} projectId={projectId} />
+
+          {/* Schedule */}
+          {(trade.startDate || trade.endDate) && (
+            <div className="bg-gray-50 rounded-lg p-3">
+              <label className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Schedule</label>
+              <p className="text-sm font-medium text-gray-700 mt-0.5">
+                {formatDate(trade.startDate)}{trade.startDate && trade.endDate ? ' - ' : ''}{formatDate(trade.endDate)}
+              </p>
             </div>
           )}
 
@@ -1010,6 +1027,9 @@ function TradeDetailPanelInner({
             </div>
           </div>
 
+          {/* Materials */}
+          <TradeMaterialsSection tradeId={trade.id} projectId={projectId} />
+
           {/* Trade messages */}
           {tradeMessages.length > 0 && (
             <div>
@@ -1047,6 +1067,483 @@ function TradeDetailPanelInner({
           to { transform: translateX(0); }
         }
       `}</style>
+    </>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Trade Budget Editor (Inline)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+function TradeBudgetEditor({ trade, projectId }: { trade: any; projectId: string }) {
+  const queryClient = useQueryClient();
+  const [laborHours, setLaborHours] = useState<string>(String(trade.laborHours || trade.labor_hours || ''));
+  const [laborRate, setLaborRate] = useState<string>(String(trade.laborRate || trade.labor_rate || ''));
+  const [materialsBudget, setMaterialsBudget] = useState<string>(String(trade.materialsBudget || trade.materials_budget || ''));
+
+  useEffect(() => {
+    setLaborHours(String(trade.laborHours || trade.labor_hours || ''));
+    setLaborRate(String(trade.laborRate || trade.labor_rate || ''));
+    setMaterialsBudget(String(trade.materialsBudget || trade.materials_budget || ''));
+  }, [trade.id]);
+
+  const saveBudget = useMutation({
+    mutationFn: (updates: any) => api.updateGCTrade(trade.id, updates),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['gc-project', projectId] });
+      queryClient.invalidateQueries({ queryKey: ['gc-projects'] });
+    },
+  });
+
+  const hours = parseFloat(laborHours) || 0;
+  const rate = parseFloat(laborRate) || 0;
+  const matBudget = parseFloat(materialsBudget) || 0;
+  const laborCost = hours * rate;
+  const tradeTotal = laborCost + matBudget;
+
+  const handleBlur = () => {
+    saveBudget.mutate({
+      labor_hours: hours,
+      labor_rate: rate,
+      materials_budget: matBudget,
+    });
+  };
+
+  return (
+    <div>
+      <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2 block">
+        Budget & Labor
+      </label>
+      <div className="bg-gray-50 rounded-lg p-3 space-y-2.5">
+        <div className="grid grid-cols-2 gap-2">
+          <div>
+            <label className="text-[10px] text-gray-400 font-medium">Labor Hours</label>
+            <input
+              type="number"
+              value={laborHours}
+              onChange={(e) => setLaborHours(e.target.value)}
+              onBlur={handleBlur}
+              placeholder="0"
+              className="w-full mt-0.5 px-2 py-1.5 text-sm border border-gray-200 rounded-md focus:ring-1 focus:ring-brand-500 focus:border-brand-500 outline-none bg-white"
+            />
+          </div>
+          <div>
+            <label className="text-[10px] text-gray-400 font-medium">Rate $/hr</label>
+            <input
+              type="number"
+              value={laborRate}
+              onChange={(e) => setLaborRate(e.target.value)}
+              onBlur={handleBlur}
+              placeholder="0"
+              className="w-full mt-0.5 px-2 py-1.5 text-sm border border-gray-200 rounded-md focus:ring-1 focus:ring-brand-500 focus:border-brand-500 outline-none bg-white"
+            />
+          </div>
+        </div>
+        <div className="flex items-center justify-between text-xs">
+          <span className="text-gray-400">Labor Cost</span>
+          <span className="font-medium text-gray-700">{formatCurrency(laborCost)}</span>
+        </div>
+        <div>
+          <label className="text-[10px] text-gray-400 font-medium">Materials Budget</label>
+          <input
+            type="number"
+            value={materialsBudget}
+            onChange={(e) => setMaterialsBudget(e.target.value)}
+            onBlur={handleBlur}
+            placeholder="0"
+            className="w-full mt-0.5 px-2 py-1.5 text-sm border border-gray-200 rounded-md focus:ring-1 focus:ring-brand-500 focus:border-brand-500 outline-none bg-white"
+          />
+        </div>
+        <div className="flex items-center justify-between text-xs pt-1.5 border-t border-gray-200">
+          <span className="font-semibold text-gray-600">Trade Total</span>
+          <span className="font-bold text-gray-900">{formatCurrency(tradeTotal)}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Trade Materials Section
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+function TradeMaterialsSection({ tradeId, projectId }: { tradeId: string; projectId: string }) {
+  const queryClient = useQueryClient();
+  const [newName, setNewName] = useState('');
+  const [newQty, setNewQty] = useState('');
+  const [newUnit, setNewUnit] = useState('ea');
+  const [newCost, setNewCost] = useState('');
+
+  const { data: materialsRes } = useQuery({
+    queryKey: ['gc-trade-materials', tradeId],
+    queryFn: () => api.getGCTradeMaterials(tradeId),
+    enabled: !!tradeId,
+  });
+
+  const materials: any[] = materialsRes?.data || [];
+  const materialsTotal = materials.reduce((s: number, m: any) => s + (m.total_cost || (m.quantity * m.unit_cost) || 0), 0);
+
+  const addMaterial = useMutation({
+    mutationFn: (mat: { name: string; quantity: number; unit: string; unit_cost: number }) =>
+      api.addGCTradeMaterial(tradeId, mat),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['gc-trade-materials', tradeId] });
+      setNewName('');
+      setNewQty('');
+      setNewCost('');
+    },
+  });
+
+  const updateMaterial = useMutation({
+    mutationFn: ({ id, updates }: { id: string; updates: any }) =>
+      api.updateGCTradeMaterial(id, updates),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['gc-trade-materials', tradeId] });
+    },
+  });
+
+  const deleteMaterial = useMutation({
+    mutationFn: (id: string) => api.deleteGCTradeMaterial(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['gc-trade-materials', tradeId] });
+    },
+  });
+
+  const handleAdd = () => {
+    const qty = parseFloat(newQty) || 0;
+    const cost = parseFloat(newCost) || 0;
+    if (!newName.trim() || qty <= 0) return;
+    addMaterial.mutate({ name: newName.trim(), quantity: qty, unit: newUnit, unit_cost: cost });
+  };
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-2">
+        <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider flex items-center gap-1">
+          <Package className="w-3 h-3" />
+          Materials
+        </label>
+        {materialsTotal > 0 && (
+          <span className="text-xs font-semibold text-gray-700">{formatCurrency(materialsTotal)}</span>
+        )}
+      </div>
+
+      {/* Material rows */}
+      {materials.length > 0 && (
+        <div className="space-y-1 mb-2">
+          {materials.map((mat: any) => (
+            <MaterialRow
+              key={mat.id}
+              material={mat}
+              onTogglePurchased={(purchased) =>
+                updateMaterial.mutate({ id: mat.id, updates: { purchased } })
+              }
+              onDelete={() => deleteMaterial.mutate(mat.id)}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Add material row */}
+      <div className="bg-gray-50 rounded-lg p-2.5 space-y-2">
+        <input
+          type="text"
+          placeholder="Material name..."
+          value={newName}
+          onChange={(e) => setNewName(e.target.value)}
+          className="w-full px-2 py-1.5 text-xs border border-gray-200 rounded-md focus:ring-1 focus:ring-brand-500 focus:border-brand-500 outline-none bg-white"
+        />
+        <div className="flex gap-1.5">
+          <input
+            type="number"
+            placeholder="Qty"
+            value={newQty}
+            onChange={(e) => setNewQty(e.target.value)}
+            className="w-16 px-2 py-1.5 text-xs border border-gray-200 rounded-md focus:ring-1 focus:ring-brand-500 focus:border-brand-500 outline-none bg-white"
+          />
+          <select
+            value={newUnit}
+            onChange={(e) => setNewUnit(e.target.value)}
+            className="px-1.5 py-1.5 text-xs border border-gray-200 rounded-md focus:ring-1 focus:ring-brand-500 focus:border-brand-500 outline-none bg-white"
+          >
+            {MATERIAL_UNITS.map((u) => (
+              <option key={u} value={u}>{u}</option>
+            ))}
+          </select>
+          <input
+            type="number"
+            placeholder="$/unit"
+            value={newCost}
+            onChange={(e) => setNewCost(e.target.value)}
+            className="w-20 px-2 py-1.5 text-xs border border-gray-200 rounded-md focus:ring-1 focus:ring-brand-500 focus:border-brand-500 outline-none bg-white"
+          />
+          <button
+            onClick={handleAdd}
+            disabled={!newName.trim() || addMaterial.isPending}
+            className="px-2 py-1.5 text-xs font-medium text-white bg-brand-500 rounded-md hover:bg-brand-600 transition-colors disabled:opacity-40 flex-shrink-0"
+          >
+            <Plus className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MaterialRow({
+  material,
+  onTogglePurchased,
+  onDelete,
+}: {
+  material: any;
+  onTogglePurchased: (purchased: boolean) => void;
+  onDelete: () => void;
+}) {
+  const total = (material.quantity || 0) * (material.unit_cost || 0);
+  return (
+    <div className="flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-gray-50 group text-xs">
+      <button onClick={() => onTogglePurchased(!material.purchased)} className="flex-shrink-0">
+        {material.purchased ? (
+          <CheckSquare className="w-4 h-4 text-green-500" />
+        ) : (
+          <Square className="w-4 h-4 text-gray-300 group-hover:text-gray-400" />
+        )}
+      </button>
+      <span className={`flex-1 truncate font-medium ${material.purchased ? 'text-gray-400 line-through' : 'text-gray-700'}`}>
+        {material.name}
+      </span>
+      <span className="text-gray-400 flex-shrink-0">
+        {material.quantity} {material.unit}
+      </span>
+      <span className="text-gray-400 flex-shrink-0">@${material.unit_cost}</span>
+      <span className="font-semibold text-gray-700 flex-shrink-0">{formatCurrency(total)}</span>
+      <button
+        onClick={onDelete}
+        className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-600 transition-all flex-shrink-0"
+      >
+        <Trash2 className="w-3.5 h-3.5" />
+      </button>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Edit GC Project Modal
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+function EditGCProjectModal({ project, projectId, onClose }: { project: any; projectId: string; onClose: () => void }) {
+  const queryClient = useQueryClient();
+  const [form, setForm] = useState({
+    name: project.name || '',
+    customerName: project.customerName || project.customer_name || '',
+    address: project.address || '',
+    city: project.city || '',
+    state: project.state || '',
+    zip: project.zip || '',
+    startDate: project.startDate || project.start_date || '',
+    targetEndDate: project.targetEndDate || project.target_end_date || '',
+    status: project.status || 'planning',
+    budget: project.budget || '',
+    overheadPercent: project.overheadPercent || project.overhead_percent || '',
+    profitPercent: project.profitPercent || project.profit_percent || '',
+  });
+
+  const updateProject = useMutation({
+    mutationFn: (updates: any) => api.updateGCProject(projectId, updates),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['gc-project', projectId] });
+      queryClient.invalidateQueries({ queryKey: ['gc-projects'] });
+      onClose();
+    },
+  });
+
+  const handleSave = () => {
+    updateProject.mutate({
+      name: form.name,
+      customerName: form.customerName,
+      address: form.address,
+      city: form.city,
+      state: form.state,
+      zip: form.zip,
+      startDate: form.startDate || null,
+      targetEndDate: form.targetEndDate || null,
+      status: form.status,
+      budget: form.budget ? parseFloat(String(form.budget)) : null,
+      overheadPercent: form.overheadPercent ? parseFloat(String(form.overheadPercent)) : null,
+      profitPercent: form.profitPercent ? parseFloat(String(form.profitPercent)) : null,
+    });
+  };
+
+  const set = (key: string, value: any) => setForm((f) => ({ ...f, [key]: value }));
+
+  return (
+    <>
+      <div className="fixed inset-0 bg-black/40 backdrop-blur-[2px] z-50" onClick={onClose} />
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div
+          className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="flex items-center justify-between p-5 border-b border-gray-100">
+            <h2 className="text-lg font-bold text-gray-900">Edit Project</h2>
+            <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors">
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          <div className="p-5 space-y-4">
+            {/* Project Name */}
+            <div>
+              <label className="text-xs font-medium text-gray-600 mb-1 block">Project Name</label>
+              <input
+                type="text"
+                value={form.name}
+                onChange={(e) => set('name', e.target.value)}
+                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
+              />
+            </div>
+
+            {/* Customer */}
+            <div>
+              <label className="text-xs font-medium text-gray-600 mb-1 block">Customer Name</label>
+              <input
+                type="text"
+                value={form.customerName}
+                onChange={(e) => set('customerName', e.target.value)}
+                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
+              />
+            </div>
+
+            {/* Address */}
+            <div>
+              <label className="text-xs font-medium text-gray-600 mb-1 block">Address</label>
+              <input
+                type="text"
+                value={form.address}
+                onChange={(e) => set('address', e.target.value)}
+                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
+              />
+            </div>
+
+            {/* City / State / Zip */}
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <label className="text-xs font-medium text-gray-600 mb-1 block">City</label>
+                <input
+                  type="text"
+                  value={form.city}
+                  onChange={(e) => set('city', e.target.value)}
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-600 mb-1 block">State</label>
+                <input
+                  type="text"
+                  value={form.state}
+                  onChange={(e) => set('state', e.target.value)}
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-600 mb-1 block">Zip</label>
+                <input
+                  type="text"
+                  value={form.zip}
+                  onChange={(e) => set('zip', e.target.value)}
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
+                />
+              </div>
+            </div>
+
+            {/* Dates */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs font-medium text-gray-600 mb-1 block">Start Date</label>
+                <input
+                  type="date"
+                  value={form.startDate ? form.startDate.slice(0, 10) : ''}
+                  onChange={(e) => set('startDate', e.target.value)}
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-600 mb-1 block">Target End Date</label>
+                <input
+                  type="date"
+                  value={form.targetEndDate ? form.targetEndDate.slice(0, 10) : ''}
+                  onChange={(e) => set('targetEndDate', e.target.value)}
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
+                />
+              </div>
+            </div>
+
+            {/* Status */}
+            <div>
+              <label className="text-xs font-medium text-gray-600 mb-1 block">Status</label>
+              <select
+                value={form.status}
+                onChange={(e) => set('status', e.target.value)}
+                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none bg-white"
+              >
+                {PROJECT_STATUSES.map((s) => (
+                  <option key={s} value={s}>{STATUS_CONFIG[s]?.label || s}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Budget / Overhead / Profit */}
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <label className="text-xs font-medium text-gray-600 mb-1 block">Budget ($)</label>
+                <input
+                  type="number"
+                  value={form.budget}
+                  onChange={(e) => set('budget', e.target.value)}
+                  placeholder="0"
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-600 mb-1 block">Overhead %</label>
+                <input
+                  type="number"
+                  value={form.overheadPercent}
+                  onChange={(e) => set('overheadPercent', e.target.value)}
+                  placeholder="0"
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-600 mb-1 block">Profit %</label>
+                <input
+                  type="number"
+                  value={form.profitPercent}
+                  onChange={(e) => set('profitPercent', e.target.value)}
+                  placeholder="0"
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-2 p-5 border-t border-gray-100">
+            <button
+              onClick={onClose}
+              className="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={!form.name.trim() || updateProject.isPending}
+              className="px-4 py-2 text-sm font-medium text-white bg-brand-500 rounded-lg hover:bg-brand-600 transition-colors disabled:opacity-60"
+            >
+              {updateProject.isPending ? 'Saving...' : 'Save Changes'}
+            </button>
+          </div>
+        </div>
+      </div>
     </>
   );
 }
@@ -1273,6 +1770,9 @@ function TradeColumn({ trade, projectId, onInviteSub }: { trade: any; projectId:
         </div>
       </div>
 
+      {/* Materials summary */}
+      <BoardMaterialsSummary tradeId={trade.id} />
+
       <div className="px-4 py-3 border-t border-gray-100 text-xs text-gray-400 space-y-0.5">
         {trade.budget && <div className="font-medium text-gray-600">{formatCurrency(trade.budget)}</div>}
         {(trade.startDate || trade.endDate) && (
@@ -1281,6 +1781,51 @@ function TradeColumn({ trade, projectId, onInviteSub }: { trade: any; projectId:
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+/* ─── Board View Materials Summary ─── */
+function BoardMaterialsSummary({ tradeId }: { tradeId: string }) {
+  const [expanded, setExpanded] = useState(false);
+
+  const { data: materialsRes } = useQuery({
+    queryKey: ['gc-trade-materials', tradeId],
+    queryFn: () => api.getGCTradeMaterials(tradeId),
+    enabled: !!tradeId,
+  });
+
+  const materials: any[] = materialsRes?.data || [];
+  if (materials.length === 0) return null;
+
+  const total = materials.reduce((s: number, m: any) => s + (m.total_cost || (m.quantity * m.unit_cost) || 0), 0);
+
+  return (
+    <div className="px-4 py-2 border-t border-gray-100">
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="flex items-center justify-between w-full text-xs text-gray-500 hover:text-gray-700 transition-colors"
+      >
+        <span className="flex items-center gap-1">
+          <Package className="w-3 h-3" />
+          Materials: {formatCurrency(total)} ({materials.length} item{materials.length !== 1 ? 's' : ''})
+        </span>
+        {expanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+      </button>
+      {expanded && (
+        <div className="mt-1.5 space-y-0.5">
+          {materials.map((m: any) => (
+            <div key={m.id} className="flex items-center justify-between text-[11px] text-gray-500 py-0.5">
+              <span className={`truncate flex-1 ${m.purchased ? 'line-through text-gray-400' : ''}`}>
+                {m.purchased ? '\u2713 ' : ''}{m.name}
+              </span>
+              <span className="ml-2 flex-shrink-0 font-medium text-gray-600">
+                {formatCurrency((m.quantity || 0) * (m.unit_cost || 0))}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

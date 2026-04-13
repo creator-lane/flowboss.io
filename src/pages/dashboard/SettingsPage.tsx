@@ -16,6 +16,8 @@ import {
   Trash2,
   Loader2,
   BookOpen,
+  Link2,
+  Unplug,
 } from 'lucide-react';
 import { PricebookManager } from '../../components/settings/PricebookManager';
 
@@ -30,6 +32,7 @@ const TABS = [
   { key: 'profile', label: 'Profile', icon: Building2 },
   { key: 'pricebook', label: 'Pricebook', icon: BookOpen },
   { key: 'payments', label: 'Payments', icon: CreditCard },
+  { key: 'integrations', label: 'Integrations', icon: Link2 },
 ] as const;
 
 type TabKey = (typeof TABS)[number]['key'];
@@ -125,6 +128,71 @@ export function SettingsPage() {
   const maskedAccountId = stripeAccountId
     ? `${stripeAccountId.slice(0, 8)}${'*'.repeat(Math.max(0, stripeAccountId.length - 12))}${stripeAccountId.slice(-4)}`
     : null;
+
+  // QuickBooks
+  const { data: qbData, isLoading: qbLoading } = useQuery({
+    queryKey: ['qb-status'],
+    queryFn: () => api.quickbooks.getStatus(),
+  });
+
+  const qbConnected = qbData?.connected ?? false;
+
+  const [connectingQB, setConnectingQB] = useState(false);
+  const [qbAuthUrl, setQbAuthUrl] = useState('');
+  const [qbError, setQbError] = useState('');
+
+  const [syncInvoices, setSyncInvoices] = useState<boolean | null>(null);
+  const [syncCustomers, setSyncCustomers] = useState<boolean | null>(null);
+  const [syncExpenses, setSyncExpenses] = useState<boolean | null>(null);
+  const [invoicingProvider, setInvoicingProvider] = useState<'stripe' | 'quickbooks' | null>(null);
+  const [qbSaveMessage, setQbSaveMessage] = useState('');
+  const [confirmDisconnect, setConfirmDisconnect] = useState(false);
+
+  // Derive QB prefs from server data or local overrides
+  const displaySyncInvoices = syncInvoices ?? qbData?.preferences?.syncInvoices ?? true;
+  const displaySyncCustomers = syncCustomers ?? qbData?.preferences?.syncCustomers ?? true;
+  const displaySyncExpenses = syncExpenses ?? qbData?.preferences?.syncExpenses ?? true;
+  const displayInvoicingProvider = invoicingProvider ?? qbData?.preferences?.invoicingProvider ?? 'stripe';
+
+  const handleConnectQB = async () => {
+    setConnectingQB(true);
+    setQbError('');
+    try {
+      const url = await api.quickbooks.getAuthUrl();
+      if (url) {
+        setQbAuthUrl(url);
+      } else {
+        setQbError('Could not generate QuickBooks connect URL');
+      }
+    } catch {
+      setQbError('Failed to get QuickBooks connect URL. Please try again.');
+    } finally {
+      setConnectingQB(false);
+    }
+  };
+
+  const qbPrefsMutation = useMutation({
+    mutationFn: (prefs: Parameters<typeof api.quickbooks.setPreferences>[0]) =>
+      api.quickbooks.setPreferences(prefs),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['qb-status'] });
+      setQbSaveMessage('Preferences saved!');
+      setTimeout(() => setQbSaveMessage(''), 3000);
+    },
+    onError: () => {
+      setQbSaveMessage('Failed to save. Please try again.');
+      setTimeout(() => setQbSaveMessage(''), 3000);
+    },
+  });
+
+  const qbDisconnectMutation = useMutation({
+    mutationFn: () => api.quickbooks.disconnect(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['qb-status'] });
+      setConfirmDisconnect(false);
+      setQbAuthUrl('');
+    },
+  });
 
   return (
     <div className="p-6 lg:p-8 max-w-3xl mx-auto">
@@ -384,6 +452,196 @@ export function SettingsPage() {
               {stripeConnectError && (
                 <p className="text-sm text-red-600">{stripeConnectError}</p>
               )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Integrations Tab */}
+      {activeTab === 'integrations' && (
+        <div className="bg-white rounded-xl border border-neutral-200 p-6 mb-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Link2 className="w-5 h-5 text-brand-500" />
+            <h2 className="text-lg font-bold text-neutral-900">QuickBooks Online</h2>
+          </div>
+          <p className="text-sm text-neutral-500 mb-5">
+            Sync your invoices, customers, and expenses with QuickBooks Online.
+          </p>
+
+          {qbLoading ? (
+            <div className="animate-pulse">
+              <div className="h-10 bg-neutral-100 rounded-lg w-48" />
+            </div>
+          ) : qbConnected ? (
+            <div className="space-y-6">
+              {/* Connected badge */}
+              <div className="flex items-center gap-3">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-semibold">
+                  <CheckCircle className="w-4 h-4" />
+                  Connected
+                </span>
+              </div>
+
+              {/* Sync preferences */}
+              <div className="space-y-4">
+                <h3 className="text-sm font-semibold text-neutral-700">Sync Preferences</h3>
+
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={displaySyncInvoices}
+                    onChange={(e) => setSyncInvoices(e.target.checked)}
+                    className="w-4 h-4 rounded border-neutral-300 text-brand-500 focus:ring-brand-500"
+                  />
+                  <span className="text-sm text-neutral-700">Sync Invoices</span>
+                </label>
+
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={displaySyncCustomers}
+                    onChange={(e) => setSyncCustomers(e.target.checked)}
+                    className="w-4 h-4 rounded border-neutral-300 text-brand-500 focus:ring-brand-500"
+                  />
+                  <span className="text-sm text-neutral-700">Sync Customers</span>
+                </label>
+
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={displaySyncExpenses}
+                    onChange={(e) => setSyncExpenses(e.target.checked)}
+                    className="w-4 h-4 rounded border-neutral-300 text-brand-500 focus:ring-brand-500"
+                  />
+                  <span className="text-sm text-neutral-700">Sync Expenses</span>
+                </label>
+
+                {/* Invoicing provider */}
+                <div className="pt-2">
+                  <h3 className="text-sm font-semibold text-neutral-700 mb-2">Invoicing Provider</h3>
+                  <div className="flex gap-4">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="invoicingProvider"
+                        value="stripe"
+                        checked={displayInvoicingProvider === 'stripe'}
+                        onChange={() => setInvoicingProvider('stripe')}
+                        className="w-4 h-4 border-neutral-300 text-brand-500 focus:ring-brand-500"
+                      />
+                      <span className="text-sm text-neutral-700">Stripe</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="invoicingProvider"
+                        value="quickbooks"
+                        checked={displayInvoicingProvider === 'quickbooks'}
+                        onChange={() => setInvoicingProvider('quickbooks')}
+                        className="w-4 h-4 border-neutral-300 text-brand-500 focus:ring-brand-500"
+                      />
+                      <span className="text-sm text-neutral-700">QuickBooks</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              {/* Save / Disconnect */}
+              <div className="flex items-center gap-3 flex-wrap">
+                <button
+                  onClick={() =>
+                    qbPrefsMutation.mutate({
+                      syncInvoices: displaySyncInvoices,
+                      syncCustomers: displaySyncCustomers,
+                      syncExpenses: displaySyncExpenses,
+                      invoicingProvider: displayInvoicingProvider,
+                    })
+                  }
+                  disabled={qbPrefsMutation.isPending}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-500 text-white font-semibold rounded-lg hover:bg-brand-600 disabled:opacity-50 transition text-sm"
+                >
+                  {qbPrefsMutation.isPending ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Save className="w-4 h-4" />
+                  )}
+                  Save Preferences
+                </button>
+
+                {!confirmDisconnect ? (
+                  <button
+                    onClick={() => setConfirmDisconnect(true)}
+                    className="inline-flex items-center gap-2 px-4 py-2 border border-red-300 text-red-600 font-semibold rounded-lg hover:bg-red-50 transition text-sm"
+                  >
+                    <Unplug className="w-4 h-4" />
+                    Disconnect
+                  </button>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-red-600">Are you sure?</span>
+                    <button
+                      onClick={() => qbDisconnectMutation.mutate()}
+                      disabled={qbDisconnectMutation.isPending}
+                      className="px-3 py-1.5 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 disabled:opacity-50 transition text-sm"
+                    >
+                      {qbDisconnectMutation.isPending ? 'Disconnecting...' : 'Yes, Disconnect'}
+                    </button>
+                    <button
+                      onClick={() => setConfirmDisconnect(false)}
+                      className="px-3 py-1.5 border border-neutral-300 text-neutral-600 font-semibold rounded-lg hover:bg-neutral-50 transition text-sm"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                )}
+
+                {qbSaveMessage && (
+                  <span
+                    className={`text-sm font-medium ${
+                      qbSaveMessage.includes('saved') ? 'text-green-600' : 'text-red-600'
+                    }`}
+                  >
+                    {qbSaveMessage}
+                  </span>
+                )}
+              </div>
+            </div>
+          ) : qbAuthUrl ? (
+            <div className="space-y-3">
+              <p className="text-sm text-neutral-600">
+                You'll be redirected to QuickBooks to authorize FlowBoss.
+              </p>
+              <a
+                href={qbAuthUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-500 text-white font-semibold rounded-lg hover:bg-brand-600 transition text-sm"
+              >
+                <ExternalLink className="w-4 h-4" />
+                Continue to QuickBooks
+              </a>
+              <p className="text-xs text-neutral-400 truncate max-w-md" title={qbAuthUrl}>
+                {qbAuthUrl}
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <button
+                onClick={handleConnectQB}
+                disabled={connectingQB}
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-500 text-white font-semibold rounded-lg hover:bg-brand-600 disabled:opacity-50 transition text-sm"
+              >
+                {connectingQB ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <ExternalLink className="w-4 h-4" />
+                )}
+                Connect QuickBooks
+              </button>
+              <p className="text-xs text-neutral-400">
+                You'll be redirected to QuickBooks to authorize.
+              </p>
+              {qbError && <p className="text-sm text-red-600">{qbError}</p>}
             </div>
           )}
         </div>

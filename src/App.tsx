@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { HomePage } from './pages/HomePage';
 import { PrivacyPolicy } from './pages/PrivacyPolicy';
@@ -14,24 +15,38 @@ import { Pricing } from './pages/Pricing';
 import { Checkout } from './pages/Checkout';
 import { RequireAuth } from './components/auth/RequireAuth';
 import { DashboardLayout } from './components/layout/DashboardLayout';
-import { SchedulePage } from './pages/dashboard/SchedulePage';
-import { JobsPage } from './pages/dashboard/JobsPage';
-import { JobDetailPage } from './pages/dashboard/JobDetailPage';
-import { CustomersPage } from './pages/dashboard/CustomersPage';
-import { CustomerDetailPage } from './pages/dashboard/CustomerDetailPage';
-import { InvoicesPage } from './pages/dashboard/InvoicesPage';
-import { InvoiceDetailPage } from './pages/dashboard/InvoiceDetailPage';
-import { FinancialsPage } from './pages/dashboard/FinancialsPage';
-import { InsightsPage } from './pages/dashboard/InsightsPage';
-import { ProjectsPage } from './pages/dashboard/ProjectsPage';
-import { ProjectDetailPage } from './pages/dashboard/ProjectDetailPage';
-import { ContractorsPage } from './pages/dashboard/ContractorsPage';
-import { ContractorDetailPage } from './pages/dashboard/ContractorDetailPage';
-import { SettingsPage } from './pages/dashboard/SettingsPage';
-import { GCDashboardPage } from './pages/dashboard/GCDashboardPage';
-import { GCProjectDetailPage } from './pages/dashboard/GCProjectDetailPage';
-import { SubProjectViewPage } from './pages/dashboard/SubProjectViewPage';
 import { InviteLanding } from './pages/InviteLanding';
+
+// Lazy-loaded dashboard pages for code-splitting
+const SchedulePage = lazy(() => import('./pages/dashboard/SchedulePage').then(m => ({ default: m.SchedulePage })));
+const JobsPage = lazy(() => import('./pages/dashboard/JobsPage').then(m => ({ default: m.JobsPage })));
+const JobDetailPage = lazy(() => import('./pages/dashboard/JobDetailPage').then(m => ({ default: m.JobDetailPage })));
+const CustomersPage = lazy(() => import('./pages/dashboard/CustomersPage').then(m => ({ default: m.CustomersPage })));
+const CustomerDetailPage = lazy(() => import('./pages/dashboard/CustomerDetailPage').then(m => ({ default: m.CustomerDetailPage })));
+const InvoicesPage = lazy(() => import('./pages/dashboard/InvoicesPage').then(m => ({ default: m.InvoicesPage })));
+const InvoiceDetailPage = lazy(() => import('./pages/dashboard/InvoiceDetailPage').then(m => ({ default: m.InvoiceDetailPage })));
+const FinancialsPage = lazy(() => import('./pages/dashboard/FinancialsPage').then(m => ({ default: m.FinancialsPage })));
+const InsightsPage = lazy(() => import('./pages/dashboard/InsightsPage').then(m => ({ default: m.InsightsPage })));
+const ProjectsPage = lazy(() => import('./pages/dashboard/ProjectsPage').then(m => ({ default: m.ProjectsPage })));
+const ProjectDetailPage = lazy(() => import('./pages/dashboard/ProjectDetailPage').then(m => ({ default: m.ProjectDetailPage })));
+const ContractorsPage = lazy(() => import('./pages/dashboard/ContractorsPage').then(m => ({ default: m.ContractorsPage })));
+const ContractorDetailPage = lazy(() => import('./pages/dashboard/ContractorDetailPage').then(m => ({ default: m.ContractorDetailPage })));
+const SettingsPage = lazy(() => import('./pages/dashboard/SettingsPage').then(m => ({ default: m.SettingsPage })));
+const GCDashboardPage = lazy(() => import('./pages/dashboard/GCDashboardPage').then(m => ({ default: m.GCDashboardPage })));
+const GCProjectDetailPage = lazy(() => import('./pages/dashboard/GCProjectDetailPage').then(m => ({ default: m.GCProjectDetailPage })));
+const SubProjectViewPage = lazy(() => import('./pages/dashboard/SubProjectViewPage').then(m => ({ default: m.SubProjectViewPage })));
+
+function LazyFallback() {
+  return (
+    <div className="flex items-center justify-center h-64">
+      <div className="w-8 h-8 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
+    </div>
+  );
+}
+
+function Lazy({ children }: { children: React.ReactNode }) {
+  return <Suspense fallback={<LazyFallback />}>{children}</Suspense>;
+}
 
 export default function App() {
   return (
@@ -65,23 +80,23 @@ export default function App() {
         }
       >
         <Route index element={<Navigate to="/dashboard/schedule" replace />} />
-        <Route path="schedule" element={<SchedulePage />} />
-        <Route path="jobs" element={<JobsPage />} />
-        <Route path="jobs/:id" element={<JobDetailPage />} />
-        <Route path="customers" element={<CustomersPage />} />
-        <Route path="customers/:id" element={<CustomerDetailPage />} />
-        <Route path="invoices" element={<InvoicesPage />} />
-        <Route path="invoices/:id" element={<InvoiceDetailPage />} />
-        <Route path="projects" element={<ProjectsPage />} />
-        <Route path="projects/:id" element={<ProjectDetailPage />} />
-        <Route path="contractors" element={<ContractorsPage />} />
-        <Route path="contractors/:id" element={<ContractorDetailPage />} />
-        <Route path="gc" element={<GCDashboardPage />} />
-        <Route path="gc/:id" element={<GCProjectDetailPage />} />
-        <Route path="gc-projects/:id" element={<SubProjectViewPage />} />
-        <Route path="financials" element={<FinancialsPage />} />
-        <Route path="insights" element={<InsightsPage />} />
-        <Route path="settings" element={<SettingsPage />} />
+        <Route path="schedule" element={<Lazy><SchedulePage /></Lazy>} />
+        <Route path="jobs" element={<Lazy><JobsPage /></Lazy>} />
+        <Route path="jobs/:id" element={<Lazy><JobDetailPage /></Lazy>} />
+        <Route path="customers" element={<Lazy><CustomersPage /></Lazy>} />
+        <Route path="customers/:id" element={<Lazy><CustomerDetailPage /></Lazy>} />
+        <Route path="invoices" element={<Lazy><InvoicesPage /></Lazy>} />
+        <Route path="invoices/:id" element={<Lazy><InvoiceDetailPage /></Lazy>} />
+        <Route path="projects" element={<Lazy><ProjectsPage /></Lazy>} />
+        <Route path="projects/:id" element={<Lazy><ProjectDetailPage /></Lazy>} />
+        <Route path="contractors" element={<Lazy><ContractorsPage /></Lazy>} />
+        <Route path="contractors/:id" element={<Lazy><ContractorDetailPage /></Lazy>} />
+        <Route path="gc" element={<Lazy><GCDashboardPage /></Lazy>} />
+        <Route path="gc/:id" element={<Lazy><GCProjectDetailPage /></Lazy>} />
+        <Route path="gc-projects/:id" element={<Lazy><SubProjectViewPage /></Lazy>} />
+        <Route path="financials" element={<Lazy><FinancialsPage /></Lazy>} />
+        <Route path="insights" element={<Lazy><InsightsPage /></Lazy>} />
+        <Route path="settings" element={<Lazy><SettingsPage /></Lazy>} />
       </Route>
     </Routes>
   );

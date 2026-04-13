@@ -46,6 +46,122 @@ function SkeletonField() {
   );
 }
 
+const SUB_STATUS_LABELS: Record<string, { label: string; color: string }> = {
+  active: { label: 'Active', color: 'bg-green-100 text-green-700' },
+  trialing: { label: 'Free Trial', color: 'bg-blue-100 text-blue-700' },
+  past_due: { label: 'Past Due', color: 'bg-red-100 text-red-700' },
+  canceled: { label: 'Canceled', color: 'bg-gray-100 text-gray-600' },
+  none: { label: 'No Subscription', color: 'bg-gray-100 text-gray-600' },
+};
+
+function SubscriptionCard() {
+  const { session } = useAuth();
+  const { data: settings } = useQuery({ queryKey: ['settings'], queryFn: () => api.getSettings() });
+  const [portalUrl, setPortalUrl] = useState('');
+  const [loadingPortal, setLoadingPortal] = useState(false);
+
+  const subStatus = settings?.data?.subscription_status || 'none';
+  const subPlan = settings?.data?.subscription_plan;
+  const periodEnd = settings?.data?.subscription_current_period_end;
+  const trialEnd = settings?.data?.trial_end;
+  const statusCfg = SUB_STATUS_LABELS[subStatus] || SUB_STATUS_LABELS.none;
+
+  const handleManageBilling = async () => {
+    if (!session) return;
+    setLoadingPortal(true);
+    try {
+      const resp = await fetch(
+        'https://besbtasjpqmfqjkudmgu.supabase.co/functions/v1/create-billing-portal',
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+      if (resp.ok) {
+        const { url } = await resp.json();
+        if (url) setPortalUrl(url);
+      }
+    } catch { /* edge function not deployed */ }
+    setLoadingPortal(false);
+  };
+
+  if (subStatus === 'none') {
+    return (
+      <div className="bg-white rounded-xl border border-neutral-200 p-6 mb-6">
+        <div className="flex items-center gap-2 mb-3">
+          <CreditCard className="w-5 h-5 text-brand-500" />
+          <h2 className="text-lg font-bold text-neutral-900">Subscription</h2>
+        </div>
+        <p className="text-sm text-neutral-500 mb-4">
+          You're using FlowBoss via your mobile subscription. Web billing is available for new subscribers.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-white rounded-xl border border-neutral-200 p-6 mb-6">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <CreditCard className="w-5 h-5 text-brand-500" />
+          <h2 className="text-lg font-bold text-neutral-900">Subscription</h2>
+        </div>
+        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusCfg.color}`}>
+          {statusCfg.label}
+        </span>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4 text-sm mb-4">
+        {subPlan && (
+          <div>
+            <p className="text-neutral-400 text-xs">Plan</p>
+            <p className="font-medium text-neutral-900 capitalize">{subPlan}</p>
+          </div>
+        )}
+        {periodEnd && (
+          <div>
+            <p className="text-neutral-400 text-xs">Next billing</p>
+            <p className="font-medium text-neutral-900">{new Date(periodEnd).toLocaleDateString()}</p>
+          </div>
+        )}
+        {trialEnd && subStatus === 'trialing' && (
+          <div>
+            <p className="text-neutral-400 text-xs">Trial ends</p>
+            <p className="font-medium text-neutral-900">{new Date(trialEnd).toLocaleDateString()}</p>
+          </div>
+        )}
+      </div>
+
+      {portalUrl ? (
+        <div className="space-y-2">
+          <a
+            href={portalUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-brand-500 text-white text-sm font-medium rounded-lg hover:bg-brand-600 transition-colors"
+          >
+            <ExternalLink className="w-4 h-4" />
+            Open Billing Portal
+          </a>
+          <p className="text-xs text-neutral-400">Manage payment method, change plan, or cancel</p>
+        </div>
+      ) : (
+        <button
+          onClick={handleManageBilling}
+          disabled={loadingPortal}
+          className="inline-flex items-center gap-2 px-4 py-2 bg-neutral-100 text-neutral-700 text-sm font-medium rounded-lg hover:bg-neutral-200 transition-colors disabled:opacity-50"
+        >
+          {loadingPortal ? <Loader2 className="w-4 h-4 animate-spin" /> : <CreditCard className="w-4 h-4" />}
+          Manage Billing
+        </button>
+      )}
+    </div>
+  );
+}
+
 export function SettingsPage() {
   const { user, signOut } = useAuth();
   const queryClient = useQueryClient();
@@ -394,6 +510,10 @@ export function SettingsPage() {
 
       {/* Payments Tab */}
       {activeTab === 'payments' && (
+        <>
+        {/* Subscription Management */}
+        <SubscriptionCard />
+
         <div className="bg-white rounded-xl border border-neutral-200 p-6 mb-6">
           <div className="flex items-center gap-2 mb-4">
             <CreditCard className="w-5 h-5 text-brand-500" />
@@ -455,6 +575,7 @@ export function SettingsPage() {
             </div>
           )}
         </div>
+        </>
       )}
 
       {/* Integrations Tab */}

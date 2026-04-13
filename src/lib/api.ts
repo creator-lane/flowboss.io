@@ -1499,45 +1499,60 @@ export const api = {
   // Organizations
   getOrganization: async () => {
     const userId = await getUserId();
-    const { data, error } = await supabase
-      .from('organizations')
-      .select('*, members:org_members(*)')
-      .eq('owner_id', userId)
-      .single();
-    if (error && error.code !== 'PGRST116') throw new Error(error.message);
-    return { data: data ? camelify(data) : null };
+    try {
+      const { data, error } = await supabase
+        .from('organizations')
+        .select('*, members:org_members(*)')
+        .eq('owner_id', userId)
+        .single();
+      if (error && error.code !== 'PGRST116') throw new Error(error.message);
+      return { data: data ? camelify(data) : null };
+    } catch {
+      // Table may not exist yet — GC migration not run
+      return { data: null };
+    }
   },
 
   createOrganization: async (orgData: { name: string; type: string }) => {
     const userId = await getUserId();
-    const { data, error } = await supabase
-      .from('organizations')
-      .insert({ ...orgData, owner_id: userId })
-      .select()
-      .single();
-    if (error) throw new Error(error.message);
+    try {
+      const { data, error } = await supabase
+        .from('organizations')
+        .insert({ ...orgData, owner_id: userId })
+        .select()
+        .single();
+      if (error) throw new Error(error.message);
 
-    // Auto-add owner as active member
-    await supabase.from('org_members').insert({
-      org_id: data.id,
-      user_id: userId,
-      role: 'owner',
-      status: 'active',
-      invited_by: userId,
-      joined_at: new Date().toISOString(),
-    });
+      // Auto-add owner as active member
+      await supabase.from('org_members').insert({
+        org_id: data.id,
+        user_id: userId,
+        role: 'owner',
+        status: 'active',
+        invited_by: userId,
+        joined_at: new Date().toISOString(),
+      });
 
-    return { data: camelify(data) };
+      return { data: camelify(data) };
+    } catch {
+      // Table may not exist yet — GC migration not run
+      return { data: null };
+    }
   },
 
   // GC Projects
   getGCProjects: async () => {
-    const { data, error } = await supabase
-      .from('gc_projects')
-      .select('*, trades:gc_project_trades(*, tasks:gc_project_tasks(*))')
-      .order('created_at', { ascending: false });
-    if (error) throw new Error(error.message);
-    return { data: camelify(data || []) };
+    try {
+      const { data, error } = await supabase
+        .from('gc_projects')
+        .select('*, trades:gc_project_trades(*, tasks:gc_project_tasks(*))')
+        .order('created_at', { ascending: false });
+      if (error) throw new Error(error.message);
+      return { data: camelify(data || []) };
+    } catch {
+      // Table may not exist yet — GC migration not run
+      return { data: [] };
+    }
   },
 
   getGCProject: async (id: string) => {

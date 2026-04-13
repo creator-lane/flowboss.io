@@ -143,16 +143,19 @@ function useAutoOrg() {
   const org = orgQuery.data?.data;
   const isLoading = orgQuery.isLoading;
   const needsOrg = !isLoading && !org;
+  const [attempted, setAttempted] = useState(false);
 
-  // Auto-create org silently when needed
+  // Auto-create org silently when needed (only try once)
   useEffect(() => {
-    if (needsOrg && !createOrg.isPending && !createOrg.isSuccess) {
+    if (needsOrg && !createOrg.isPending && !createOrg.isSuccess && !attempted) {
+      setAttempted(true);
       createOrg.mutate();
     }
-  }, [needsOrg, createOrg.isPending, createOrg.isSuccess]);
+  }, [needsOrg, createOrg.isPending, createOrg.isSuccess, attempted]);
 
-  const ready = !isLoading && (!!org || createOrg.isSuccess);
-  return { ready, isLoading: isLoading || createOrg.isPending };
+  // Ready if we have an org, or if we've attempted and it either succeeded or the tables don't exist yet
+  const ready = !isLoading && (!!org || createOrg.isSuccess || attempted);
+  return { ready, isLoading: isLoading || (createOrg.isPending && !attempted) };
 }
 
 export function GCDashboardPage() {

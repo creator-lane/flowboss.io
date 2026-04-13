@@ -218,6 +218,9 @@ export function GCProjectDetailPage() {
           </div>
         </div>
 
+        {/* Budget summary bar */}
+        <BudgetBar trades={trades} budget={project.budget} />
+
         {/* View toggle + progress row */}
         <div className="mt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           {/* Segmented control */}
@@ -359,6 +362,67 @@ export function GCProjectDetailPage() {
         projectId={id!}
         projectName={project.name}
       />
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Budget Bar
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+function BudgetBar({ trades, budget }: { trades: any[]; budget?: number }) {
+  const totalLabor = trades.reduce((s: number, t: any) => s + ((t.laborHours || t.labor_hours || 0) * (t.laborRate || t.labor_rate || 0)), 0);
+  const totalMaterials = trades.reduce((s: number, t: any) => s + (t.materialsBudget || t.materials_budget || 0), 0);
+  const tradeBudgets = trades.reduce((s: number, t: any) => s + (t.budget || 0), 0);
+  const allocated = totalLabor + totalMaterials || tradeBudgets;
+  const projectBudget = budget || allocated;
+
+  if (!projectBudget || projectBudget <= 0) return null;
+
+  const pct = Math.min(100, Math.round((allocated / projectBudget) * 100));
+  const margin = projectBudget > 0 && allocated > 0 ? Math.round(((projectBudget - allocated) / projectBudget) * 100) : 0;
+
+  const barColor =
+    pct > 100 ? 'bg-red-500' :
+    pct >= 80 ? 'bg-amber-500' :
+    'bg-green-500';
+
+  return (
+    <div className="mt-4 bg-white border border-gray-200 rounded-lg px-4 py-3">
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-1 text-sm mb-2">
+        <span className="flex items-center gap-1.5">
+          <DollarSign className="w-3.5 h-3.5 text-gray-400" />
+          <span className="text-gray-500">Budget:</span>
+          <span className="font-semibold text-gray-900">{formatCurrency(projectBudget)}</span>
+        </span>
+        {totalLabor > 0 && (
+          <span>
+            <span className="text-gray-500">Labor:</span>{' '}
+            <span className="font-medium text-gray-700">{formatCurrency(totalLabor)}</span>
+          </span>
+        )}
+        {totalMaterials > 0 && (
+          <span>
+            <span className="text-gray-500">Materials:</span>{' '}
+            <span className="font-medium text-gray-700">{formatCurrency(totalMaterials)}</span>
+          </span>
+        )}
+        {margin > 0 && (
+          <span>
+            <span className="text-gray-500">Margin:</span>{' '}
+            <span className="font-medium text-green-600">{margin}%</span>
+          </span>
+        )}
+      </div>
+      <div className="flex items-center gap-3">
+        <div className="flex-1 h-2.5 bg-gray-100 rounded-full overflow-hidden">
+          <div
+            className={`h-full rounded-full transition-all duration-500 ${barColor}`}
+            style={{ width: `${Math.min(pct, 100)}%` }}
+          />
+        </div>
+        <span className="text-xs font-medium text-gray-500 w-12 text-right">{pct}% allocated</span>
+      </div>
     </div>
   );
 }

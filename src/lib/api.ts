@@ -1689,6 +1689,45 @@ export const api = {
     if (error) throw new Error(error.message);
   },
 
+  // GC Trade Materials
+  getGCTradeMaterials: async (tradeId: string) => {
+    const { data, error } = await supabase
+      .from('gc_trade_materials')
+      .select('*')
+      .eq('trade_id', tradeId)
+      .order('sort_order');
+    if (error && !error.message.includes('does not exist')) throw new Error(error.message);
+    return { data: data || [] };
+  },
+
+  addGCTradeMaterial: async (tradeId: string, material: { name: string; quantity: number; unit: string; unit_cost: number; markup_percent?: number }) => {
+    const total = material.quantity * material.unit_cost;
+    const markup = material.markup_percent || 0;
+    const customer_price = total * (1 + markup / 100);
+    const { data, error } = await supabase
+      .from('gc_trade_materials')
+      .insert({ trade_id: tradeId, ...material, total_cost: total, customer_price })
+      .select()
+      .single();
+    if (error) throw new Error(error.message);
+    return { data };
+  },
+
+  updateGCTradeMaterial: async (id: string, updates: any) => {
+    const { data, error } = await supabase
+      .from('gc_trade_materials')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
+    if (error) throw new Error(error.message);
+    return { data };
+  },
+
+  deleteGCTradeMaterial: async (id: string) => {
+    await supabase.from('gc_trade_materials').delete().eq('id', id);
+  },
+
   // GC Messages
   getGCMessages: async (projectId: string) => {
     const { data, error } = await supabase

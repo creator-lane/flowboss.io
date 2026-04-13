@@ -46,12 +46,12 @@ export function Layout() {
             >
               Log In
             </Link>
-            <a
-              href="https://apps.apple.com/app/id6761025816"
+            <Link
+              to="/pricing"
               className="hidden sm:inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-all shadow-sm"
             >
-              Get the App
-            </a>
+              Start Free Trial
+            </Link>
           </div>
         </div>
       </nav>

@@ -1493,4 +1493,211 @@ export const api = {
     if (error) throw new Error(error.message);
     return { data: camelify(data || []) };
   },
+
+  // ── GC System ──────────────────────────────────────────────────────────
+
+  // Organizations
+  getOrganization: async () => {
+    const userId = await getUserId();
+    const { data, error } = await supabase
+      .from('organizations')
+      .select('*, members:org_members(*)')
+      .eq('owner_id', userId)
+      .single();
+    if (error && error.code !== 'PGRST116') throw new Error(error.message);
+    return { data: data ? camelify(data) : null };
+  },
+
+  createOrganization: async (orgData: { name: string; type: string }) => {
+    const userId = await getUserId();
+    const { data, error } = await supabase
+      .from('organizations')
+      .insert({ ...orgData, owner_id: userId })
+      .select()
+      .single();
+    if (error) throw new Error(error.message);
+
+    // Auto-add owner as active member
+    await supabase.from('org_members').insert({
+      org_id: data.id,
+      user_id: userId,
+      role: 'owner',
+      status: 'active',
+      invited_by: userId,
+      joined_at: new Date().toISOString(),
+    });
+
+    return { data: camelify(data) };
+  },
+
+  // GC Projects
+  getGCProjects: async () => {
+    const { data, error } = await supabase
+      .from('gc_projects')
+      .select('*, trades:gc_project_trades(*, tasks:gc_project_tasks(*))')
+      .order('created_at', { ascending: false });
+    if (error) throw new Error(error.message);
+    return { data: camelify(data || []) };
+  },
+
+  getGCProject: async (id: string) => {
+    const { data, error } = await supabase
+      .from('gc_projects')
+      .select('*, trades:gc_project_trades(*, tasks:gc_project_tasks(*)), messages:gc_project_messages(*)')
+      .eq('id', id)
+      .single();
+    if (error) throw new Error(error.message);
+    return { data: camelify(data) };
+  },
+
+  createGCProject: async (projectData: any) => {
+    const userId = await getUserId();
+
+    // Get or create org
+    let { data: org } = await supabase
+      .from('organizations')
+      .select('id')
+      .eq('owner_id', userId)
+      .single();
+
+    if (!org) {
+      // Auto-create org for this GC
+      const { data: settings } = await supabase.from('profiles').select('business_name').eq('id', userId).single();
+      const { data: newOrg } = await supabase
+        .from('organizations')
+        .insert({ name: settings?.business_name || 'My Company', owner_id: userId, type: 'gc' })
+        .select().single();
+      org = newOrg;
+
+      // Add owner as member
+      if (org) {
+        await supabase.from('org_members').insert({
+          org_id: org.id, user_id: userId, role: 'owner', status: 'active',
+          invited_by: userId, joined_at: new Date().toISOString(),
+        });
+      }
+    }
+
+    if (!org) throw new Error('Could not create organization');
+
+    const { trades, ...project } = projectData;
+    const { data, error } = await supabase
+      .from('gc_projects')
+      .insert({ ...snakeify(project), org_id: org.id, created_by: userId })
+      .select().single();
+    if (error) throw new Error(error.message);
+
+    // Insert trades
+    if (trades?.length && data) {
+      for (let i = 0; i < trades.length; i++) {
+        const { tasks, ...tradeFields } = trades[i];
+        const { data: tradeData } = await supabase
+          .from('gc_project_trades')
+          .insert({ ...snakeify(tradeFields), gc_project_id: data.id, sort_order: i })
+          .select().single();
+
+        if (tasks?.length && tradeData) {
+          await supabase.from('gc_project_tasks').insert(
+            tasks.map((t: any, ti: number) => ({
+              trade_id: tradeData.id, name: t.name, done: false, sort_order: ti,
+            }))
+          );
+        }
+      }
+    }
+
+    return { data: camelify(data) };
+  },
+
+  updateGCProject: async (id: string, updates: any) => {
+    const { data, error } = await supabase
+      .from('gc_projects')
+      .update(snakeify(updates))
+      .eq('id', id)
+      .select().single();
+    if (error) throw new Error(error.message);
+    return { data: camelify(data) };
+  },
+
+  deleteGCProject: async (id: string) => {
+    const { error } = await supabase.from('gc_projects').delete().eq('id', id);
+    if (error) throw new Error(error.message);
+  },
+
+  // GC Project Trades
+  updateGCTrade: async (tradeId: string, updates: any) => {
+    const { data, error } = await supabase
+      .from('gc_project_trades')
+      .update(snakeify(updates))
+      .eq('id', tradeId)
+      .select().single();
+    if (error) throw new Error(error.message);
+    return { data: camelify(data) };
+  },
+
+  addGCTrade: async (projectId: string, trade: any) => {
+    const { tasks, ...tradeFields } = trade;
+    const { data, error } = await supabase
+      .from('gc_project_trades')
+      .insert({ ...snakeify(tradeFields), gc_project_id: projectId })
+      .select().single();
+    if (error) throw new Error(error.message);
+
+    if (tasks?.length && data) {
+      await supabase.from('gc_project_tasks').insert(
+        tasks.map((t: any, i: number) => ({ trade_id: data.id, name: t.name, done: false, sort_order: i }))
+      );
+    }
+    return { data: camelify(data) };
+  },
+
+  // GC Tasks
+  toggleGCTask: async (taskId: string, done: boolean) => {
+    const { error } = await supabase
+      .from('gc_project_tasks')
+      .update({ done })
+      .eq('id', taskId);
+    if (error) throw new Error(error.message);
+  },
+
+  addGCTask: async (tradeId: string, name: string) => {
+    const { data, error } = await supabase
+      .from('gc_project_tasks')
+      .insert({ trade_id: tradeId, name, done: false })
+      .select().single();
+    if (error) throw new Error(error.message);
+    return { data };
+  },
+
+  deleteGCTask: async (taskId: string) => {
+    const { error } = await supabase.from('gc_project_tasks').delete().eq('id', taskId);
+    if (error) throw new Error(error.message);
+  },
+
+  // GC Messages
+  getGCMessages: async (projectId: string) => {
+    const { data, error } = await supabase
+      .from('gc_project_messages')
+      .select('*, sender:profiles(business_name)')
+      .eq('gc_project_id', projectId)
+      .order('created_at', { ascending: true });
+    if (error) throw new Error(error.message);
+    return { data: camelify(data || []) };
+  },
+
+  sendGCMessage: async (projectId: string, message: string, tradeId?: string) => {
+    const userId = await getUserId();
+    const { data, error } = await supabase
+      .from('gc_project_messages')
+      .insert({ gc_project_id: projectId, sender_id: userId, trade_id: tradeId || null, message })
+      .select().single();
+    if (error) throw new Error(error.message);
+    return { data };
+  },
+
+  // Invite sub to a trade
+  inviteSubToTrade: async (_tradeId: string, email: string) => {
+    // Placeholder — real invite flow needs an edge function
+    return { data: { invited: true, email } };
+  },
 };

@@ -9,6 +9,9 @@ import { AnalyticsTaxonomy } from './pages/AnalyticsTaxonomy';
 import { StripeConnect } from './pages/StripeConnect';
 import { Layout } from './pages/Layout';
 import { Login } from './pages/Login';
+import { Signup } from './pages/Signup';
+import { Pricing } from './pages/Pricing';
+import { Checkout } from './pages/Checkout';
 import { RequireAuth } from './components/auth/RequireAuth';
 import { DashboardLayout } from './components/layout/DashboardLayout';
 import { SchedulePage } from './pages/dashboard/SchedulePage';
@@ -24,6 +27,8 @@ import { ProjectDetailPage } from './pages/dashboard/ProjectDetailPage';
 import { ContractorsPage } from './pages/dashboard/ContractorsPage';
 import { ContractorDetailPage } from './pages/dashboard/ContractorDetailPage';
 import { SettingsPage } from './pages/dashboard/SettingsPage';
+import { GCDashboardPage } from './pages/dashboard/GCDashboardPage';
+import { GCProjectDetailPage } from './pages/dashboard/GCProjectDetailPage';
 
 export default function App() {
   return (
@@ -40,8 +45,11 @@ export default function App() {
         <Route path="/stripe-connect" element={<StripeConnect />} />
       </Route>
 
-      {/* Auth */}
+      {/* Auth & public pages */}
       <Route path="/login" element={<Login />} />
+      <Route path="/signup" element={<Signup />} />
+      <Route path="/pricing" element={<Pricing />} />
+      <Route path="/checkout" element={<Checkout />} />
 
       {/* Dashboard (protected) */}
       <Route
@@ -64,6 +72,8 @@ export default function App() {
         <Route path="projects/:id" element={<ProjectDetailPage />} />
         <Route path="contractors" element={<ContractorsPage />} />
         <Route path="contractors/:id" element={<ContractorDetailPage />} />
+        <Route path="gc" element={<GCDashboardPage />} />
+        <Route path="gc/:id" element={<GCProjectDetailPage />} />
         <Route path="financials" element={<FinancialsPage />} />
         <Route path="settings" element={<SettingsPage />} />
       </Route>

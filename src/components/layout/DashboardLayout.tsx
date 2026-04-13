@@ -7,6 +7,7 @@ import {
   Users,
   FileText,
   FolderKanban,
+  Building2,
   HardHat,
   BarChart3,
   Settings,
@@ -24,6 +25,7 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
+  { to: '/dashboard/gc', label: 'GC Projects', icon: Building2 },
   { to: '/dashboard/schedule', label: 'Schedule', icon: Calendar },
   { to: '/dashboard/jobs', label: 'Jobs', icon: Briefcase },
   { to: '/dashboard/customers', label: 'Customers', icon: Users },

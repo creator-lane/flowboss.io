@@ -20,6 +20,7 @@ import {
   CalendarDays,
   DollarSign,
 } from 'lucide-react';
+import { CreateInvoiceModal } from '../../components/invoices/CreateInvoiceModal';
 
 const STATUS_FLOW = ['SCHEDULED', 'EN_ROUTE', 'IN_PROGRESS', 'COMPLETED'] as const;
 const STATUS_LABELS: Record<string, string> = {
@@ -102,6 +103,9 @@ export function JobDetailPage() {
   const job = jobData?.data || jobData;
   const photos = photosData?.data || [];
   const invoices = invoicesData?.data || [];
+
+  // Create invoice modal
+  const [showCreateInvoice, setShowCreateInvoice] = useState(false);
 
   // Notes editing
   const [notes, setNotes] = useState('');
@@ -365,7 +369,7 @@ export function JobDetailPage() {
               <p className="text-sm text-neutral-400 mb-3">No invoices for this job yet.</p>
               <button
                 type="button"
-                onClick={() => navigate('/dashboard/invoices')}
+                onClick={() => setShowCreateInvoice(true)}
                 className="inline-flex items-center gap-1.5 px-4 py-2 bg-brand-50 text-brand-600 rounded-lg text-sm font-medium hover:bg-brand-100 transition-colors"
               >
                 <Plus className="w-4 h-4" />
@@ -502,6 +506,13 @@ export function JobDetailPage() {
           {deleteMutation.isPending ? 'Deleting...' : 'Delete Job'}
         </button>
       </div>
+
+      <CreateInvoiceModal
+        open={showCreateInvoice}
+        onClose={() => setShowCreateInvoice(false)}
+        prefillJobId={id}
+        prefillCustomerId={job.customerId || job.customer_id}
+      />
     </div>
   );
 }

@@ -12,6 +12,7 @@ import {
   Clock,
   MapPin,
 } from 'lucide-react';
+import { CreateJobModal } from '../../components/jobs/CreateJobModal';
 
 const STATUS_BADGE: Record<string, { bg: string; text: string; label: string }> = {
   SCHEDULED: { bg: 'bg-blue-100', text: 'text-status-scheduled', label: 'Scheduled' },
@@ -49,6 +50,7 @@ function SkeletonCard() {
 export function SchedulePage() {
   const navigate = useNavigate();
   const [selectedDate, setSelectedDate] = useState<Date>(startOfDay(new Date()));
+  const [showCreateJob, setShowCreateJob] = useState(false);
 
   const dateKey = format(selectedDate, 'yyyy-MM-dd');
 
@@ -206,12 +208,18 @@ export function SchedulePage() {
       {/* Quick-add floating button */}
       <button
         type="button"
-        onClick={() => alert('Create job feature coming soon')}
+        onClick={() => setShowCreateJob(true)}
         className="fixed bottom-24 right-6 lg:bottom-8 lg:right-8 w-14 h-14 bg-brand-500 hover:bg-brand-600 text-white rounded-full shadow-lg flex items-center justify-center transition-colors z-20"
         aria-label="Add new job"
       >
         <Plus className="w-6 h-6" />
       </button>
+
+      <CreateJobModal
+        open={showCreateJob}
+        onClose={() => setShowCreateJob(false)}
+        defaultDate={selectedDate}
+      />
     </div>
   );
 }

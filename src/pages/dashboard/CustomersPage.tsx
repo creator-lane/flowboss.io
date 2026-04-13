@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../lib/api';
+import { CreateCustomerModal } from '../../components/customers/CreateCustomerModal';
 import {
   Search,
   Plus,
@@ -44,6 +45,7 @@ function SkeletonCard() {
 export function CustomersPage() {
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const debouncedSearch = useDebounce(search, 300);
 
   const { data, isLoading, error } = useQuery({
@@ -67,13 +69,15 @@ export function CustomersPage() {
           </p>
         </div>
         <button
-          onClick={() => alert('Add Customer form coming soon')}
+          onClick={() => setShowCreateModal(true)}
           className="flex items-center gap-2 px-4 py-2.5 bg-brand-500 text-white rounded-lg text-sm font-semibold hover:bg-brand-600 transition-colors shadow-sm"
         >
           <Plus className="w-4 h-4" />
           Add Customer
         </button>
       </div>
+
+      <CreateCustomerModal open={showCreateModal} onClose={() => setShowCreateModal(false)} />
 
       {/* Search */}
       <div className="relative max-w-md mb-6">
@@ -208,7 +212,7 @@ export function CustomersPage() {
           </p>
           {!debouncedSearch && (
             <button
-              onClick={() => alert('Add Customer form coming soon')}
+              onClick={() => setShowCreateModal(true)}
               className="mt-4 inline-flex items-center gap-2 px-4 py-2.5 bg-brand-500 text-white rounded-lg text-sm font-semibold hover:bg-brand-600 transition-colors"
             >
               <Plus className="w-4 h-4" />

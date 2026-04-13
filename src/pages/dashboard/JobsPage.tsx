@@ -12,6 +12,7 @@ import {
   MapPin,
   ChevronRight,
 } from 'lucide-react';
+import { CreateJobModal } from '../../components/jobs/CreateJobModal';
 
 const STATUS_BADGE: Record<string, { bg: string; text: string; label: string }> = {
   SCHEDULED: { bg: 'bg-blue-100', text: 'text-status-scheduled', label: 'Scheduled' },
@@ -73,6 +74,7 @@ const ITEMS_PER_PAGE = 20;
 
 export function JobsPage() {
   const navigate = useNavigate();
+  const [showCreateJob, setShowCreateJob] = useState(false);
   const [search, setSearch] = useState('');
   const [activeTab, setActiveTab] = useState<FilterTab>('ALL');
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
@@ -129,7 +131,7 @@ export function JobsPage() {
         <h1 className="text-2xl font-bold text-neutral-900">Jobs</h1>
         <button
           type="button"
-          onClick={() => alert('Create job feature coming soon')}
+          onClick={() => setShowCreateJob(true)}
           className="inline-flex items-center gap-2 px-4 py-2.5 bg-brand-500 text-white rounded-lg text-sm font-medium hover:bg-brand-600 transition-colors"
         >
           <Plus className="w-4 h-4" />
@@ -344,6 +346,11 @@ export function JobsPage() {
           Showing {Math.min(visibleCount, filteredJobs.length)} of {filteredJobs.length} jobs
         </p>
       )}
+
+      <CreateJobModal
+        open={showCreateJob}
+        onClose={() => setShowCreateJob(false)}
+      />
     </div>
   );
 }

@@ -11,6 +11,7 @@ import {
   AlertTriangle,
   DollarSign,
 } from 'lucide-react';
+import { CreateInvoiceModal } from '../../components/invoices/CreateInvoiceModal';
 
 type FilterTab = 'all' | 'draft' | 'sent' | 'paid' | 'overdue';
 
@@ -74,6 +75,7 @@ function SummaryCard({
 export function InvoicesPage() {
   const navigate = useNavigate();
   const [filter, setFilter] = useState<FilterTab>('all');
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['invoices'],
@@ -146,7 +148,7 @@ export function InvoicesPage() {
           </p>
         </div>
         <button
-          onClick={() => alert('Create Invoice form coming soon')}
+          onClick={() => setShowCreateModal(true)}
           className="flex items-center gap-2 px-4 py-2.5 bg-brand-500 text-white rounded-lg text-sm font-semibold hover:bg-brand-600 transition-colors shadow-sm"
         >
           <Plus className="w-4 h-4" />
@@ -376,6 +378,11 @@ export function InvoicesPage() {
           </div>
         )}
       </div>
+
+      <CreateInvoiceModal
+        open={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+      />
     </div>
   );
 }

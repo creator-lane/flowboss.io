@@ -22,6 +22,7 @@ import { CustomerDetailPage } from './pages/dashboard/CustomerDetailPage';
 import { InvoicesPage } from './pages/dashboard/InvoicesPage';
 import { InvoiceDetailPage } from './pages/dashboard/InvoiceDetailPage';
 import { FinancialsPage } from './pages/dashboard/FinancialsPage';
+import { InsightsPage } from './pages/dashboard/InsightsPage';
 import { ProjectsPage } from './pages/dashboard/ProjectsPage';
 import { ProjectDetailPage } from './pages/dashboard/ProjectDetailPage';
 import { ContractorsPage } from './pages/dashboard/ContractorsPage';
@@ -75,6 +76,7 @@ export default function App() {
         <Route path="gc" element={<GCDashboardPage />} />
         <Route path="gc/:id" element={<GCProjectDetailPage />} />
         <Route path="financials" element={<FinancialsPage />} />
+        <Route path="insights" element={<InsightsPage />} />
         <Route path="settings" element={<SettingsPage />} />
       </Route>
     </Routes>

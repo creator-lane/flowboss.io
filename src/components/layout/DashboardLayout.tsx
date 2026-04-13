@@ -10,6 +10,7 @@ import {
   Building2,
   HardHat,
   BarChart3,
+  Lightbulb,
   Settings,
   LogOut,
   Menu,
@@ -33,6 +34,7 @@ const navItems: NavItem[] = [
   { to: '/dashboard/projects', label: 'Projects', icon: FolderKanban },
   { to: '/dashboard/contractors', label: 'Contractors', icon: HardHat },
   { to: '/dashboard/financials', label: 'Financials', icon: BarChart3 },
+  { to: '/dashboard/insights', label: 'Insights', icon: Lightbulb },
   { to: '/dashboard/settings', label: 'Settings', icon: Settings },
 ];
 

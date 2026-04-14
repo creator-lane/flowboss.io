@@ -1,35 +1,69 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../lib/api';
 import { supabase } from '../../lib/supabase';
+import { useAuth } from '../../lib/auth';
 import { useToast } from '../../components/ui/Toast';
 import {
-  ArrowLeft,
-  MapPin,
-  Calendar,
+  ChevronRight,
+  Building2,
   CheckSquare,
   Square,
   Send,
   MessageSquare,
-  ChevronRight,
-  Building2,
   Clock,
+  DollarSign,
+  Phone,
+  Mail,
+  Camera,
+  StickyNote,
 } from 'lucide-react';
 
-const STATUS_CONFIG: Record<string, { bg: string; text: string; dot: string; label: string }> = {
-  planning: { bg: 'bg-gray-100', text: 'text-gray-700', dot: 'bg-gray-400', label: 'Planning' },
-  active: { bg: 'bg-blue-100', text: 'text-blue-700', dot: 'bg-blue-500', label: 'Active' },
-  on_hold: { bg: 'bg-amber-100', text: 'text-amber-700', dot: 'bg-amber-500', label: 'On Hold' },
-  completed: { bg: 'bg-green-100', text: 'text-green-700', dot: 'bg-green-500', label: 'Completed' },
+/* ─── Zone color / emoji maps (mirrored from ZoneClusterDiagram) ─── */
+
+const ZONE_EMOJI: Record<string, string> = {
+  'Kitchen': '\u{1F373}',
+  'Bathroom': '\u{1F6BF}', 'Bathroom 1': '\u{1F6BF}', 'Bathroom 2': '\u{1F6BF}', 'Master Bathroom': '\u{1F6BF}',
+  'Master Suite': '\u{1F6CF}\u{FE0F}', 'Master Bedroom': '\u{1F6CF}\u{FE0F}',
+  'Bedroom': '\u{1F6CF}\u{FE0F}', 'Bedroom 1': '\u{1F6CF}\u{FE0F}', 'Bedroom 2': '\u{1F6CF}\u{FE0F}', 'Bedroom 3': '\u{1F6CF}\u{FE0F}',
+  'Living Room': '\u{1F6CB}\u{FE0F}', 'Family Room': '\u{1F6CB}\u{FE0F}',
+  'Garage': '\u{1F697}',
+  'Exterior': '\u{1F3E1}',
+  'Basement': '\u{1F3E0}',
+  'Laundry': '\u{1F9FA}',
+  'Office': '\u{1F4BC}',
+  'Dining Room': '\u{1F37D}\u{FE0F}',
+  'General': '\u{1F527}', 'Site-Wide': '\u{1F527}',
 };
 
-const TRADE_STATUS: Record<string, { dot: string; label: string }> = {
-  not_started: { dot: 'bg-gray-400', label: 'Not Started' },
-  in_progress: { dot: 'bg-blue-500', label: 'In Progress' },
-  completed: { dot: 'bg-green-500', label: 'Completed' },
-  blocked: { dot: 'bg-red-500', label: 'Blocked' },
+const ZONE_COLORS: Record<string, string> = {
+  'Kitchen': '#f59e0b',
+  'Bathroom': '#06b6d4', 'Bathroom 1': '#06b6d4', 'Bathroom 2': '#0891b2', 'Master Bathroom': '#0e7490',
+  'Master Suite': '#8b5cf6', 'Master Bedroom': '#8b5cf6',
+  'Living Room': '#22c55e', 'Family Room': '#22c55e',
+  'Garage': '#64748b',
+  'Exterior': '#16a34a',
+  'Basement': '#6b7280',
+  'General': '#2563eb', 'Site-Wide': '#2563eb',
 };
+
+const DEFAULT_ZONE_COLOR = '#6b7280';
+
+/* ─── Tailwind color class maps for zone accent ─── */
+
+function getZoneAccentClasses(zoneName: string) {
+  const n = zoneName?.toLowerCase() || '';
+  if (n.includes('kitchen')) return { bg: 'from-amber-500/15 to-amber-600/5', bar: 'bg-amber-500', badge: 'bg-amber-100 text-amber-800', ring: 'ring-amber-200', text: 'text-amber-700' };
+  if (n.includes('bathroom') || n.includes('bath')) return { bg: 'from-cyan-500/15 to-cyan-600/5', bar: 'bg-cyan-500', badge: 'bg-cyan-100 text-cyan-800', ring: 'ring-cyan-200', text: 'text-cyan-700' };
+  if (n.includes('master') || n.includes('bedroom')) return { bg: 'from-violet-500/15 to-violet-600/5', bar: 'bg-violet-500', badge: 'bg-violet-100 text-violet-800', ring: 'ring-violet-200', text: 'text-violet-700' };
+  if (n.includes('living') || n.includes('family')) return { bg: 'from-green-500/15 to-green-600/5', bar: 'bg-green-500', badge: 'bg-green-100 text-green-800', ring: 'ring-green-200', text: 'text-green-700' };
+  if (n.includes('garage')) return { bg: 'from-slate-500/15 to-slate-600/5', bar: 'bg-slate-500', badge: 'bg-slate-100 text-slate-800', ring: 'ring-slate-200', text: 'text-slate-700' };
+  if (n.includes('exterior')) return { bg: 'from-emerald-500/15 to-emerald-600/5', bar: 'bg-emerald-500', badge: 'bg-emerald-100 text-emerald-800', ring: 'ring-emerald-200', text: 'text-emerald-700' };
+  return { bg: 'from-blue-500/15 to-blue-600/5', bar: 'bg-blue-500', badge: 'bg-blue-100 text-blue-800', ring: 'ring-blue-200', text: 'text-blue-700' };
+}
+
+/* ─── Helpers ─── */
 
 function formatDate(dateStr: string | null | undefined) {
   if (!dateStr) return '';
@@ -48,10 +82,38 @@ function formatTime(dateStr: string) {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
+function formatCurrency(amount: number) {
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
+}
+
+/* ─── Task Notes (localStorage) ─── */
+
+function getTaskNote(taskId: string): string {
+  try { return localStorage.getItem(`fb-task-note-${taskId}`) || ''; } catch { return ''; }
+}
+
+function setTaskNote(taskId: string, note: string) {
+  try { localStorage.setItem(`fb-task-note-${taskId}`, note); } catch { /* noop */ }
+}
+
+/* ========================================================================= */
+/*  Main Page                                                                 */
+/* ========================================================================= */
+
 export function SubProjectViewPage() {
   const { id } = useParams<{ id: string }>();
   const queryClient = useQueryClient();
   const { addToast } = useToast();
+  const { user } = useAuth();
+
+  // Fallback for user ID if useAuth doesn't have it yet
+  const [currentUserId, setCurrentUserId] = useState<string | null>(user?.id ?? null);
+  useEffect(() => {
+    if (user?.id) { setCurrentUserId(user.id); return; }
+    supabase.auth.getSession().then(({ data }) => {
+      setCurrentUserId(data.session?.user?.id ?? null);
+    });
+  }, [user?.id]);
 
   const projectQuery = useQuery({
     queryKey: ['gc-project', id],
@@ -66,26 +128,42 @@ export function SubProjectViewPage() {
     refetchInterval: 15000,
   });
 
-  // Get current user id to filter trades
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setCurrentUserId(data.session?.user?.id ?? null);
-    });
-  }, []);
-
   const project = projectQuery.data?.data;
   const allMessages: any[] = messagesQuery.data?.data || [];
   const trades: any[] = project?.trades || [];
+  const zones: any[] = project?.zones || [];
 
-  // Filter to only trades assigned to the current user
+  // Filter to trades assigned to the current user
   const myTrades = trades.filter(
-    (t: any) => t.assignedUserId === currentUserId || t.assignedOrgId === currentUserId
+    (t: any) => t.assignedUserId === currentUserId || t.assignedOrgId === currentUserId || t.assigned_user_id === currentUserId
   );
-  // If no trades matched by user ID, show all trades (the sub may be viewing via invite before assignment is linked)
   const visibleTrades = myTrades.length > 0 ? myTrades : trades;
 
-  const projectStatus = STATUS_CONFIG[project?.status] || STATUS_CONFIG.planning;
+  // Find the zone for the first visible trade
+  const primaryTrade = visibleTrades[0];
+  const primaryZone = primaryTrade
+    ? zones.find((z: any) => z.id === (primaryTrade.zoneId || primaryTrade.zone_id))
+    : null;
+
+  // Stats across all visible trades
+  const allTasks = visibleTrades.flatMap((t: any) => t.tasks || []);
+  const doneTasks = allTasks.filter((t: any) => t.done).length;
+  const totalTasks = allTasks.length;
+  const progress = totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0;
+
+  // Earliest due date across visible tasks
+  const dueDates = allTasks
+    .map((t: any) => t.dueDate || t.due_date)
+    .filter(Boolean)
+    .map((d: string) => new Date(d).getTime());
+  const earliestDue = dueDates.length > 0 ? new Date(Math.min(...dueDates)) : null;
+  // Also use trade end date as fallback
+  const tradeEndDate = primaryTrade?.endDate || primaryTrade?.end_date;
+
+  const zoneName = primaryZone?.name || 'General';
+  const tradeName = visibleTrades.map((t: any) => t.trade).join(', ') || 'Your Assignment';
+  const accent = getZoneAccentClasses(zoneName);
+  const emoji = ZONE_EMOJI[zoneName] || '\u{1F527}';
 
   if (projectQuery.isLoading) {
     return (
@@ -107,9 +185,9 @@ export function SubProjectViewPage() {
   }
 
   return (
-    <div className="p-4 lg:p-6 max-w-4xl">
+    <div className="p-4 lg:p-6 max-w-4xl mx-auto space-y-6">
       {/* Breadcrumbs */}
-      <div className="flex items-center gap-1.5 text-sm mb-4">
+      <div className="flex items-center gap-1.5 text-sm">
         <Link to="/dashboard/schedule" className="text-gray-500 hover:text-gray-700 transition-colors">
           Dashboard
         </Link>
@@ -117,75 +195,87 @@ export function SubProjectViewPage() {
         <span className="text-gray-900 font-medium truncate max-w-[200px]">{project.name}</span>
       </div>
 
-      {/* Project header */}
-      <div className="mb-6">
-        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+      {/* ── 1. Hero Banner ── */}
+      <div className={`rounded-2xl bg-gradient-to-br ${accent.bg} border border-gray-200 p-6 lg:p-8`}>
+        <div className="flex items-start justify-between gap-4 mb-5">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-1">{project.name}</h1>
-            {project.gcBusinessName && (
-              <div className="flex items-center gap-1.5 text-sm text-gray-500 mb-2">
-                <Building2 className="w-4 h-4" />
-                <span>{project.gcBusinessName}</span>
-              </div>
-            )}
-            {project.address && (
-              <div className="flex items-center gap-1.5 text-sm text-gray-500 mb-2">
-                <MapPin className="w-4 h-4" />
-                <span>{project.address}</span>
-              </div>
-            )}
-            {(project.startDate || project.endDate) && (
-              <div className="flex items-center gap-1.5 text-sm text-gray-500">
-                <Calendar className="w-4 h-4" />
-                <span>
-                  {formatDate(project.startDate)}
-                  {project.endDate ? ` - ${formatDate(project.endDate)}` : ''}
-                </span>
-              </div>
-            )}
+            <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-1">
+              {emoji} {zoneName} — {tradeName}
+            </h1>
+            <p className="text-sm text-gray-500">
+              {project.name}
+              {project.gcBusinessName ? ` \u00B7 Assigned by ${project.gcBusinessName}` : ''}
+            </p>
           </div>
-          <span
-            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${projectStatus.bg} ${projectStatus.text}`}
-          >
-            <span className={`w-1.5 h-1.5 rounded-full ${projectStatus.dot}`} />
-            {projectStatus.label}
-          </span>
+        </div>
+
+        {/* Big progress bar */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-semibold text-gray-700">{progress}% Complete</span>
+            <span className="text-sm text-gray-500">
+              {doneTasks} of {totalTasks} tasks done
+              {(earliestDue || tradeEndDate) && (
+                <> &middot; Due {formatDate(earliestDue?.toISOString() || tradeEndDate)}</>
+              )}
+            </span>
+          </div>
+          <div className="h-3 rounded-full bg-white/60 overflow-hidden">
+            <div
+              className={`h-full rounded-full ${accent.bar} transition-all duration-700 ease-out`}
+              style={{ width: `${progress}%` }}
+            />
+          </div>
         </div>
       </div>
 
-      {/* Your Assignment(s) */}
-      <div className="space-y-6 mb-8">
-        {visibleTrades.map((trade: any) => (
-          <TradeAssignment
-            key={trade.id}
-            trade={trade}
-            projectId={id!}
-          />
-        ))}
-      </div>
+      {/* ── 2. My Tasks ── */}
+      {visibleTrades.map((trade: any) => (
+        <TaskSection
+          key={trade.id}
+          trade={trade}
+          projectId={id!}
+          accent={accent}
+        />
+      ))}
 
-      {/* Messages */}
+      {/* ── 3. My Budget ── */}
+      <BudgetCard trades={visibleTrades} accent={accent} />
+
+      {/* ── 4. Messages ── */}
       <SubMessageSection
         projectId={id!}
         messages={allMessages}
+        currentUserId={currentUserId}
         myTradeIds={visibleTrades.map((t: any) => t.id)}
       />
+
+      {/* ── 5. Project Timeline ── */}
+      <ProjectTimeline
+        zones={zones}
+        trades={trades}
+        myZoneId={primaryZone?.id}
+        accent={accent}
+      />
+
+      {/* ── 6. GC Contact Card ── */}
+      <GCContactCard project={project} />
     </div>
   );
 }
 
 /* ========================================================================= */
-/*  Trade Assignment Card                                                     */
+/*  2. Task Section                                                           */
 /* ========================================================================= */
 
-function TradeAssignment({ trade, projectId }: { trade: any; projectId: string }) {
+function TaskSection({ trade, projectId, accent }: { trade: any; projectId: string; accent: ReturnType<typeof getZoneAccentClasses> }) {
   const queryClient = useQueryClient();
   const { addToast } = useToast();
-  const tasks: any[] = trade.tasks || [];
-  const doneTasks = tasks.filter((t: any) => t.done).length;
-  const totalTasks = tasks.length;
-  const progress = totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0;
-  const statusCfg = TRADE_STATUS[trade.status] || TRADE_STATUS.not_started;
+  const tasks: any[] = (trade.tasks || []).slice().sort((a: any, b: any) => {
+    // completed tasks at the bottom
+    if (a.done !== b.done) return a.done ? 1 : -1;
+    return (a.sortOrder ?? a.sort_order ?? 0) - (b.sortOrder ?? b.sort_order ?? 0);
+  });
 
   const toggleTask = useMutation({
     mutationFn: ({ taskId, done }: { taskId: string; done: boolean }) =>
@@ -201,12 +291,7 @@ function TradeAssignment({ trade, projectId }: { trade: any; projectId: string }
             ...old.data,
             trades: old.data.trades.map((t: any) =>
               t.id === trade.id
-                ? {
-                    ...t,
-                    tasks: t.tasks.map((tk: any) =>
-                      tk.id === taskId ? { ...tk, done } : tk
-                    ),
-                  }
+                ? { ...t, tasks: t.tasks.map((tk: any) => tk.id === taskId ? { ...tk, done } : tk) }
                 : t
             ),
           },
@@ -224,96 +309,203 @@ function TradeAssignment({ trade, projectId }: { trade: any; projectId: string }
   });
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-      {/* Header */}
-      <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-        <div>
-          <div className="flex items-center gap-2 mb-0.5">
-            <h2 className="text-base font-semibold text-gray-900">
-              Your Assignment: {trade.trade}
-            </h2>
-          </div>
-          <div className="flex items-center gap-3 text-xs text-gray-500">
-            <span className="flex items-center gap-1">
-              <span className={`w-2 h-2 rounded-full ${statusCfg.dot}`} />
-              {statusCfg.label}
-            </span>
-            {(trade.startDate || trade.endDate) && (
-              <span className="flex items-center gap-1">
-                <Clock className="w-3 h-3" />
-                {formatDate(trade.startDate)}
-                {trade.endDate ? ` - ${formatDate(trade.endDate)}` : ''}
-              </span>
-            )}
-          </div>
-        </div>
-        {totalTasks > 0 && (
-          <div className="text-right">
-            <p className="text-lg font-bold text-gray-900">{progress}%</p>
-            <p className="text-xs text-gray-400">
-              {doneTasks}/{totalTasks} tasks
-            </p>
-          </div>
-        )}
+    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+      <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-2">
+        <h2 className="text-base font-semibold text-gray-900">My Tasks</h2>
+        <span className="text-xs text-gray-400">({trade.trade})</span>
       </div>
 
-      {/* Progress bar */}
-      {totalTasks > 0 && (
-        <div className="h-1 bg-gray-100">
-          <div
-            className="h-full bg-brand-500 transition-all duration-500"
-            style={{ width: `${progress}%` }}
-          />
+      {tasks.length === 0 ? (
+        <div className="px-5 py-10 text-center">
+          <p className="text-sm text-gray-400">No tasks assigned yet. Check back later.</p>
+        </div>
+      ) : (
+        <div className="divide-y divide-gray-100">
+          {tasks.map((task: any) => (
+            <TaskCard
+              key={task.id}
+              task={task}
+              accent={accent}
+              onToggle={(done) => toggleTask.mutate({ taskId: task.id, done })}
+            />
+          ))}
         </div>
       )}
+    </div>
+  );
+}
 
-      {/* Task list */}
-      <div className="px-5 py-4">
-        {tasks.length === 0 ? (
-          <p className="text-sm text-gray-400 text-center py-4">
-            No tasks assigned yet. Check back later.
-          </p>
-        ) : (
-          <ul className="space-y-2">
-            {tasks.map((task: any) => (
-              <li key={task.id} className="flex items-center gap-3 group">
+/* ─── Individual Task Card ─── */
+
+function TaskCard({ task, accent, onToggle }: { task: any; accent: ReturnType<typeof getZoneAccentClasses>; onToggle: (done: boolean) => void }) {
+  const [note, setNote] = useState(() => getTaskNote(task.id));
+  const [editing, setEditing] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const handleSaveNote = useCallback(() => {
+    setTaskNote(task.id, note);
+    setEditing(false);
+  }, [task.id, note]);
+
+  useEffect(() => {
+    if (editing && textareaRef.current) {
+      textareaRef.current.focus();
+    }
+  }, [editing]);
+
+  const isDone = task.done;
+
+  return (
+    <div className={`px-5 py-4 transition-colors ${isDone ? 'bg-gray-50/50' : 'hover:bg-gray-50/30'}`}>
+      <div className="flex items-start gap-3">
+        {/* Checkbox */}
+        <button
+          onClick={() => onToggle(!isDone)}
+          className="flex-shrink-0 mt-0.5 transition-colors"
+        >
+          {isDone ? (
+            <CheckSquare className="w-5 h-5 text-green-500" />
+          ) : (
+            <Square className="w-5 h-5 text-gray-300 hover:text-gray-500" />
+          )}
+        </button>
+
+        {/* Content */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center justify-between gap-2">
+            <span className={`text-sm font-medium ${isDone ? 'text-gray-400 line-through' : 'text-gray-900'}`}>
+              {task.name}
+            </span>
+            <span className={`flex-shrink-0 text-xs font-medium px-2 py-0.5 rounded-full ${isDone ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+              {isDone ? 'Complete' : 'To Do'}
+            </span>
+          </div>
+
+          {/* Due date */}
+          {(task.dueDate || task.due_date) && (
+            <div className="flex items-center gap-1 mt-1 text-xs text-gray-400">
+              <Clock className="w-3 h-3" />
+              <span>Due {formatDate(task.dueDate || task.due_date)}</span>
+            </div>
+          )}
+
+          {/* Notes display / edit */}
+          {isDone && note ? (
+            <div className="mt-2 text-xs text-gray-500 bg-gray-100 rounded-lg px-3 py-2">
+              <div className="flex items-center gap-1 mb-0.5">
+                <StickyNote className="w-3 h-3" />
+                <span className="font-medium">Note:</span>
+              </div>
+              {note}
+            </div>
+          ) : isDone && !note ? (
+            <p className="mt-1.5 text-xs text-gray-400 italic">No notes</p>
+          ) : editing ? (
+            <div className="mt-2">
+              <textarea
+                ref={textareaRef}
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                onBlur={handleSaveNote}
+                onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSaveNote(); } }}
+                placeholder="Add a note..."
+                rows={2}
+                className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none resize-none"
+              />
+              <div className="flex items-center gap-2 mt-1.5">
                 <button
-                  onClick={() => toggleTask.mutate({ taskId: task.id, done: !task.done })}
-                  className="flex-shrink-0 text-gray-400 hover:text-brand-600 transition-colors"
+                  onClick={handleSaveNote}
+                  className={`text-xs font-medium px-3 py-1 rounded-md text-white ${accent.bar} hover:opacity-90 transition-opacity`}
                 >
-                  {task.done ? (
-                    <CheckSquare className="w-5 h-5 text-green-500" />
-                  ) : (
-                    <Square className="w-5 h-5" />
-                  )}
+                  Save
                 </button>
-                <span
-                  className={`text-sm ${
-                    task.done ? 'text-gray-400 line-through' : 'text-gray-700'
-                  }`}
+                <button
+                  onClick={() => { setNote(getTaskNote(task.id)); setEditing(false); }}
+                  className="text-xs text-gray-400 hover:text-gray-600"
                 >
-                  {task.name}
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
+                  Cancel
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="mt-2 flex items-center gap-2">
+              <button
+                onClick={() => setEditing(true)}
+                className="text-xs text-gray-400 hover:text-gray-600 flex items-center gap-1 transition-colors"
+              >
+                <StickyNote className="w-3 h-3" />
+                {note ? 'Edit note' : 'Add note...'}
+              </button>
+              <button className="text-xs text-gray-400 hover:text-gray-600 flex items-center gap-1 transition-colors">
+                <Camera className="w-3 h-3" />
+                Photo
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
 }
 
 /* ========================================================================= */
-/*  Message Section (filtered for sub)                                        */
+/*  3. Budget Card                                                            */
+/* ========================================================================= */
+
+function BudgetCard({ trades, accent }: { trades: any[]; accent: ReturnType<typeof getZoneAccentClasses> }) {
+  let totalLabor = 0;
+  let totalMaterials = 0;
+
+  for (const t of trades) {
+    const hours = t.laborHours || t.labor_hours || 0;
+    const rate = t.laborRate || t.labor_rate || 0;
+    totalLabor += hours * rate;
+    totalMaterials += t.materialsBudget || t.materials_budget || 0;
+  }
+
+  const total = totalLabor + totalMaterials;
+
+  if (total === 0) return null;
+
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+      <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-2">
+        <DollarSign className="w-4 h-4 text-gray-400" />
+        <h2 className="text-base font-semibold text-gray-900">Your Budget</h2>
+      </div>
+      <div className="px-5 py-5">
+        <div className="grid grid-cols-3 gap-4">
+          <div className="text-center">
+            <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Labor</p>
+            <p className="text-lg font-bold text-gray-900">{formatCurrency(totalLabor)}</p>
+          </div>
+          <div className="text-center border-x border-gray-100">
+            <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Materials</p>
+            <p className="text-lg font-bold text-gray-900">{formatCurrency(totalMaterials)}</p>
+          </div>
+          <div className="text-center">
+            <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Total</p>
+            <p className={`text-lg font-bold ${accent.text}`}>{formatCurrency(total)}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ========================================================================= */
+/*  4. Messages (chat-bubble style)                                           */
 /* ========================================================================= */
 
 function SubMessageSection({
   projectId,
   messages,
+  currentUserId,
   myTradeIds,
 }: {
   projectId: string;
   messages: any[];
+  currentUserId: string | null;
   myTradeIds: string[];
 }) {
   const queryClient = useQueryClient();
@@ -321,7 +513,6 @@ function SubMessageSection({
   const [msg, setMsg] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Show project-wide messages (no tradeId) + messages for the sub's trades
   const filteredMessages = messages.filter(
     (m: any) => !m.tradeId || myTradeIds.includes(m.tradeId)
   );
@@ -342,59 +533,189 @@ function SubMessageSection({
   });
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-      <div className="px-4 py-3 border-b border-gray-200 flex items-center gap-2">
+    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+      <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-2">
         <MessageSquare className="w-4 h-4 text-gray-400" />
-        <h2 className="text-sm font-semibold text-gray-900">Messages</h2>
+        <h2 className="text-base font-semibold text-gray-900">Messages</h2>
         {filteredMessages.length > 0 && (
           <span className="text-xs text-gray-400">({filteredMessages.length})</span>
         )}
       </div>
 
-      <div ref={scrollRef} className="h-64 overflow-y-auto p-4 space-y-3">
+      <div ref={scrollRef} className="h-80 overflow-y-auto px-5 py-4 space-y-3 bg-gray-50/50">
         {filteredMessages.length === 0 ? (
-          <p className="text-sm text-gray-400 text-center py-8">
-            No messages yet. Send a message to the GC below.
+          <p className="text-sm text-gray-400 text-center py-12">
+            No messages yet. Start a conversation with the GC below.
           </p>
         ) : (
-          filteredMessages.map((m: any) => (
-            <div key={m.id} className="flex gap-3">
-              <div className="w-7 h-7 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center text-xs font-semibold flex-shrink-0">
-                {(m.sender?.businessName || 'U')[0].toUpperCase()}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-baseline gap-2 mb-0.5">
-                  <span className="text-sm font-medium text-gray-900">
-                    {m.sender?.businessName || 'Unknown'}
-                  </span>
-                  <span className="text-xs text-gray-400">{formatTime(m.createdAt)}</span>
+          filteredMessages.map((m: any) => {
+            const isMe = m.senderId === currentUserId || m.sender_id === currentUserId;
+            return (
+              <div key={m.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
+                <div className={`max-w-[75%] ${isMe ? 'order-2' : ''}`}>
+                  {!isMe && (
+                    <p className="text-xs text-gray-400 mb-1 ml-1">
+                      {m.sender?.businessName || 'GC'}
+                    </p>
+                  )}
+                  <div
+                    className={`px-4 py-2.5 rounded-2xl text-sm ${
+                      isMe
+                        ? 'bg-brand-500 text-white rounded-br-md'
+                        : 'bg-white border border-gray-200 text-gray-700 rounded-bl-md'
+                    }`}
+                  >
+                    <p className="whitespace-pre-wrap">{m.message}</p>
+                  </div>
+                  <p className={`text-xs text-gray-400 mt-1 ${isMe ? 'text-right mr-1' : 'ml-1'}`}>
+                    {formatTime(m.createdAt || m.created_at)}
+                  </p>
                 </div>
-                <p className="text-sm text-gray-600 whitespace-pre-wrap">{m.message}</p>
               </div>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
 
-      <div className="px-4 py-3 border-t border-gray-200">
+      <div className="px-5 py-3 border-t border-gray-200 bg-white">
         <div className="flex items-center gap-2">
           <input
             type="text"
-            placeholder="Type a message to the GC..."
+            placeholder="Type a message..."
             value={msg}
             onChange={(e) => setMsg(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && msg.trim()) sendMessage.mutate(msg.trim());
             }}
-            className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
+            className="flex-1 px-4 py-2.5 border border-gray-200 rounded-full text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
           />
           <button
             onClick={() => msg.trim() && sendMessage.mutate(msg.trim())}
             disabled={!msg.trim() || sendMessage.isPending}
-            className="p-2 text-white bg-brand-500 rounded-lg hover:bg-brand-600 disabled:opacity-50 transition-colors"
+            className="p-2.5 text-white bg-brand-500 rounded-full hover:bg-brand-600 disabled:opacity-50 transition-colors"
           >
             <Send className="w-4 h-4" />
           </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ========================================================================= */
+/*  5. Project Timeline                                                       */
+/* ========================================================================= */
+
+function ProjectTimeline({
+  zones,
+  trades,
+  myZoneId,
+  accent,
+}: {
+  zones: any[];
+  trades: any[];
+  myZoneId: string | null | undefined;
+  accent: ReturnType<typeof getZoneAccentClasses>;
+}) {
+  // Group trades by zone
+  const zoneMap = new Map<string, { name: string; trades: any[] }>();
+
+  for (const z of zones) {
+    zoneMap.set(z.id, { name: z.name, trades: [] });
+  }
+
+  // Unzoned trades go under "General"
+  let unzonedTrades: any[] = [];
+
+  for (const t of trades) {
+    const zId = t.zoneId || t.zone_id;
+    if (zId && zoneMap.has(zId)) {
+      zoneMap.get(zId)!.trades.push(t);
+    } else {
+      unzonedTrades.push(t);
+    }
+  }
+
+  const entries = [
+    ...Array.from(zoneMap.entries()).map(([zId, v]) => ({ id: zId, name: v.name, trades: v.trades })),
+    ...(unzonedTrades.length > 0 ? [{ id: '__unzoned', name: 'General', trades: unzonedTrades }] : []),
+  ];
+
+  // Don't render if there's only one zone
+  if (entries.length <= 1) return null;
+
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+      <div className="px-5 py-4 border-b border-gray-100">
+        <h2 className="text-base font-semibold text-gray-900">Project Timeline</h2>
+        <p className="text-xs text-gray-400 mt-0.5">See where your work fits in the overall project</p>
+      </div>
+      <div className="px-5 py-4 space-y-3">
+        {entries.map((entry) => {
+          const allZoneTasks = entry.trades.flatMap((t: any) => t.tasks || []);
+          const done = allZoneTasks.filter((t: any) => t.done).length;
+          const total = allZoneTasks.length;
+          const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+          const isMyZone = entry.id === myZoneId;
+          const zoneColor = ZONE_COLORS[entry.name] || DEFAULT_ZONE_COLOR;
+
+          return (
+            <div key={entry.id} className={`flex items-center gap-3 ${isMyZone ? 'py-1' : ''}`}>
+              <span className={`text-sm w-28 truncate flex-shrink-0 ${isMyZone ? 'font-semibold text-gray-900' : 'text-gray-500'}`}>
+                {entry.name}
+              </span>
+              <div className="flex-1 h-3 rounded-full bg-gray-100 overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-all duration-500"
+                  style={{ width: `${pct}%`, backgroundColor: zoneColor }}
+                />
+              </div>
+              <span className={`text-xs w-10 text-right flex-shrink-0 ${isMyZone ? 'font-semibold text-gray-900' : 'text-gray-400'}`}>
+                {pct}%
+              </span>
+              {isMyZone && (
+                <span className="text-xs text-gray-400 flex-shrink-0">&larr; You</span>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* ========================================================================= */
+/*  6. GC Contact Card                                                        */
+/* ========================================================================= */
+
+function GCContactCard({ project }: { project: any }) {
+  const gcName = project.gcBusinessName || project.gc_business_name;
+  if (!gcName) return null;
+
+  const gcPhone = project.gcPhone || project.gc_phone;
+  const gcEmail = project.gcEmail || project.gc_email;
+
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+      <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-2">
+        <Building2 className="w-4 h-4 text-gray-400" />
+        <h2 className="text-base font-semibold text-gray-900">Your GC</h2>
+      </div>
+      <div className="px-5 py-4">
+        <p className="font-semibold text-gray-900 mb-2">{gcName}</p>
+        <div className="space-y-1.5">
+          {gcPhone && (
+            <a href={`tel:${gcPhone}`} className="flex items-center gap-2 text-sm text-gray-600 hover:text-brand-600 transition-colors">
+              <Phone className="w-4 h-4 text-gray-400" />
+              {gcPhone}
+            </a>
+          )}
+          {gcEmail && (
+            <a href={`mailto:${gcEmail}`} className="flex items-center gap-2 text-sm text-gray-600 hover:text-brand-600 transition-colors">
+              <Mail className="w-4 h-4 text-gray-400" />
+              {gcEmail}
+            </a>
+          )}
         </div>
       </div>
     </div>

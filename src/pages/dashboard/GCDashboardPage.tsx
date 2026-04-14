@@ -611,13 +611,23 @@ export function GCDashboardPage() {
           </p>
         </div>
         {activeTab === 'projects' && (
-          <button
-            onClick={() => setShowCreate(true)}
-            className="flex items-center gap-2 px-4 py-2.5 bg-brand-500 text-white rounded-lg text-sm font-medium hover:bg-brand-600 transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            New Project
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => loadDemoMutation.mutate()}
+              disabled={loadDemoMutation.isPending}
+              className="flex items-center gap-2 px-3 py-2 border border-gray-200 text-gray-500 rounded-lg text-xs font-medium hover:bg-gray-50 transition-colors disabled:opacity-50"
+            >
+              <Zap className="w-3.5 h-3.5" />
+              {loadDemoMutation.isPending ? 'Loading...' : 'Demo'}
+            </button>
+            <button
+              onClick={() => setShowCreate(true)}
+              className="flex items-center gap-2 px-4 py-2.5 bg-brand-500 text-white rounded-lg text-sm font-medium hover:bg-brand-600 transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              New Project
+            </button>
+          </div>
         )}
       </div>
 

@@ -412,14 +412,6 @@ export function GCDashboardPage() {
     0
   );
 
-  if (orgLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="w-8 h-8 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-  }
-
   // Filter subs by search
   const filteredSubs = useMemo(() => {
     if (!search.trim() || activeTab !== 'subs') return subs;
@@ -432,6 +424,14 @@ export function GCDashboardPage() {
         s.phone?.includes(q)
     );
   }, [subs, search, activeTab]);
+
+  if (orgLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="w-8 h-8 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 lg:p-6 max-w-7xl mx-auto">

@@ -49,7 +49,7 @@ export function InviteSubModal({
   const updateTrade = useMutation({
     mutationFn: (notes: string) => api.updateGCTrade(tradeId, { notes }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['gc-project'] });
+      queryClient.invalidateQueries({ queryKey: ['gc-project', projectId] });
       queryClient.invalidateQueries({ queryKey: ['gc-projects'] });
     },
     onError: (err: any) => addToast(err.message || 'Failed to update trade', 'error'),

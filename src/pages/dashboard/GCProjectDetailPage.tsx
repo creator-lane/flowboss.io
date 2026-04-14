@@ -151,6 +151,7 @@ export function GCProjectDetailPage() {
     queryKey: ['gc-project', id],
     queryFn: () => api.getGCProject(id!),
     enabled: !!id,
+    refetchInterval: 30000, // Auto-refresh every 30s to pick up sub updates
   });
 
   const messagesQuery = useQuery({
@@ -672,8 +673,13 @@ function TradeNode({
   const statusCfg = TRADE_STATUS[trade.status] || TRADE_STATUS.not_started;
   const accent = TRADE_ACCENT[trade.trade] || '#6b7280';
   const emoji = TRADE_EMOJI[trade.trade] || '\u{1F527}';
-  const hasAssignee = !!(trade.assignedUserId || trade.assignedOrgId || trade.assignedBusinessName);
-  const subName = trade.assignedBusinessName || (hasAssignee ? 'Assigned' : null);
+  // Check for placeholder name in notes (format: "Placeholder: Company Name")
+  const placeholderMatch = trade.notes?.match(/^Placeholder:\s*(.+?)(?:\s*\(|$)/);
+  const placeholderName = placeholderMatch ? placeholderMatch[1].trim() : null;
+  const invitedMatch = trade.notes?.match(/^Invited:\s*(.+)/);
+  const invitedEmail = invitedMatch ? invitedMatch[1].trim() : null;
+  const hasAssignee = !!(trade.assignedUserId || trade.assignedOrgId || trade.assignedBusinessName || placeholderName || invitedEmail);
+  const subName = trade.assignedBusinessName || placeholderName || (invitedEmail ? `Invited: ${invitedEmail}` : null) || (trade.assignedUserId ? 'Assigned' : null);
 
   return (
     <button
@@ -714,25 +720,21 @@ function TradeNode({
             <span className="text-[10px] text-gray-400">{statusCfg.label}</span>
           </div>
 
-          {/* Task progress */}
-          {total > 0 && (
-            <div className="mb-1.5">
-              <div className="flex items-center justify-between text-[11px] text-gray-400 mb-0.5">
-                <span>{done}/{total} tasks</span>
-              </div>
-              <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                <div
-                  className="h-full rounded-full transition-all duration-500"
-                  style={{ width: `${progress}%`, backgroundColor: accent }}
-                />
-              </div>
+          {/* Task progress with % */}
+          <div className="mt-2 pl-9">
+            <div className="flex items-center justify-between mb-0.5">
+              <span className="text-[10px] text-gray-400">{total > 0 ? `${done}/${total}` : 'No tasks'}</span>
+              {total > 0 && (
+                <span className="text-[10px] font-bold" style={{ color: accent }}>{Math.round(progress)}%</span>
+              )}
             </div>
-          )}
-
-          {/* Budget */}
-          {trade.budget != null && (
-            <div className="text-xs font-medium text-gray-600">{formatCurrency(trade.budget)}</div>
-          )}
+            <div className="h-1 bg-gray-100 rounded-full overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all duration-500"
+                style={{ width: `${total > 0 ? progress : 0}%`, backgroundColor: accent }}
+              />
+            </div>
+          </div>
         </div>
       </div>
     </button>
@@ -773,8 +775,13 @@ function TradeDetailPanel({
   const accent = TRADE_ACCENT[trade.trade] || '#6b7280';
   const emoji = TRADE_EMOJI[trade.trade] || '\u{1F527}';
   const tradeMessages = messages.filter((m: any) => m.tradeId === trade.id);
-  const hasAssignee = !!(trade.assignedUserId || trade.assignedOrgId || trade.assignedBusinessName);
-  const subName = trade.assignedBusinessName || (hasAssignee ? 'Assigned Sub' : null);
+  // Check for placeholder/invited name in notes
+  const placeholderMatch2 = trade.notes?.match(/^Placeholder:\s*(.+?)(?:\s*\(|$)/);
+  const placeholderName2 = placeholderMatch2 ? placeholderMatch2[1].trim() : null;
+  const invitedMatch2 = trade.notes?.match(/^Invited:\s*(.+)/);
+  const invitedEmail2 = invitedMatch2 ? invitedMatch2[1].trim() : null;
+  const hasAssignee = !!(trade.assignedUserId || trade.assignedOrgId || trade.assignedBusinessName || placeholderName2 || invitedEmail2);
+  const subName = trade.assignedBusinessName || placeholderName2 || (invitedEmail2 ? `Invited: ${invitedEmail2}` : null) || (trade.assignedUserId ? 'Assigned Sub' : null);
   const doneTasks = tasks.filter((t: any) => t.done).length;
 
   return (

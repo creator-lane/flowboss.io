@@ -1063,29 +1063,29 @@ function ZoneDetailPanel({
                   )}
 
                   {/* Actions */}
-                  <div className="flex items-center gap-2 mt-2.5 pt-2 border-t border-gray-100">
+                  <div className="flex items-center gap-3 mt-3 pt-2.5 border-t border-gray-100">
                     <button
                       onClick={() => onSelectTrade(trade.id)}
-                      className="flex items-center gap-1 text-[11px] font-medium text-brand-600 hover:text-brand-700 transition-colors"
+                      className="flex items-center gap-1.5 text-sm font-semibold text-brand-600 hover:text-brand-700 transition-colors"
                     >
-                      <ChevronRight className="w-3 h-3" />
+                      <ChevronRight className="w-4 h-4" />
                       View Details
                     </button>
                     {!hasAssignee && (
                       <button
                         onClick={() => onInviteSub(trade.id, trade.trade)}
-                        className="flex items-center gap-1 text-[11px] font-medium text-orange-600 hover:text-orange-700 transition-colors"
+                        className="flex items-center gap-1.5 text-sm font-semibold text-orange-600 hover:text-orange-700 transition-colors"
                       >
-                        <UserPlus className="w-3 h-3" />
+                        <UserPlus className="w-4 h-4" />
                         Invite Sub
                       </button>
                     )}
                     {canRate && (
                       <button
                         onClick={() => onSelectTrade(trade.id)}
-                        className="flex items-center gap-1 text-[11px] font-medium text-amber-600 hover:text-amber-700 transition-colors ml-auto"
+                        className="flex items-center gap-1.5 text-sm font-semibold text-amber-600 hover:text-amber-700 transition-colors ml-auto"
                       >
-                        <Star className="w-3 h-3" />
+                        <Star className="w-4 h-4" />
                         Rate
                       </button>
                     )}

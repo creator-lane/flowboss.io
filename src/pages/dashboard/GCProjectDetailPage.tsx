@@ -167,7 +167,28 @@ export function GCProjectDetailPage() {
 
   const totalTasks = trades.reduce((s: number, t: any) => s + (t.tasks?.length || 0), 0);
   const doneTasks = trades.reduce((s: number, t: any) => s + (t.tasks?.filter((tk: any) => tk.done).length || 0), 0);
-  const overallProgress = totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0;
+
+  // Weighted progress: each trade's completion is weighted by its labor hours (or budget as fallback)
+  // A trade with 40 labor hours counts 4x more than one with 10 hours
+  const overallProgress = useMemo(() => {
+    if (trades.length === 0) return 0;
+    let totalWeight = 0;
+    let weightedDone = 0;
+
+    for (const trade of trades) {
+      const tasks = trade.tasks || [];
+      const tradeTotal = tasks.length;
+      const tradeDone = tasks.filter((t: any) => t.done).length;
+      const tradeProgress = tradeTotal > 0 ? tradeDone / tradeTotal : 0;
+
+      // Weight by labor hours, then budget, then equal weight of 1
+      const weight = Number(trade.laborHours || trade.labor_hours) || Number(trade.budget) / 100 || 1;
+      totalWeight += weight;
+      weightedDone += tradeProgress * weight;
+    }
+
+    return totalWeight > 0 ? Math.round((weightedDone / totalWeight) * 100) : 0;
+  }, [trades]);
 
   const selectedTrade = trades.find((t: any) => t.id === selectedTradeId) || null;
 

@@ -139,7 +139,7 @@ export function CustomersPage() {
                 onClick={() =>
                   navigate(`/dashboard/customers/${customer.id}`)
                 }
-                className="bg-white rounded-xl border border-neutral-200 p-5 hover:border-brand-300 hover:shadow-md transition-all text-left w-full group"
+                className="bg-white rounded-xl border border-neutral-200 p-5 hover:border-brand-300 hover:shadow-lg hover:shadow-gray-200/50 hover:-translate-y-0.5 transition-all duration-200 text-left w-full group"
               >
                 <div className="flex items-start gap-4">
                   {/* Avatar */}

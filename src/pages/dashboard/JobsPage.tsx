@@ -14,11 +14,11 @@ import {
 } from 'lucide-react';
 import { CreateJobModal } from '../../components/jobs/CreateJobModal';
 
-const STATUS_BADGE: Record<string, { bg: string; text: string; label: string }> = {
-  SCHEDULED: { bg: 'bg-blue-100', text: 'text-status-scheduled', label: 'Scheduled' },
-  EN_ROUTE: { bg: 'bg-amber-100', text: 'text-warning', label: 'En Route' },
-  IN_PROGRESS: { bg: 'bg-cyan-100', text: 'text-status-inProgress', label: 'In Progress' },
-  COMPLETED: { bg: 'bg-green-100', text: 'text-status-completed', label: 'Completed' },
+const STATUS_BADGE: Record<string, { bg: string; text: string; ring: string; dot: string; label: string }> = {
+  SCHEDULED: { bg: 'bg-blue-50', text: 'text-blue-600', ring: 'ring-blue-500/20', dot: 'bg-blue-500', label: 'Scheduled' },
+  EN_ROUTE: { bg: 'bg-amber-50', text: 'text-amber-600', ring: 'ring-amber-500/20', dot: 'bg-amber-500', label: 'En Route' },
+  IN_PROGRESS: { bg: 'bg-cyan-50', text: 'text-cyan-600', ring: 'ring-cyan-500/20', dot: 'bg-cyan-500', label: 'In Progress' },
+  COMPLETED: { bg: 'bg-green-50', text: 'text-green-600', ring: 'ring-green-500/20', dot: 'bg-green-500', label: 'Completed' },
 };
 
 const PRIORITY_BADGE: Record<string, string> = {
@@ -41,8 +41,9 @@ function StatusBadge({ status }: { status: string }) {
   const cfg = STATUS_BADGE[status] || STATUS_BADGE.SCHEDULED;
   return (
     <span
-      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${cfg.bg} ${cfg.text}`}
+      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${cfg.bg} ${cfg.text} ring-1 ring-inset ${cfg.ring}`}
     >
+      <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
       {cfg.label}
     </span>
   );
@@ -295,7 +296,7 @@ export function JobsPage() {
                 key={job.id}
                 type="button"
                 onClick={() => navigate(`/dashboard/jobs/${job.id}`)}
-                className="w-full text-left bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md transition-all group"
+                className="w-full text-left bg-white rounded-xl border border-gray-200 p-4 hover:shadow-lg hover:shadow-gray-200/50 hover:-translate-y-0.5 transition-all duration-200 group"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">

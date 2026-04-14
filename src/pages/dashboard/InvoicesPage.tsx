@@ -15,14 +15,15 @@ import { CreateInvoiceModal } from '../../components/invoices/CreateInvoiceModal
 
 type FilterTab = 'all' | 'draft' | 'sent' | 'paid' | 'overdue';
 
-const STATUS_STYLE: Record<string, { badge: string; row?: string }> = {
-  draft: { badge: 'bg-neutral-100 text-neutral-600' },
-  sent: { badge: 'bg-blue-100 text-blue-700' },
-  viewed: { badge: 'bg-purple-100 text-purple-700' },
-  paid: { badge: 'bg-green-100 text-green-700' },
-  partially_paid: { badge: 'bg-yellow-100 text-yellow-700' },
+const STATUS_STYLE: Record<string, { badge: string; dot: string; row?: string }> = {
+  draft: { badge: 'bg-neutral-50 text-neutral-600 ring-1 ring-inset ring-neutral-500/20', dot: 'bg-neutral-400' },
+  sent: { badge: 'bg-blue-50 text-blue-600 ring-1 ring-inset ring-blue-500/20', dot: 'bg-blue-500' },
+  viewed: { badge: 'bg-purple-50 text-purple-600 ring-1 ring-inset ring-purple-500/20', dot: 'bg-purple-500' },
+  paid: { badge: 'bg-green-50 text-green-600 ring-1 ring-inset ring-green-500/20', dot: 'bg-green-500' },
+  partially_paid: { badge: 'bg-yellow-50 text-yellow-600 ring-1 ring-inset ring-yellow-500/20', dot: 'bg-yellow-500' },
   overdue: {
-    badge: 'bg-red-100 text-red-700',
+    badge: 'bg-red-50 text-red-600 ring-1 ring-inset ring-red-500/20',
+    dot: 'bg-red-500',
     row: 'bg-red-50/50',
   },
 };
@@ -279,8 +280,9 @@ export function InvoicesPage() {
                       </td>
                       <td className="px-6 py-4">
                         <span
-                          className={`text-xs px-2.5 py-1 rounded-full font-medium capitalize ${style.badge}`}
+                          className={`inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full font-semibold capitalize ${style.badge}`}
                         >
+                          <span className={`w-1.5 h-1.5 rounded-full ${style.dot}`} />
                           {status.replace(/_/g, ' ')}
                         </span>
                       </td>
@@ -336,7 +338,7 @@ export function InvoicesPage() {
                   onClick={() =>
                     navigate(`/dashboard/invoices/${inv.id}`)
                   }
-                  className={`w-full text-left bg-white rounded-xl border border-neutral-200 p-4 hover:border-brand-300 hover:shadow-md transition-all ${style.row || ''}`}
+                  className={`w-full text-left bg-white rounded-xl border border-neutral-200 p-4 hover:border-brand-300 hover:shadow-lg hover:shadow-gray-200/50 hover:-translate-y-0.5 transition-all duration-200 ${style.row || ''}`}
                 >
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-sm font-medium text-brand-600">
@@ -345,8 +347,9 @@ export function InvoicesPage() {
                         inv.id?.slice(0, 8)}
                     </span>
                     <span
-                      className={`text-xs px-2 py-1 rounded-full font-medium capitalize ${style.badge}`}
+                      className={`inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full font-semibold capitalize ${style.badge}`}
                     >
+                      <span className={`w-1.5 h-1.5 rounded-full ${style.dot}`} />
                       {status.replace(/_/g, ' ')}
                     </span>
                   </div>

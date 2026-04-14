@@ -14,10 +14,10 @@ import {
 } from 'lucide-react';
 import { CreateProjectModal } from '../../components/projects/CreateProjectModal';
 
-const STATUS_BADGE: Record<string, { bg: string; text: string; label: string }> = {
-  NOT_STARTED: { bg: 'bg-gray-100', text: 'text-gray-600', label: 'Not Started' },
-  IN_PROGRESS: { bg: 'bg-blue-100', text: 'text-blue-700', label: 'In Progress' },
-  COMPLETED: { bg: 'bg-green-100', text: 'text-green-700', label: 'Completed' },
+const STATUS_BADGE: Record<string, { bg: string; text: string; ring: string; dot: string; label: string }> = {
+  NOT_STARTED: { bg: 'bg-gray-50', text: 'text-gray-600', ring: 'ring-gray-500/20', dot: 'bg-gray-400', label: 'Not Started' },
+  IN_PROGRESS: { bg: 'bg-blue-50', text: 'text-blue-600', ring: 'ring-blue-500/20', dot: 'bg-blue-500', label: 'In Progress' },
+  COMPLETED: { bg: 'bg-green-50', text: 'text-green-600', ring: 'ring-green-500/20', dot: 'bg-green-500', label: 'Completed' },
 };
 
 type FilterTab = 'ALL' | 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED';
@@ -33,8 +33,9 @@ function StatusBadge({ status }: { status: string }) {
   const cfg = STATUS_BADGE[status] || STATUS_BADGE.NOT_STARTED;
   return (
     <span
-      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${cfg.bg} ${cfg.text}`}
+      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${cfg.bg} ${cfg.text} ring-1 ring-inset ${cfg.ring}`}
     >
+      <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
       {cfg.label}
     </span>
   );
@@ -212,7 +213,7 @@ export function ProjectsPage() {
                 key={project.id}
                 type="button"
                 onClick={() => navigate(`/dashboard/projects/${project.id}`)}
-                className="w-full text-left bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md transition-all group"
+                className="w-full text-left bg-white rounded-xl border border-gray-200 p-5 hover:shadow-lg hover:shadow-gray-200/50 hover:-translate-y-0.5 transition-all duration-200 group"
               >
                 <div className="flex items-start justify-between gap-3 mb-3">
                   <div className="flex-1 min-w-0">

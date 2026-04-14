@@ -41,3 +41,49 @@ body {
 .animate-slide-up {
   animation: slide-up 0.35s ease-out;
 }
+
+/* ── Premium card shadows ── */
+.card-shadow {
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02);
+}
+.card-shadow-hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04);
+}
+
+/* ── Subtle gradient backgrounds ── */
+.bg-gradient-subtle {
+  background: linear-gradient(135deg, #f8fafc 0%, #f0f4ff 100%);
+}
+.bg-gradient-brand {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 50%, #1e40af 100%);
+}
+.bg-gradient-sidebar {
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+}
+
+/* ── Glow effects for interactive elements ── */
+.glow-brand {
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1), 0 1px 2px rgba(0,0,0,0.05);
+}
+.glow-success {
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
+}
+.glow-danger {
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+}
+
+/* ── Better focus rings ── */
+.focus-ring:focus-within {
+  box-shadow: 0 0 0 2px white, 0 0 0 4px #2563eb;
+}
+
+/* ── Smooth transitions on all interactive elements ── */
+button, a, input, select, textarea {
+  transition: all 0.15s ease;
+}
+
+/* ── Scrollbar styling ── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #9ca3af; }

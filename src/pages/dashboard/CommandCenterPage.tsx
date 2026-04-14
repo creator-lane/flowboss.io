@@ -38,11 +38,11 @@ const fmtCurrency = (n: number) =>
 
 const todayStr = format(new Date(), 'yyyy-MM-dd');
 
-const JOB_STATUS_BADGE: Record<string, { bg: string; text: string; label: string }> = {
-  SCHEDULED: { bg: 'bg-blue-100', text: 'text-blue-700', label: 'Scheduled' },
-  EN_ROUTE: { bg: 'bg-amber-100', text: 'text-amber-700', label: 'En Route' },
-  IN_PROGRESS: { bg: 'bg-cyan-100', text: 'text-cyan-700', label: 'In Progress' },
-  COMPLETED: { bg: 'bg-green-100', text: 'text-green-700', label: 'Completed' },
+const JOB_STATUS_BADGE: Record<string, { bg: string; text: string; ring: string; dot: string; label: string }> = {
+  SCHEDULED: { bg: 'bg-blue-50', text: 'text-blue-600', ring: 'ring-blue-500/20', dot: 'bg-blue-500', label: 'Scheduled' },
+  EN_ROUTE: { bg: 'bg-amber-50', text: 'text-amber-600', ring: 'ring-amber-500/20', dot: 'bg-amber-500', label: 'En Route' },
+  IN_PROGRESS: { bg: 'bg-cyan-50', text: 'text-cyan-600', ring: 'ring-cyan-500/20', dot: 'bg-cyan-500', label: 'In Progress' },
+  COMPLETED: { bg: 'bg-green-50', text: 'text-green-600', ring: 'ring-green-500/20', dot: 'bg-green-500', label: 'Completed' },
 };
 
 const PROJECT_STATUS_DOT: Record<string, string> = {
@@ -54,7 +54,8 @@ const PROJECT_STATUS_DOT: Record<string, string> = {
 function StatusBadge({ status }: { status: string }) {
   const cfg = JOB_STATUS_BADGE[status] || JOB_STATUS_BADGE.SCHEDULED;
   return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${cfg.bg} ${cfg.text}`}>
+    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${cfg.bg} ${cfg.text} ring-1 ring-inset ${cfg.ring}`}>
+      <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
       {cfg.label}
     </span>
   );
@@ -214,30 +215,32 @@ export function CommandCenterPage() {
   return (
     <div className="p-4 lg:p-6 max-w-5xl mx-auto space-y-6">
       {/* 1. Welcome Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">
-            {greeting}, {settings?.business_name || 'there'}
-          </h1>
-          <p className="text-sm text-neutral-500">{formattedDate}</p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {projects.length > 0 && (
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700">
-              <Building2 className="w-3.5 h-3.5" />
-              {projects.length} active project{projects.length !== 1 ? 's' : ''}
+      <div className="bg-gradient-to-r from-brand-500/5 via-brand-500/[0.02] to-transparent rounded-2xl p-6 mb-0">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">
+              {greeting}, {settings?.business_name || 'there'}
+            </h1>
+            <p className="text-sm text-neutral-500">{formattedDate}</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {projects.length > 0 && (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-600 ring-1 ring-inset ring-blue-500/20 border-l-2 border-blue-500">
+                <Building2 className="w-3.5 h-3.5" />
+                {projects.length} active project{projects.length !== 1 ? 's' : ''}
+              </span>
+            )}
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-green-50 text-green-600 ring-1 ring-inset ring-green-500/20 border-l-2 border-green-500">
+              <Calendar className="w-3.5 h-3.5" />
+              {todaysJobs.length} job{todaysJobs.length !== 1 ? 's' : ''} today
             </span>
-          )}
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
-            <Calendar className="w-3.5 h-3.5" />
-            {todaysJobs.length} job{todaysJobs.length !== 1 ? 's' : ''} today
-          </span>
-          {overdueInvoices.length > 0 && (
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-red-50 text-red-700">
-              <AlertCircle className="w-3.5 h-3.5" />
-              {overdueInvoices.length} overdue
-            </span>
-          )}
+            {overdueInvoices.length > 0 && (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-red-50 text-red-600 ring-1 ring-inset ring-red-500/20 border-l-2 border-red-500">
+                <AlertCircle className="w-3.5 h-3.5" />
+                {overdueInvoices.length} overdue
+              </span>
+            )}
+          </div>
         </div>
       </div>
 
@@ -271,7 +274,7 @@ export function CommandCenterPage() {
                 <Link
                   key={p.id}
                   to={`/dashboard/projects/${p.id}`}
-                  className="shrink-0 w-52 bg-white rounded-xl border border-gray-200 p-4 hover:border-brand-300 hover:shadow-sm transition-all"
+                  className="shrink-0 w-52 bg-white rounded-xl border border-gray-200 p-4 hover:border-brand-300 hover:shadow-lg hover:shadow-gray-200/50 hover:-translate-y-0.5 transition-all duration-200"
                 >
                   <div className="flex items-center gap-2 mb-2">
                     <span className={`w-2 h-2 rounded-full ${statusDot}`} />
@@ -330,7 +333,7 @@ export function CommandCenterPage() {
       {/* 4. Today's Schedule + 5. Financial Snapshot */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
         {/* Today's Schedule (3/5) */}
-        <div className="lg:col-span-3 bg-white rounded-xl border border-gray-200 p-5">
+        <div className="lg:col-span-3 bg-white rounded-xl border border-gray-200 p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_1px_2px_rgba(0,0,0,0.02)]">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Today's Schedule</h2>
             <Link to="/dashboard/schedule" className="text-xs text-brand-600 font-medium hover:underline">
@@ -389,7 +392,7 @@ export function CommandCenterPage() {
 
         {/* Financial Snapshot (2/5) */}
         <div className="lg:col-span-2 space-y-4">
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_1px_2px_rgba(0,0,0,0.02)]">
             <div className="flex items-center gap-2 mb-1">
               <DollarSign className="w-4 h-4 text-amber-500" />
               <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Outstanding</span>
@@ -399,7 +402,7 @@ export function CommandCenterPage() {
               {financials.outstandingCount} unpaid invoice{financials.outstandingCount !== 1 ? 's' : ''}
             </p>
           </div>
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_1px_2px_rgba(0,0,0,0.02)]">
             <div className="flex items-center gap-2 mb-1">
               <DollarSign className="w-4 h-4 text-green-500" />
               <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">This Month</span>
@@ -419,30 +422,30 @@ export function CommandCenterPage() {
           <button
             type="button"
             onClick={() => setShowNewProject(true)}
-            className="flex flex-col items-center gap-2 p-4 bg-white rounded-xl border border-gray-200 hover:border-brand-300 hover:shadow-sm transition-all text-center"
+            className="flex flex-col items-center gap-2 p-4 bg-gradient-to-br from-brand-50 to-white rounded-xl border border-brand-100 hover:border-brand-300 hover:shadow-lg hover:shadow-brand-100/50 hover:-translate-y-0.5 transition-all duration-200 text-center"
           >
-            <div className="w-10 h-10 rounded-lg bg-brand-50 flex items-center justify-center">
-              <Building2 className="w-5 h-5 text-brand-600" />
+            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center shadow-sm shadow-brand-500/20">
+              <Building2 className="w-5 h-5 text-white" />
             </div>
             <span className="text-sm font-medium text-gray-700">New Project</span>
           </button>
           <button
             type="button"
             onClick={() => setShowNewInvoice(true)}
-            className="flex flex-col items-center gap-2 p-4 bg-white rounded-xl border border-gray-200 hover:border-brand-300 hover:shadow-sm transition-all text-center"
+            className="flex flex-col items-center gap-2 p-4 bg-gradient-to-br from-emerald-50 to-white rounded-xl border border-emerald-100 hover:border-emerald-300 hover:shadow-lg hover:shadow-emerald-100/50 hover:-translate-y-0.5 transition-all duration-200 text-center"
           >
-            <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center">
-              <FileText className="w-5 h-5 text-emerald-600" />
+            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center shadow-sm shadow-emerald-500/20">
+              <FileText className="w-5 h-5 text-white" />
             </div>
             <span className="text-sm font-medium text-gray-700">Create Invoice</span>
           </button>
           <button
             type="button"
             onClick={() => setShowNewJob(true)}
-            className="flex flex-col items-center gap-2 p-4 bg-white rounded-xl border border-gray-200 hover:border-brand-300 hover:shadow-sm transition-all text-center"
+            className="flex flex-col items-center gap-2 p-4 bg-gradient-to-br from-violet-50 to-white rounded-xl border border-violet-100 hover:border-violet-300 hover:shadow-lg hover:shadow-violet-100/50 hover:-translate-y-0.5 transition-all duration-200 text-center"
           >
-            <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
-              <Briefcase className="w-5 h-5 text-blue-600" />
+            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-violet-500 to-violet-600 flex items-center justify-center shadow-sm shadow-violet-500/20">
+              <Briefcase className="w-5 h-5 text-white" />
             </div>
             <span className="text-sm font-medium text-gray-700">Add Job</span>
           </button>

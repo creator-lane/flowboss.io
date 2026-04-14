@@ -18,6 +18,7 @@ import {
   MoreHorizontal,
 } from 'lucide-react';
 import { useAuth } from '../../lib/auth';
+import { GlobalSearch } from './GlobalSearch';
 
 interface NavItem {
   to: string;
@@ -143,6 +144,7 @@ export function DashboardLayout() {
             <h1 className="text-lg font-semibold text-gray-900">FlowBoss</h1>
           </div>
           <div className="flex items-center gap-3">
+            <GlobalSearch />
             <div className="w-8 h-8 bg-brand-100 text-brand-700 rounded-full flex items-center justify-center text-xs font-semibold">
               {initials}
             </div>

@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../lib/api';
 import { Modal } from '../ui/Modal';
+import { useToast } from '../ui/Toast';
 import { Plus, X } from 'lucide-react';
 import { addDays, format } from 'date-fns';
 
@@ -113,6 +114,7 @@ export function CreateInvoiceModal({
 }: CreateInvoiceModalProps) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { addToast } = useToast();
 
   // Form state
   const [customerId, setCustomerId] = useState(prefillCustomerId || '');
@@ -255,8 +257,8 @@ export function CreateInvoiceModal({
       if (result?.data?.id) {
         navigate(`/dashboard/invoices/${result.data.id}`);
       }
-    } catch (err) {
-      console.error('Failed to create invoice:', err);
+    } catch (err: any) {
+      addToast(err.message || 'Failed to create invoice', 'error');
     } finally {
       setSubmitting(false);
     }

@@ -4,6 +4,7 @@ import { format } from 'date-fns';
 import { ChevronDown, Plus, Loader2 } from 'lucide-react';
 import { Modal } from '../ui/Modal';
 import { api } from '../../lib/api';
+import { useToast } from '../ui/Toast';
 
 interface CreateJobModalProps {
   open: boolean;
@@ -13,6 +14,7 @@ interface CreateJobModalProps {
 
 export function CreateJobModal({ open, onClose, defaultDate }: CreateJobModalProps) {
   const queryClient = useQueryClient();
+  const { addToast } = useToast();
 
   // -- Customer state --
   const [customerSearch, setCustomerSearch] = useState('');
@@ -140,9 +142,10 @@ export function CreateJobModal({ open, onClose, defaultDate }: CreateJobModalPro
       queryClient.invalidateQueries({ queryKey: ['customers'] });
 
       // 4. Close modal
+      addToast('Job created', 'success');
       handleClose();
-    } catch (err) {
-      console.error('Failed to create job:', err);
+    } catch (err: any) {
+      addToast(err.message || 'Failed to create job', 'error');
     }
   };
 

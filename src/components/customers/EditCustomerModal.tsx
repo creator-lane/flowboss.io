@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../lib/api';
 import { Modal } from '../ui/Modal';
+import { useToast } from '../ui/Toast';
 
 interface EditCustomerModalProps {
   open: boolean;
@@ -11,6 +12,7 @@ interface EditCustomerModalProps {
 
 export function EditCustomerModal({ open, onClose, customer }: EditCustomerModalProps) {
   const queryClient = useQueryClient();
+  const { addToast } = useToast();
 
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -33,8 +35,10 @@ export function EditCustomerModal({ open, onClose, customer }: EditCustomerModal
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['customer', customer.id] });
       queryClient.invalidateQueries({ queryKey: ['customers'] });
+      addToast('Customer saved', 'success');
       onClose();
     },
+    onError: (err: any) => addToast(err.message || 'Failed to update customer', 'error'),
   });
 
   function handleSubmit(e: React.FormEvent) {

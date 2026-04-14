@@ -1,6 +1,7 @@
 import { useState, useRef, useMemo, useCallback, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../lib/api';
+import { useToast } from '../ui/Toast';
 import { TimelineSuggestions } from './TimelineSuggestions';
 import {
   ZoomIn,
@@ -79,6 +80,7 @@ interface TimelineBoardProps {
 
 export function TimelineBoard({ project, trades, projectId }: TimelineBoardProps) {
   const queryClient = useQueryClient();
+  const { addToast } = useToast();
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const [dayWidth, setDayWidth] = useState(DEFAULT_DAY_WIDTH);
@@ -182,6 +184,7 @@ export function TimelineBoard({ project, trades, projectId }: TimelineBoardProps
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['gc-project', projectId] });
     },
+    onError: (err: any) => addToast(err.message || 'Failed to update timeline', 'error'),
   });
 
   // Drag handlers

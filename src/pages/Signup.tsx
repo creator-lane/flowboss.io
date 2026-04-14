@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Wrench } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../lib/auth';
+import { useToast } from '../components/ui/Toast';
 
 const TRADES = [
   'Plumbing',
@@ -13,6 +14,7 @@ const TRADES = [
 
 export function Signup() {
   const { session, loading } = useAuth();
+  const { addToast } = useToast();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const plan = searchParams.get('plan') || 'monthly';
@@ -81,7 +83,7 @@ export function Signup() {
           .eq('id', signUpData.user.id);
 
         if (profileError) {
-          console.error('Profile update failed:', profileError.message);
+          addToast('Profile update failed — you can fix this in Settings', 'error');
           // Non-blocking — they can update later in settings
         }
       }
@@ -121,7 +123,7 @@ export function Signup() {
           // Redirect to the GC project view (skip checkout for invited subs)
           navigate(`/dashboard/projects/assigned/${inviteProjectId}`, { replace: true });
         } catch (inviteErr) {
-          console.error('Invite linking failed:', inviteErr);
+          addToast('Invite linking had an issue — you may need to be re-invited', 'error');
           // Still redirect to the project even if linking partially failed
           navigate(`/dashboard/projects/assigned/${inviteProjectId}`, { replace: true });
         }

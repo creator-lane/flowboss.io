@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ChevronDown, ChevronRight, Loader2 } from 'lucide-react';
 import { Modal } from '../ui/Modal';
 import { api } from '../../lib/api';
+import { useToast } from '../ui/Toast';
 
 const US_STATES = [
   'AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA',
@@ -26,6 +27,7 @@ const initialForm = {
 
 export function CreateCustomerModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const queryClient = useQueryClient();
+  const { addToast } = useToast();
   const [form, setForm] = useState(initialForm);
   const [showProperty, setShowProperty] = useState(false);
 
@@ -50,8 +52,10 @@ export function CreateCustomerModal({ open, onClose }: { open: boolean; onClose:
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['customers'] });
+      addToast('Customer created', 'success');
       handleClose();
     },
+    onError: (err: any) => addToast(err.message || 'Failed to create customer', 'error'),
   });
 
   const handleClose = () => {

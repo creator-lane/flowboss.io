@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../lib/api';
+import { useToast } from '../ui/Toast';
 import { Sparkles, Check, X } from 'lucide-react';
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -183,6 +184,7 @@ export function TimelineSuggestions({
   onClose,
 }: TimelineSuggestionsProps) {
   const queryClient = useQueryClient();
+  const { addToast } = useToast();
   const [applyingKey, setApplyingKey] = useState<string | null>(null);
 
   const recommended = useMemo(() => getRecommendedTemplate(projectName), [projectName]);
@@ -223,10 +225,12 @@ export function TimelineSuggestions({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['gc-project', projectId] });
       queryClient.invalidateQueries({ queryKey: ['gc-projects'] });
+      addToast('Timeline applied', 'success');
       setApplyingKey(null);
       onApply();
     },
-    onError: () => {
+    onError: (err: any) => {
+      addToast(err.message || 'Failed to apply timeline', 'error');
       setApplyingKey(null);
     },
   });

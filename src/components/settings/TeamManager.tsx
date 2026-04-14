@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../lib/api';
 import { Users, Plus, Trash2, Mail, Phone, Shield, UserCog, Wrench, Loader2 } from 'lucide-react';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
+import { useToast } from '../ui/Toast';
 
 const ROLE_OPTIONS = [
   { value: 'admin', label: 'Admin' },
@@ -26,6 +27,7 @@ const STATUS_BADGES: Record<string, { label: string; color: string }> = {
 
 export function TeamManager() {
   const queryClient = useQueryClient();
+  const { addToast } = useToast();
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -50,7 +52,9 @@ export function TeamManager() {
       setPhone('');
       setRole('member');
       setShowForm(false);
+      addToast('Team member added', 'success');
     },
+    onError: (err: any) => addToast(err.message || 'Failed to add member', 'error'),
   });
 
   const updateMutation = useMutation({
@@ -59,6 +63,7 @@ export function TeamManager() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['team-members'] });
     },
+    onError: (err: any) => addToast(err.message || 'Failed to update member', 'error'),
   });
 
   const removeMutation = useMutation({
@@ -66,7 +71,9 @@ export function TeamManager() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['team-members'] });
       setConfirmRemove(null);
+      addToast('Member removed', 'success');
     },
+    onError: (err: any) => addToast(err.message || 'Failed to remove member', 'error'),
   });
 
   const handleAdd = () => {

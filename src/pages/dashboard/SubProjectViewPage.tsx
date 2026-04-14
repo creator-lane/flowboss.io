@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../lib/api';
 import { supabase } from '../../lib/supabase';
+import { useToast } from '../../components/ui/Toast';
 import {
   ArrowLeft,
   MapPin,
@@ -50,6 +51,7 @@ function formatTime(dateStr: string) {
 export function SubProjectViewPage() {
   const { id } = useParams<{ id: string }>();
   const queryClient = useQueryClient();
+  const { addToast } = useToast();
 
   const projectQuery = useQuery({
     queryKey: ['gc-project', id],
@@ -178,6 +180,7 @@ export function SubProjectViewPage() {
 
 function TradeAssignment({ trade, projectId }: { trade: any; projectId: string }) {
   const queryClient = useQueryClient();
+  const { addToast } = useToast();
   const tasks: any[] = trade.tasks || [];
   const doneTasks = tasks.filter((t: any) => t.done).length;
   const totalTasks = tasks.length;
@@ -213,6 +216,7 @@ function TradeAssignment({ trade, projectId }: { trade: any; projectId: string }
     },
     onError: (_err, _vars, ctx) => {
       if (ctx?.prev) queryClient.setQueryData(['gc-project', projectId], ctx.prev);
+      addToast('Failed to update task', 'error');
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['gc-project', projectId] });
@@ -313,6 +317,7 @@ function SubMessageSection({
   myTradeIds: string[];
 }) {
   const queryClient = useQueryClient();
+  const { addToast } = useToast();
   const [msg, setMsg] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -333,6 +338,7 @@ function SubMessageSection({
       queryClient.invalidateQueries({ queryKey: ['gc-messages', projectId] });
       setMsg('');
     },
+    onError: (err: any) => addToast(err.message || 'Failed to send message', 'error'),
   });
 
   return (

@@ -26,6 +26,7 @@ import {
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { CreateInvoiceModal } from '../../components/invoices/CreateInvoiceModal';
 import { EditableLineItems } from '../../components/jobs/EditableLineItems';
+import { useToast } from '../../components/ui/Toast';
 
 const STATUS_FLOW = ['SCHEDULED', 'EN_ROUTE', 'IN_PROGRESS', 'COMPLETED'] as const;
 const STATUS_LABELS: Record<string, string> = {
@@ -83,6 +84,7 @@ export function JobDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { addToast } = useToast();
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
@@ -136,7 +138,9 @@ export function JobDetailPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['job', id] });
       queryClient.invalidateQueries({ queryKey: ['jobs'] });
+      addToast('Status updated', 'success');
     },
+    onError: (err: any) => addToast(err.message || 'Failed to update status', 'error'),
   });
 
   // Notes mutation
@@ -145,6 +149,7 @@ export function JobDetailPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['job', id] });
     },
+    onError: (err: any) => addToast(err.message || 'Failed to save notes', 'error'),
   });
 
   // Delete mutation
@@ -152,8 +157,10 @@ export function JobDetailPage() {
     mutationFn: () => api.deleteJob(id!),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['jobs'] });
+      addToast('Job deleted', 'success');
       navigate('/dashboard/schedule');
     },
+    onError: (err: any) => addToast(err.message || 'Failed to delete job', 'error'),
   });
 
   // Duplicate mutation
@@ -161,9 +168,11 @@ export function JobDetailPage() {
     mutationFn: () => api.duplicateJob(job),
     onSuccess: (result: any) => {
       queryClient.invalidateQueries({ queryKey: ['jobs'] });
+      addToast('Job duplicated', 'success');
       const newId = result?.data?.id;
       if (newId) navigate(`/dashboard/jobs/${newId}`);
     },
+    onError: (err: any) => addToast(err.message || 'Failed to duplicate job', 'error'),
   });
 
   // Schedule editing
@@ -199,6 +208,7 @@ export function JobDetailPage() {
       queryClient.invalidateQueries({ queryKey: ['jobs'] });
       setEditingSchedule(false);
     },
+    onError: (err: any) => addToast(err.message || 'Failed to update schedule', 'error'),
   });
 
   const handleScheduleSave = () => {

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../lib/api';
 import { Modal } from '../ui/Modal';
+import { useToast } from '../ui/Toast';
 
 const CATEGORIES = [
   'Materials',
@@ -22,6 +23,7 @@ interface CreateExpenseModalProps {
 
 export function CreateExpenseModal({ open, onClose }: CreateExpenseModalProps) {
   const queryClient = useQueryClient();
+  const { addToast } = useToast();
   const today = new Date().toISOString().slice(0, 10);
 
   const [amount, setAmount] = useState('');
@@ -35,8 +37,10 @@ export function CreateExpenseModal({ open, onClose }: CreateExpenseModalProps) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['financials'] });
       queryClient.invalidateQueries({ queryKey: ['insights'] });
+      addToast('Expense added', 'success');
       resetAndClose();
     },
+    onError: (err: any) => addToast(err.message || 'Failed to add expense', 'error'),
   });
 
   function resetAndClose() {

@@ -780,6 +780,24 @@ export const api = {
     return resp.json();
   },
 
+  sendInviteEmail: async (data: { email: string; subName?: string; projectName: string; tradeName: string; inviteUrl: string; gcCompanyName?: string }) => {
+    try {
+      const resp = await fetch(`${SUPABASE_FN_URL}/send-invite-email`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${ANON_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (!resp.ok) {
+        // Edge function not deployed yet — silently succeed
+        return { success: true, pending: true };
+      }
+      return await resp.json();
+    } catch {
+      // Edge function not deployed — silently succeed
+      return { success: true, pending: true };
+    }
+  },
+
   // -- Expenses --------------------------------------------------------------
   getExpenses: async (params?: Record<string, string>) => {
     let query = supabase

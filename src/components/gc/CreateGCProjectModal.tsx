@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../lib/api';
 import { Modal } from '../ui/Modal';
+import { useToast } from '../ui/Toast';
 import { Plus, X, Zap, ChevronDown, ChevronUp } from 'lucide-react';
 
 /* ─── Types ─── */
@@ -90,6 +91,7 @@ const fmt = (n: number) =>
 
 export function CreateGCProjectModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const queryClient = useQueryClient();
+  const { addToast } = useToast();
 
   // Core fields
   const [name, setName] = useState('');
@@ -133,9 +135,11 @@ export function CreateGCProjectModal({ open, onClose }: { open: boolean; onClose
     mutationFn: (data: any) => api.createGCProject(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['gc-projects'] });
+      addToast('Project created', 'success');
       resetForm();
       onClose();
     },
+    onError: (err: any) => addToast(err.message || 'Failed to create project', 'error'),
   });
 
   // When user picks a project type → auto-populate trades

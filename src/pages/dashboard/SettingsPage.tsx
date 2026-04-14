@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { PricebookManager } from '../../components/settings/PricebookManager';
 import { TeamManager } from '../../components/settings/TeamManager';
+import { useToast } from '../../components/ui/Toast';
 
 const TRADE_OPTIONS = [
   { value: 'plumbing', label: 'Plumbing' },
@@ -169,6 +170,7 @@ function SubscriptionCard() {
 export function SettingsPage() {
   const { user, signOut } = useAuth();
   const queryClient = useQueryClient();
+  const { addToast } = useToast();
   const [activeTab, setActiveTab] = useState<TabKey>('profile');
 
   // Settings query
@@ -203,10 +205,12 @@ export function SettingsPage() {
     mutationFn: (updates: any) => api.updateSettings(updates),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['settings'] });
+      addToast('Settings saved', 'success');
       setSaveMessage('Settings saved successfully!');
       setTimeout(() => setSaveMessage(''), 3000);
     },
-    onError: () => {
+    onError: (err: any) => {
+      addToast(err.message || 'Failed to save settings', 'error');
       setSaveMessage('Failed to save. Please try again.');
       setTimeout(() => setSaveMessage(''), 3000);
     },

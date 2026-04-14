@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../lib/api';
+import { useToast } from '../../components/ui/Toast';
 import { format } from 'date-fns';
 import {
   ArrowLeft,
@@ -38,6 +39,7 @@ export function ContractorDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { addToast } = useToast();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [editing, setEditing] = useState(false);
   const [editForm, setEditForm] = useState({
@@ -83,16 +85,20 @@ export function ContractorDetailPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['contractor', id] });
       queryClient.invalidateQueries({ queryKey: ['contractors'] });
+      addToast('Contractor updated', 'success');
       setEditing(false);
     },
+    onError: (err: any) => addToast(err.message || 'Failed to update contractor', 'error'),
   });
 
   const deleteMutation = useMutation({
     mutationFn: () => api.deleteContractor(id!),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['contractors'] });
+      addToast('Contractor deleted', 'success');
       navigate('/dashboard/contractors');
     },
+    onError: (err: any) => addToast(err.message || 'Failed to delete contractor', 'error'),
   });
 
   const startEditing = () => {

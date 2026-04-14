@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../lib/api';
+import { useToast } from '../ui/Toast';
 import {
   Search,
   Plus,
@@ -37,6 +38,7 @@ interface PricebookItem {
 
 export function PricebookManager() {
   const queryClient = useQueryClient();
+  const { addToast } = useToast();
 
   // State
   const [search, setSearch] = useState('');
@@ -105,6 +107,7 @@ export function PricebookManager() {
       api.createPricebookItem(item),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pricebook'] });
+      addToast('Item added', 'success');
       setNewName('');
       setNewPrice('');
       setNewCategory('');
@@ -112,6 +115,7 @@ export function PricebookManager() {
       setNewDescription('');
       setShowAddForm(false);
     },
+    onError: (err: any) => addToast(err.message || 'Failed to add item', 'error'),
   });
 
   const updateMutation = useMutation({
@@ -121,6 +125,7 @@ export function PricebookManager() {
       queryClient.invalidateQueries({ queryKey: ['pricebook'] });
       setEditingId(null);
     },
+    onError: (err: any) => addToast(err.message || 'Failed to update item', 'error'),
   });
 
   const deleteMutation = useMutation({
@@ -129,6 +134,7 @@ export function PricebookManager() {
       queryClient.invalidateQueries({ queryKey: ['pricebook'] });
       setDeleteConfirmId(null);
     },
+    onError: (err: any) => addToast(err.message || 'Failed to delete item', 'error'),
   });
 
   const seedMutation = useMutation({
@@ -136,6 +142,7 @@ export function PricebookManager() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pricebook'] });
     },
+    onError: (err: any) => addToast(err.message || 'Failed to seed pricebook', 'error'),
   });
 
   const handleAdd = () => {

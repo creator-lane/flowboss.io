@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../lib/api';
+import { useToast } from '../../components/ui/Toast';
 import { format } from 'date-fns';
 import {
   ArrowLeft,
@@ -77,6 +78,7 @@ function PhaseCard({
   projectId: string;
 }) {
   const queryClient = useQueryClient();
+  const { addToast } = useToast();
   const [expanded, setExpanded] = useState(true);
   const [newTaskName, setNewTaskName] = useState('');
   const [showAddTask, setShowAddTask] = useState(false);
@@ -89,11 +91,13 @@ function PhaseCard({
   const updatePhaseMutation = useMutation({
     mutationFn: ({ id, updates }: { id: string; updates: any }) => api.updatePhase(id, updates),
     onSuccess: invalidate,
+    onError: (err: any) => addToast(err.message || 'Failed to update phase', 'error'),
   });
 
   const toggleTaskMutation = useMutation({
     mutationFn: ({ id, done }: { id: string; done: boolean }) => api.updateTask(id, { done }),
     onSuccess: invalidate,
+    onError: (err: any) => addToast(err.message || 'Failed to update task', 'error'),
   });
 
   const addTaskMutation = useMutation({
@@ -104,11 +108,13 @@ function PhaseCard({
       setShowAddTask(false);
       invalidate();
     },
+    onError: (err: any) => addToast(err.message || 'Failed to add task', 'error'),
   });
 
   const deleteTaskMutation = useMutation({
     mutationFn: (taskId: string) => api.deleteTask(taskId),
     onSuccess: invalidate,
+    onError: (err: any) => addToast(err.message || 'Failed to delete task', 'error'),
   });
 
   const addMaterialMutation = useMutation({
@@ -120,17 +126,20 @@ function PhaseCard({
       setShowAddMaterial(false);
       invalidate();
     },
+    onError: (err: any) => addToast(err.message || 'Failed to add material', 'error'),
   });
 
   const toggleMaterialMutation = useMutation({
     mutationFn: ({ id, purchased }: { id: string; purchased: boolean }) =>
       api.updateMaterial(id, { purchased }),
     onSuccess: invalidate,
+    onError: (err: any) => addToast(err.message || 'Failed to update material', 'error'),
   });
 
   const deleteMaterialMutation = useMutation({
     mutationFn: (materialId: string) => api.deleteMaterial(materialId),
     onSuccess: invalidate,
+    onError: (err: any) => addToast(err.message || 'Failed to delete material', 'error'),
   });
 
   const tasks = phase.tasks || [];
@@ -409,6 +418,7 @@ export function ProjectDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { addToast } = useToast();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [notes, setNotes] = useState<string | null>(null);
   const [newPhaseName, setNewPhaseName] = useState('');
@@ -425,23 +435,28 @@ export function ProjectDetailPage() {
   const updateProjectMutation = useMutation({
     mutationFn: (updates: any) => api.updateProject(id!, updates),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['project', id] }),
+    onError: (err: any) => addToast(err.message || 'Failed to update project', 'error'),
   });
 
   const deleteProjectMutation = useMutation({
     mutationFn: () => api.deleteProject(id!),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['projects'] });
+      addToast('Project deleted', 'success');
       navigate('/dashboard/projects');
     },
+    onError: (err: any) => addToast(err.message || 'Failed to delete project', 'error'),
   });
 
   const duplicateProjectMutation = useMutation({
     mutationFn: () => api.duplicateProject(project),
     onSuccess: (result: any) => {
       queryClient.invalidateQueries({ queryKey: ['projects'] });
+      addToast('Project duplicated', 'success');
       const newId = result?.data?.id;
       if (newId) navigate(`/dashboard/projects/${newId}`);
     },
+    onError: (err: any) => addToast(err.message || 'Failed to duplicate project', 'error'),
   });
 
   const addPhaseMutation = useMutation({
@@ -452,6 +467,7 @@ export function ProjectDetailPage() {
       setShowAddPhase(false);
       queryClient.invalidateQueries({ queryKey: ['project', id] });
     },
+    onError: (err: any) => addToast(err.message || 'Failed to add phase', 'error'),
   });
 
   if (isLoading) {

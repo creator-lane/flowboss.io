@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Star } from 'lucide-react';
 import { Modal } from '../ui/Modal';
 import { api } from '../../lib/api';
+import { useToast } from '../ui/Toast';
 
 interface RateSubModalProps {
   open: boolean;
@@ -67,6 +68,7 @@ export function RateSubModal({
   tradeName,
 }: RateSubModalProps) {
   const queryClient = useQueryClient();
+  const { addToast } = useToast();
   const [ratings, setRatings] = useState<Record<string, number>>({
     quality: 0,
     timeliness: 0,
@@ -103,8 +105,10 @@ export function RateSubModal({
       queryClient.invalidateQueries({ queryKey: ['trade-rating'] });
       queryClient.invalidateQueries({ queryKey: ['gc-sub-directory'] });
       queryClient.invalidateQueries({ queryKey: ['gc-project', projectId] });
+      addToast('Rating submitted', 'success');
       onClose();
     },
+    onError: (err: any) => addToast(err.message || 'Failed to submit rating', 'error'),
   });
 
   const scoreColor = overall >= 4 ? 'text-green-600' : overall >= 3 ? 'text-amber-500' : overall > 0 ? 'text-red-500' : 'text-gray-300';

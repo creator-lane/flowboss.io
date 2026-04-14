@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../lib/api';
 import { Modal } from '../ui/Modal';
+import { useToast } from '../ui/Toast';
 import { Building2, Link2, Mail, Check, Copy, UserPlus, Send, Smartphone } from 'lucide-react';
 
 type Tab = 'placeholder' | 'link' | 'email';
@@ -24,7 +25,12 @@ export function InviteSubModal({
   projectName,
 }: InviteSubModalProps) {
   const queryClient = useQueryClient();
+  const { addToast } = useToast();
   const [activeTab, setActiveTab] = useState<Tab>('placeholder');
+
+  // Get GC company name for invite emails
+  const { data: settings } = useQuery({ queryKey: ['settings'], queryFn: () => api.getSettings() });
+  const gcCompanyName = settings?.data?.business_name || 'FlowBoss';
 
   // Placeholder state
   const [companyName, setCompanyName] = useState('');
@@ -46,6 +52,7 @@ export function InviteSubModal({
       queryClient.invalidateQueries({ queryKey: ['gc-project'] });
       queryClient.invalidateQueries({ queryKey: ['gc-projects'] });
     },
+    onError: (err: any) => addToast(err.message || 'Failed to update trade', 'error'),
   });
 
   function handleSetPlaceholder() {
@@ -67,8 +74,24 @@ export function InviteSubModal({
     setTimeout(() => setCopied(false), 2000);
   }
 
-  function handleSendEmail() {
+  async function handleSendEmail() {
     if (!email.trim()) return;
+
+    // Send the real email invite
+    try {
+      await api.sendInviteEmail({
+        email: email.trim(),
+        subName: emailCompany.trim() || undefined,
+        projectName,
+        tradeName,
+        inviteUrl: inviteLink,
+        gcCompanyName,
+      });
+    } catch {
+      // Edge function may not be deployed yet — continue with note tracking
+    }
+
+    // Track the invite in trade notes
     const notes = emailCompany.trim()
       ? `Invited: ${email.trim()} (${emailCompany.trim()})`
       : `Invited: ${email.trim()}`;

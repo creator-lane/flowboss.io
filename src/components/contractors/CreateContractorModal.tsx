@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
 import { Modal } from '../ui/Modal';
 import { api } from '../../lib/api';
+import { useToast } from '../ui/Toast';
 
 interface CreateContractorModalProps {
   open: boolean;
@@ -11,6 +12,7 @@ interface CreateContractorModalProps {
 
 export function CreateContractorModal({ open, onClose }: CreateContractorModalProps) {
   const queryClient = useQueryClient();
+  const { addToast } = useToast();
 
   const [companyName, setCompanyName] = useState('');
   const [contactName, setContactName] = useState('');
@@ -50,9 +52,10 @@ export function CreateContractorModal({ open, onClose }: CreateContractorModalPr
         notes: notes.trim() || undefined,
       });
       queryClient.invalidateQueries({ queryKey: ['contractors'] });
+      addToast('Contractor added', 'success');
       handleClose();
-    } catch (err) {
-      console.error('Failed to create contractor:', err);
+    } catch (err: any) {
+      addToast(err.message || 'Failed to create contractor', 'error');
     }
   };
 

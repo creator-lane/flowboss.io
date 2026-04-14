@@ -30,6 +30,7 @@ import {
   Star,
 } from 'lucide-react';
 import { TimelineBoard } from '../../components/gc/TimelineBoard';
+import { useToast } from '../../components/ui/Toast';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    Constants & Helpers
@@ -126,6 +127,7 @@ export function GCProjectDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { addToast } = useToast();
 
   const [viewMode, setViewMode] = useState<'visual' | 'board' | 'timeline'>('visual');
   const [selectedTradeId, setSelectedTradeId] = useState<string | null>(null);
@@ -142,6 +144,7 @@ export function GCProjectDetailPage() {
       setShowAddTradeVisual(false);
       setAddTradeValue('');
     },
+    onError: (err: any) => addToast(err.message || 'Failed to add trade', 'error'),
   });
 
   const projectQuery = useQuery({
@@ -808,6 +811,7 @@ function TradeDetailPanelInner({
   onInviteSub?: (tradeId: string, tradeName: string) => void;
 }) {
   const queryClient = useQueryClient();
+  const { addToast } = useToast();
   const [newTask, setNewTask] = useState('');
   const [statusOpen, setStatusOpen] = useState(false);
   const [showRateModal, setShowRateModal] = useState(false);
@@ -844,6 +848,7 @@ function TradeDetailPanelInner({
     },
     onError: (_err, _vars, ctx) => {
       if (ctx?.prev) queryClient.setQueryData(['gc-project', projectId], ctx.prev);
+      addToast('Failed to update task', 'error');
     },
     onSettled: () => queryClient.invalidateQueries({ queryKey: ['gc-project', projectId] }),
   });
@@ -854,6 +859,7 @@ function TradeDetailPanelInner({
       queryClient.invalidateQueries({ queryKey: ['gc-project', projectId] });
       setNewTask('');
     },
+    onError: (err: any) => addToast(err.message || 'Failed to add task', 'error'),
   });
 
   const updateTradeStatus = useMutation({
@@ -861,8 +867,10 @@ function TradeDetailPanelInner({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['gc-project', projectId] });
       queryClient.invalidateQueries({ queryKey: ['gc-projects'] });
+      addToast('Status updated', 'success');
       setStatusOpen(false);
     },
+    onError: (err: any) => addToast(err.message || 'Failed to update status', 'error'),
   });
 
   return (
@@ -1130,6 +1138,7 @@ function TradeDetailPanelInner({
 
 function TradeBudgetEditor({ trade, projectId }: { trade: any; projectId: string }) {
   const queryClient = useQueryClient();
+  const { addToast } = useToast();
   const [laborHours, setLaborHours] = useState<string>(String(trade.laborHours || trade.labor_hours || ''));
   const [laborRate, setLaborRate] = useState<string>(String(trade.laborRate || trade.labor_rate || ''));
   const [materialsBudget, setMaterialsBudget] = useState<string>(String(trade.materialsBudget || trade.materials_budget || ''));
@@ -1146,6 +1155,7 @@ function TradeBudgetEditor({ trade, projectId }: { trade: any; projectId: string
       queryClient.invalidateQueries({ queryKey: ['gc-project', projectId] });
       queryClient.invalidateQueries({ queryKey: ['gc-projects'] });
     },
+    onError: (err: any) => addToast(err.message || 'Failed to save budget', 'error'),
   });
 
   const hours = parseFloat(laborHours) || 0;
@@ -1222,6 +1232,7 @@ function TradeBudgetEditor({ trade, projectId }: { trade: any; projectId: string
 
 function TradeMaterialsSection({ tradeId, projectId }: { tradeId: string; projectId: string }) {
   const queryClient = useQueryClient();
+  const { addToast } = useToast();
   const [newName, setNewName] = useState('');
   const [newQty, setNewQty] = useState('');
   const [newUnit, setNewUnit] = useState('ea');
@@ -1245,6 +1256,7 @@ function TradeMaterialsSection({ tradeId, projectId }: { tradeId: string; projec
       setNewQty('');
       setNewCost('');
     },
+    onError: (err: any) => addToast(err.message || 'Failed to add material', 'error'),
   });
 
   const updateMaterial = useMutation({
@@ -1253,6 +1265,7 @@ function TradeMaterialsSection({ tradeId, projectId }: { tradeId: string; projec
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['gc-trade-materials', tradeId] });
     },
+    onError: (err: any) => addToast(err.message || 'Failed to update material', 'error'),
   });
 
   const deleteMaterial = useMutation({
@@ -1260,6 +1273,7 @@ function TradeMaterialsSection({ tradeId, projectId }: { tradeId: string; projec
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['gc-trade-materials', tradeId] });
     },
+    onError: (err: any) => addToast(err.message || 'Failed to delete material', 'error'),
   });
 
   const handleAdd = () => {
@@ -1386,6 +1400,7 @@ function MaterialRow({
 
 function EditGCProjectModal({ project, projectId, onClose }: { project: any; projectId: string; onClose: () => void }) {
   const queryClient = useQueryClient();
+  const { addToast } = useToast();
   const [form, setForm] = useState({
     name: project.name || '',
     customerName: project.customerName || project.customer_name || '',
@@ -1406,8 +1421,10 @@ function EditGCProjectModal({ project, projectId, onClose }: { project: any; pro
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['gc-project', projectId] });
       queryClient.invalidateQueries({ queryKey: ['gc-projects'] });
+      addToast('Project updated', 'success');
       onClose();
     },
+    onError: (err: any) => addToast(err.message || 'Failed to update project', 'error'),
   });
 
   const handleSave = () => {
@@ -1608,6 +1625,7 @@ function EditGCProjectModal({ project, projectId, onClose }: { project: any; pro
 function ProjectStatusDropdown({ projectId, currentStatus }: { projectId: string; currentStatus: string }) {
   const [open, setOpen] = useState(false);
   const queryClient = useQueryClient();
+  const { addToast } = useToast();
 
   const updateStatus = useMutation({
     mutationFn: (status: string) => api.updateGCProject(projectId, { status }),
@@ -1616,6 +1634,7 @@ function ProjectStatusDropdown({ projectId, currentStatus }: { projectId: string
       queryClient.invalidateQueries({ queryKey: ['gc-projects'] });
       setOpen(false);
     },
+    onError: (err: any) => addToast(err.message || 'Failed to update status', 'error'),
   });
 
   const cfg = STATUS_CONFIG[currentStatus] || STATUS_CONFIG.planning;
@@ -1661,6 +1680,7 @@ function ProjectStatusDropdown({ projectId, currentStatus }: { projectId: string
 
 function TradeColumn({ trade, projectId, onInviteSub }: { trade: any; projectId: string; onInviteSub?: (tradeId: string, tradeName: string) => void }) {
   const queryClient = useQueryClient();
+  const { addToast } = useToast();
   const [newTask, setNewTask] = useState('');
   const [statusOpen, setStatusOpen] = useState(false);
 
@@ -1693,6 +1713,7 @@ function TradeColumn({ trade, projectId, onInviteSub }: { trade: any; projectId:
     },
     onError: (_err, _vars, ctx) => {
       if (ctx?.prev) queryClient.setQueryData(['gc-project', projectId], ctx.prev);
+      addToast('Failed to update task', 'error');
     },
     onSettled: () => queryClient.invalidateQueries({ queryKey: ['gc-project', projectId] }),
   });
@@ -1703,6 +1724,7 @@ function TradeColumn({ trade, projectId, onInviteSub }: { trade: any; projectId:
       queryClient.invalidateQueries({ queryKey: ['gc-project', projectId] });
       setNewTask('');
     },
+    onError: (err: any) => addToast(err.message || 'Failed to add task', 'error'),
   });
 
   const updateTradeStatus = useMutation({
@@ -1710,8 +1732,10 @@ function TradeColumn({ trade, projectId, onInviteSub }: { trade: any; projectId:
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['gc-project', projectId] });
       queryClient.invalidateQueries({ queryKey: ['gc-projects'] });
+      addToast('Status updated', 'success');
       setStatusOpen(false);
     },
+    onError: (err: any) => addToast(err.message || 'Failed to update status', 'error'),
   });
 
   return (
@@ -1886,6 +1910,7 @@ function BoardMaterialsSummary({ tradeId }: { tradeId: string }) {
 /* ─── Add Trade Column (Board View) ─── */
 function AddTradeColumn({ projectId }: { projectId: string }) {
   const queryClient = useQueryClient();
+  const { addToast } = useToast();
   const [open, setOpen] = useState(false);
   const [selectedTrade, setSelectedTrade] = useState('');
 
@@ -1897,6 +1922,7 @@ function AddTradeColumn({ projectId }: { projectId: string }) {
       setOpen(false);
       setSelectedTrade('');
     },
+    onError: (err: any) => addToast(err.message || 'Failed to add trade', 'error'),
   });
 
   if (!open) {
@@ -1949,6 +1975,7 @@ function AddTradeColumn({ projectId }: { projectId: string }) {
 
 function MessageSection({ projectId, messages }: { projectId: string; messages: any[] }) {
   const queryClient = useQueryClient();
+  const { addToast } = useToast();
   const [msg, setMsg] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -1964,6 +1991,7 @@ function MessageSection({ projectId, messages }: { projectId: string; messages: 
       queryClient.invalidateQueries({ queryKey: ['gc-messages', projectId] });
       setMsg('');
     },
+    onError: (err: any) => addToast(err.message || 'Failed to send message', 'error'),
   });
 
   return (

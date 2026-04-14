@@ -4,6 +4,7 @@ import { format } from 'date-fns';
 import { ChevronDown, Plus, Loader2, Trash2, Zap } from 'lucide-react';
 import { Modal } from '../ui/Modal';
 import { api } from '../../lib/api';
+import { useToast } from '../ui/Toast';
 
 interface CreateProjectModalProps {
   open: boolean;
@@ -44,6 +45,7 @@ interface PhaseInput {
 
 export function CreateProjectModal({ open, onClose }: CreateProjectModalProps) {
   const queryClient = useQueryClient();
+  const { addToast } = useToast();
 
   // Customer state
   const [customerSearch, setCustomerSearch] = useState('');
@@ -184,9 +186,10 @@ export function CreateProjectModal({ open, onClose }: CreateProjectModalProps) {
 
       await createProjectMutation.mutateAsync(projectData);
       queryClient.invalidateQueries({ queryKey: ['projects'] });
+      addToast('Project created', 'success');
       handleClose();
-    } catch (err) {
-      console.error('Failed to create project:', err);
+    } catch (err: any) {
+      addToast(err.message || 'Failed to create project', 'error');
     }
   };
 

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../lib/api';
+import { useToast } from '../ui/Toast';
 import { Plus, X, Loader2, Check, Save } from 'lucide-react';
 
 const formatCurrency = (n: number) =>
@@ -32,6 +33,7 @@ interface EditableLineItemsProps {
 
 export function EditableLineItems({ jobId, initialItems, onSave }: EditableLineItemsProps) {
   const queryClient = useQueryClient();
+  const { addToast } = useToast();
 
   // Normalize initial items
   const normalized = useMemo(
@@ -105,6 +107,7 @@ export function EditableLineItems({ jobId, initialItems, onSave }: EditableLineI
       setTimeout(() => setSaveSuccess(false), 3000);
       onSave?.();
     },
+    onError: (err: any) => addToast(err.message || 'Failed to save line items', 'error'),
   });
 
   const updateItem = useCallback(

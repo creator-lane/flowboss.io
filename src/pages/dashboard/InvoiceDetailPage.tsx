@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../lib/api';
+import { useToast } from '../../components/ui/Toast';
 import { format } from 'date-fns';
 import {
   ArrowLeft,
@@ -44,6 +45,7 @@ export function InvoiceDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { addToast } = useToast();
 
   const [paymentLink, setPaymentLink] = useState('');
   const [generatingLink, setGeneratingLink] = useState(false);
@@ -78,10 +80,12 @@ export function InvoiceDetailPage() {
       queryClient.invalidateQueries({ queryKey: ['invoice', id] });
       queryClient.invalidateQueries({ queryKey: ['invoices'] });
       setShowConfirmPaid(false);
+      addToast('Marked as paid', 'success');
       setActionSuccess('Invoice marked as paid');
       setTimeout(() => setActionSuccess(''), 3000);
     },
     onError: (err: Error) => {
+      addToast(err.message || 'Failed to mark as paid', 'error');
       setActionError(err.message);
       setTimeout(() => setActionError(''), 5000);
     },
@@ -96,6 +100,7 @@ export function InvoiceDetailPage() {
       setTimeout(() => setActionSuccess(''), 3000);
     },
     onError: (err: Error) => {
+      addToast(err.message || 'Failed to update status', 'error');
       setActionError(err.message);
       setTimeout(() => setActionError(''), 5000);
     },

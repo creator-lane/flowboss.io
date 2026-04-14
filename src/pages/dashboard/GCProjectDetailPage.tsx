@@ -476,28 +476,36 @@ function HubSpokeDiagram({
   onAddTrade: () => void;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [dimensions, setDimensions] = useState({ width: 900, height: 600 });
+  // Dynamic sizing based on trade count
+  const tradeCount = trades.length;
+  const minHeight = tradeCount <= 4 ? 500 : tradeCount <= 6 ? 600 : tradeCount <= 8 ? 700 : 800;
+  const [dimensions, setDimensions] = useState({ width: 900, height: minHeight });
 
   useEffect(() => {
     const measure = () => {
       if (containerRef.current) {
         const rect = containerRef.current.getBoundingClientRect();
+        const h = tradeCount <= 4 ? 500 : tradeCount <= 6 ? 600 : tradeCount <= 8 ? 700 : 800;
         setDimensions({
           width: Math.max(rect.width, 600),
-          height: Math.max(520, Math.min(700, rect.width * 0.55)),
+          height: Math.max(h, Math.min(900, rect.width * 0.7)),
         });
       }
     };
     measure();
     window.addEventListener('resize', measure);
     return () => window.removeEventListener('resize', measure);
-  }, []);
+  }, [tradeCount]);
 
   const centerX = dimensions.width / 2;
   const centerY = dimensions.height / 2;
 
-  const baseRadius = Math.min(dimensions.width, dimensions.height) * 0.35;
-  const radius = trades.length <= 3 ? baseRadius * 0.8 : trades.length <= 5 ? baseRadius * 0.9 : baseRadius;
+  // Larger radius for more trades to prevent overlap
+  const baseRadius = Math.min(dimensions.width, dimensions.height) * 0.38;
+  const radius = tradeCount <= 3 ? baseRadius * 0.7
+    : tradeCount <= 5 ? baseRadius * 0.85
+    : tradeCount <= 7 ? baseRadius * 0.95
+    : baseRadius * 1.05;
 
   const tradePositions = useMemo(() => {
     if (trades.length === 0) return [];
@@ -541,8 +549,8 @@ function HubSpokeDiagram({
                 id={`line-grad-${trade.id}`}
                 x1="0%" y1="0%" x2="100%" y2="0%"
               >
-                <stop offset="0%" stopColor="#6366f1" stopOpacity="0.3" />
-                <stop offset="100%" stopColor={tStatus.color} stopOpacity="0.6" />
+                <stop offset="0%" stopColor="#2563eb" stopOpacity="0.15" />
+                <stop offset="100%" stopColor={tStatus.color} stopOpacity="0.5" />
               </linearGradient>
             );
           })}
@@ -568,34 +576,36 @@ function HubSpokeDiagram({
 
       {/* Center Hub Node */}
       <div
-        className="absolute z-10"
+        className="absolute z-20"
         style={{ left: centerX, top: centerY, transform: 'translate(-50%, -50%)' }}
       >
-        <div className="relative w-40 h-40">
+        <div className="relative w-36 h-36">
+          {/* Outer glow */}
+          <div className="absolute -inset-2 rounded-full bg-brand-500/5 blur-md" />
           {/* Progress ring via conic-gradient */}
           <div
-            className="absolute inset-0 rounded-full shadow-lg"
+            className="absolute inset-0 rounded-full shadow-xl shadow-brand-500/15"
             style={{
               background: `conic-gradient(
-                #6366f1 ${overallProgress * 3.6}deg,
-                #e5e7eb ${overallProgress * 3.6}deg
+                #2563eb ${overallProgress * 3.6}deg,
+                #f1f5f9 ${overallProgress * 3.6}deg
               )`,
-              padding: '5px',
+              padding: '4px',
             }}
           >
-            <div className="w-full h-full rounded-full bg-white" />
+            <div className="w-full h-full rounded-full bg-gradient-to-br from-white to-gray-50" />
           </div>
 
           {/* Inner content */}
-          <div className="absolute inset-[6px] rounded-full bg-white flex flex-col items-center justify-center overflow-hidden">
-            <span className="text-[11px] font-bold text-gray-900 text-center leading-tight px-3 max-w-[110px] truncate">
+          <div className="absolute inset-[5px] rounded-full bg-gradient-to-br from-white to-slate-50 flex flex-col items-center justify-center overflow-hidden">
+            <span className="text-xs font-bold text-gray-900 text-center leading-tight px-2 max-w-[100px] truncate">
               {project.name}
             </span>
-            <div className={`mt-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium ${statusCfg.bg} ${statusCfg.text}`}>
+            <div className={`mt-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-semibold ${statusCfg.bg} ${statusCfg.text}`}>
               <span className={`w-1.5 h-1.5 rounded-full ${statusCfg.dot}`} />
               {statusCfg.label}
             </div>
-            <span className="mt-1 text-lg font-bold text-brand-600">{overallProgress}%</span>
+            <span className="mt-0.5 text-xl font-extrabold bg-gradient-to-r from-brand-600 to-brand-500 bg-clip-text text-transparent">{overallProgress}%</span>
           </div>
         </div>
       </div>
@@ -668,39 +678,40 @@ function TradeNode({
   return (
     <button
       onClick={onSelect}
-      className={`absolute z-10 w-[176px] text-left transition-all duration-300 group focus:outline-none ${
-        isSelected ? 'scale-105' : 'hover:scale-[1.03]'
+      className={`absolute z-10 w-[140px] text-left transition-all duration-300 group focus:outline-none ${
+        isSelected ? 'scale-110' : 'hover:scale-105'
       }`}
       style={{ left: x, top: y, transform: 'translate(-50%, -50%)' }}
     >
       <div
-        className={`bg-white rounded-xl border-2 overflow-hidden transition-all duration-300 ${
+        className={`rounded-2xl overflow-hidden transition-all duration-300 ${
           isSelected
-            ? 'shadow-lg border-brand-400 ring-2 ring-brand-100'
-            : 'shadow-sm border-gray-200 group-hover:shadow-md group-hover:border-gray-300'
+            ? 'shadow-xl shadow-brand-500/20 ring-2 ring-brand-400'
+            : 'shadow-md shadow-gray-200/60 group-hover:shadow-lg group-hover:shadow-gray-300/50'
         }`}
+        style={{ borderTop: `3px solid ${accent}` }}
       >
-        {/* Accent top bar */}
-        <div className="h-1" style={{ backgroundColor: accent }} />
-
-        <div className="p-3">
-          {/* Trade name + emoji */}
-          <div className="flex items-center gap-1.5 mb-1">
-            <span className="text-sm leading-none">{emoji}</span>
-            <span className="text-[13px] font-semibold text-gray-900 truncate">{trade.trade}</span>
+        {/* Gradient background */}
+        <div className="bg-gradient-to-b from-white to-gray-50/80 p-3">
+          {/* Trade emoji large */}
+          <div className="flex items-center gap-2 mb-1.5">
+            <div className="w-7 h-7 rounded-lg flex items-center justify-center text-sm" style={{ backgroundColor: `${accent}15` }}>
+              {emoji}
+            </div>
+            <span className="text-[13px] font-bold text-gray-900 truncate">{trade.trade}</span>
           </div>
 
           {/* Sub name or unassigned */}
           {subName ? (
-            <p className="text-xs text-gray-500 truncate mb-1.5">{subName}</p>
+            <p className="text-[11px] text-gray-500 truncate mb-1.5 pl-9">{subName}</p>
           ) : (
-            <p className="text-xs text-red-500 font-medium mb-1.5">Unassigned</p>
+            <p className="text-[11px] text-red-400 font-semibold mb-1.5 pl-9">⊘ Unassigned</p>
           )}
 
           {/* Status dot + label */}
-          <div className="flex items-center gap-1.5 mb-2">
-            <span className={`w-2 h-2 rounded-full flex-shrink-0 ${statusCfg.dot}`} />
-            <span className="text-[11px] text-gray-500">{statusCfg.label}</span>
+          <div className="flex items-center gap-1.5 pl-9">
+            <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${statusCfg.dot}`} />
+            <span className="text-[10px] text-gray-400">{statusCfg.label}</span>
           </div>
 
           {/* Task progress */}

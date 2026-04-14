@@ -18,17 +18,27 @@ const ZONE_EMOJI: Record<string, string> = {
 };
 
 const ZONE_COLORS: Record<string, string> = {
-  'Kitchen': '#f59e0b',
-  'Bathroom': '#06b6d4', 'Bathroom 1': '#06b6d4', 'Bathroom 2': '#0891b2', 'Master Bathroom': '#0e7490',
-  'Master Suite': '#8b5cf6', 'Master Bedroom': '#8b5cf6',
-  'Living Room': '#22c55e', 'Family Room': '#22c55e',
-  'Garage': '#64748b',
-  'Exterior': '#16a34a',
-  'Basement': '#6b7280',
-  'General': '#2563eb', 'Site-Wide': '#2563eb',
+  'Kitchen': '#d97706',
+  'Bathroom': '#0891b2', 'Bathroom 1': '#0891b2', 'Bathroom 2': '#0e7490', 'Bathroom 3': '#155e75', 'Master Bathroom': '#06b6d4',
+  'Master Suite': '#7c3aed', 'Master Bedroom': '#7c3aed',
+  'Living Room': '#059669', 'Family Room': '#059669',
+  'Garage': '#475569',
+  'Exterior': '#15803d',
+  'Basement': '#525252',
+  'General': '#1d4ed8', 'General / Structural': '#1d4ed8', 'Site-Wide': '#1d4ed8',
 };
 
-const DEFAULT_ZONE_COLOR = '#6b7280';
+const ZONE_BG: Record<string, string> = {
+  'Kitchen': '#fffbeb',
+  'Bathroom': '#ecfeff', 'Bathroom 1': '#ecfeff', 'Bathroom 2': '#ecfeff', 'Bathroom 3': '#ecfeff', 'Master Bathroom': '#ecfeff',
+  'Master Suite': '#f5f3ff', 'Master Bedroom': '#f5f3ff',
+  'Living Room': '#ecfdf5', 'Family Room': '#ecfdf5',
+  'Garage': '#f8fafc',
+  'Exterior': '#f0fdf4',
+  'General': '#eff6ff', 'General / Structural': '#eff6ff', 'Site-Wide': '#eff6ff',
+};
+
+const DEFAULT_ZONE_COLOR = '#475569';
 
 /* ─── Trade status dot helper ─── */
 function statusDot(status: string) {
@@ -203,8 +213,8 @@ export function ZoneClusterDiagram({
               x2={x}
               y2={y}
               stroke={isSelected ? color : `url(#zone-line-grad-${zone.id})`}
-              strokeWidth={isSelected ? 3 : 2}
-              strokeDasharray={progress === 0 ? '6 4' : undefined}
+              strokeWidth={isSelected ? 4 : 2.5}
+              strokeDasharray={progress === 0 ? '8 4' : undefined}
               className="transition-all duration-300"
             />
           );
@@ -265,12 +275,16 @@ export function ZoneClusterDiagram({
             style={{ left: x, top: y, transform: 'translate(-50%, -50%)' }}
           >
             <div
-              className={`w-[180px] bg-gradient-to-b from-white to-gray-50 rounded-2xl overflow-hidden transition-all duration-300 ${
+              className={`w-[180px] rounded-2xl overflow-hidden transition-all duration-300 ${
                 isSelected
-                  ? 'shadow-xl shadow-brand-500/20 ring-2 ring-brand-400'
-                  : 'shadow-md shadow-gray-200/60 group-hover:shadow-lg group-hover:shadow-gray-300/50'
+                  ? 'shadow-xl ring-2 ring-offset-1'
+                  : 'shadow-md group-hover:shadow-lg'
               }`}
-              style={{ borderTop: `3px solid ${zoneAccent}` }}
+              style={{
+                borderTop: `4px solid ${zoneAccent}`,
+                background: ZONE_BG[zone.name] || '#f8fafc',
+                boxShadow: isSelected ? `0 8px 25px ${zoneAccent}30, 0 0 0 2px ${zoneAccent}` : undefined,
+              }}
             >
               <div className="p-3">
                 <div className="flex items-center gap-2 mb-2">
@@ -296,8 +310,8 @@ export function ZoneClusterDiagram({
                   <span className="text-gray-400">{doneTasks}/{totalTasks} tasks</span>
                   <span className="font-bold" style={{ color: zoneAccent }}>{progress}%</span>
                 </div>
-                <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                  <div className="h-full rounded-full transition-all duration-500" style={{ width: `${progress}%`, backgroundColor: zoneAccent }} />
+                <div className="h-2 rounded-full overflow-hidden" style={{ backgroundColor: `${zoneAccent}15` }}>
+                  <div className="h-full rounded-full transition-all duration-500" style={{ width: `${Math.max(progress, 2)}%`, backgroundColor: zoneAccent }} />
                 </div>
               </div>
             </div>

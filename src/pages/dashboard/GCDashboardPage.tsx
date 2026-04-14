@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../lib/api';
+import { useToast } from '../../components/ui/Toast';
 import {
   Plus,
   MapPin,
@@ -365,80 +366,107 @@ function SubCard({
 /* ─── Demo Project Data ─── */
 
 const DEMO_PROJECT = {
-  name: 'Smith Residence \u2014 Full Remodel',
-  customerName: 'John & Sarah Smith',
-  address: '1847 Oak Valley Dr',
+  name: 'Henderson Estate — Full Gut Renovation',
+  customerName: 'Robert & Lisa Henderson',
+  address: '4200 Westlake Hills Blvd',
   city: 'Austin',
   state: 'TX',
-  zip: '78704',
+  zip: '78746',
   structureType: 'house',
-  sqFootage: 2400,
-  bedrooms: 3,
-  bathrooms: 2,
+  sqFootage: 5800,
+  bedrooms: 5,
+  bathrooms: 4,
   stories: 2,
-  budget: 85000,
-  startDate: '2026-03-15',
-  targetEndDate: '2026-07-30',
+  budget: 715000,
+  startDate: '2026-01-06',
+  targetEndDate: '2026-09-15',
   status: 'active',
   zones: [
     {
       name: 'Kitchen',
       zoneType: 'kitchen',
       trades: [
-        { trade: 'Plumbing', laborHours: 24, laborRate: 95, materialsBudget: 3200, status: 'completed',
+        { trade: 'Plumbing', laborHours: 48, laborRate: 110, materialsBudget: 12000, status: 'completed', notes: 'Placeholder: Mike\'s Plumbing (512-555-0101)',
           tasks: [
-            { name: 'Rough-in plumbing', done: true },
-            { name: 'Install sink', done: true },
+            { name: 'Demo existing plumbing', done: true },
+            { name: 'Rough-in new gas lines', done: true },
+            { name: 'Rough-in water supply', done: true },
+            { name: 'Install pot filler', done: true },
+            { name: 'Install double sink', done: true },
             { name: 'Connect dishwasher', done: true },
-            { name: 'Final inspection', done: true },
+            { name: 'Connect ice maker line', done: true },
+            { name: 'Final pressure test', done: true },
           ]},
-        { trade: 'Electrical', laborHours: 20, laborRate: 95, materialsBudget: 1800, status: 'completed',
+        { trade: 'Electrical', laborHours: 60, laborRate: 110, materialsBudget: 15000, status: 'completed', notes: 'Placeholder: Sparks Electric (512-555-0202)',
           tasks: [
-            { name: 'Run new circuits', done: true },
-            { name: 'Install outlets', done: true },
-            { name: 'Under-cabinet lighting', done: true },
-            { name: 'Inspection', done: true },
+            { name: 'New 200A sub-panel for kitchen', done: true },
+            { name: 'Run dedicated circuits (8)', done: true },
+            { name: 'Install recessed lighting (24)', done: true },
+            { name: 'Under-cabinet LED strips', done: true },
+            { name: 'Pendant light wiring (3)', done: true },
+            { name: 'Smart switch installation', done: true },
+            { name: 'Code inspection', done: true },
           ]},
-        { trade: 'Flooring', laborHours: 16, laborRate: 60, materialsBudget: 2800, status: 'in_progress',
+        { trade: 'HVAC', laborHours: 16, laborRate: 110, materialsBudget: 4000, status: 'completed', notes: 'Placeholder: CoolAir HVAC',
           tasks: [
-            { name: 'Remove old flooring', done: true },
+            { name: 'Relocate supply vents', done: true },
+            { name: 'Install range hood exhaust', done: true },
+            { name: 'Balance airflow', done: true },
+          ]},
+        { trade: 'Flooring', laborHours: 32, laborRate: 75, materialsBudget: 18000, status: 'in_progress', notes: 'Placeholder: Premier Floors',
+          tasks: [
+            { name: 'Remove old tile', done: true },
             { name: 'Level subfloor', done: true },
-            { name: 'Install hardwood', done: false },
-            { name: 'Finish and seal', done: false },
+            { name: 'Install heated floor mat', done: true },
+            { name: 'Lay Italian porcelain tile', done: false },
+            { name: 'Grout and seal', done: false },
           ]},
-        { trade: 'Painting', laborHours: 12, laborRate: 50, materialsBudget: 400, status: 'not_started',
+        { trade: 'Painting', laborHours: 24, laborRate: 65, materialsBudget: 2500, status: 'not_started',
           tasks: [
-            { name: 'Prep walls', done: false },
-            { name: 'Prime', done: false },
-            { name: 'Two coats', done: false },
-            { name: 'Touch-ups', done: false },
+            { name: 'Prep and prime all surfaces', done: false },
+            { name: 'Two coats — Benjamin Moore OC-17', done: false },
+            { name: 'Cabinet touch-ups', done: false },
+            { name: 'Final walk-through', done: false },
           ]},
       ],
     },
     {
-      name: 'Master Bathroom',
-      zoneType: 'bathroom',
+      name: 'Master Suite',
+      zoneType: 'bedroom',
       trades: [
-        { trade: 'Plumbing', laborHours: 20, laborRate: 95, materialsBudget: 2500, status: 'in_progress',
+        { trade: 'Plumbing', laborHours: 40, laborRate: 110, materialsBudget: 18000, status: 'in_progress', notes: 'Placeholder: Mike\'s Plumbing (512-555-0101)',
           tasks: [
-            { name: 'Demo existing', done: true },
-            { name: 'Rough-in', done: true },
-            { name: 'Install shower valve', done: false },
-            { name: 'Install vanity', done: false },
+            { name: 'Demo master bath', done: true },
+            { name: 'Rough-in freestanding tub', done: true },
+            { name: 'Rough-in double vanity', done: true },
+            { name: 'Rough-in walk-in shower (dual heads)', done: true },
+            { name: 'Install body sprays', done: false },
+            { name: 'Install fixtures', done: false },
             { name: 'Final connections', done: false },
           ]},
-        { trade: 'Tiling', laborHours: 24, laborRate: 65, materialsBudget: 1800, status: 'not_started',
+        { trade: 'Electrical', laborHours: 32, laborRate: 110, materialsBudget: 8000, status: 'completed', notes: 'Placeholder: Sparks Electric',
           tasks: [
-            { name: 'Waterproof shower', done: false },
-            { name: 'Tile shower walls', done: false },
-            { name: 'Tile floor', done: false },
-            { name: 'Grout and seal', done: false },
+            { name: 'Chandelier wiring', done: true },
+            { name: 'Closet lighting system', done: true },
+            { name: 'Bath GFCI outlets (4)', done: true },
+            { name: 'Heated mirror wiring', done: true },
+            { name: 'Motorized shade wiring', done: true },
           ]},
-        { trade: 'Electrical', laborHours: 8, laborRate: 95, materialsBudget: 600, status: 'completed',
+        { trade: 'Tiling', laborHours: 80, laborRate: 75, materialsBudget: 25000, status: 'in_progress', notes: 'Placeholder: Artisan Tile Co',
           tasks: [
-            { name: 'GFCI outlets', done: true },
-            { name: 'Vanity lights', done: true },
-            { name: 'Exhaust fan', done: true },
+            { name: 'Waterproof shower pan', done: true },
+            { name: 'Tile shower walls — marble slab', done: true },
+            { name: 'Tile shower floor — mosaic', done: true },
+            { name: 'Tile tub surround', done: false },
+            { name: 'Tile bathroom floor', done: false },
+            { name: 'Install niche shelves', done: false },
+            { name: 'Grout, seal, and polish', done: false },
+          ]},
+        { trade: 'Painting', laborHours: 20, laborRate: 65, materialsBudget: 1500, status: 'not_started',
+          tasks: [
+            { name: 'Bedroom walls and ceiling', done: false },
+            { name: 'Walk-in closet', done: false },
+            { name: 'Trim and crown molding', done: false },
           ]},
       ],
     },
@@ -446,17 +474,74 @@ const DEMO_PROJECT = {
       name: 'Bathroom 2',
       zoneType: 'bathroom',
       trades: [
-        { trade: 'Plumbing', laborHours: 12, laborRate: 95, materialsBudget: 1500, status: 'completed',
+        { trade: 'Plumbing', laborHours: 24, laborRate: 110, materialsBudget: 6000, status: 'completed', notes: 'Placeholder: Mike\'s Plumbing',
           tasks: [
             { name: 'Rough-in', done: true },
             { name: 'Install toilet', done: true },
-            { name: 'Install vanity', done: true },
+            { name: 'Install vanity and faucet', done: true },
+            { name: 'Install tub/shower combo', done: true },
           ]},
-        { trade: 'Tiling', laborHours: 16, laborRate: 65, materialsBudget: 1200, status: 'in_progress',
+        { trade: 'Tiling', laborHours: 32, laborRate: 75, materialsBudget: 6000, status: 'completed', notes: 'Placeholder: Artisan Tile Co',
           tasks: [
-            { name: 'Tile tub surround', done: true },
-            { name: 'Tile floor', done: false },
+            { name: 'Tub surround tile', done: true },
+            { name: 'Floor tile', done: true },
+            { name: 'Backsplash', done: true },
+            { name: 'Grout and seal', done: true },
+          ]},
+        { trade: 'Electrical', laborHours: 8, laborRate: 110, materialsBudget: 1500, status: 'completed', notes: 'Placeholder: Sparks Electric',
+          tasks: [
+            { name: 'GFCI outlets', done: true },
+            { name: 'Vanity light', done: true },
+            { name: 'Exhaust fan', done: true },
+          ]},
+        { trade: 'Painting', laborHours: 8, laborRate: 65, materialsBudget: 400, status: 'completed',
+          tasks: [
+            { name: 'Walls and ceiling', done: true },
+            { name: 'Trim', done: true },
+          ]},
+      ],
+    },
+    {
+      name: 'Bathroom 3',
+      zoneType: 'bathroom',
+      trades: [
+        { trade: 'Plumbing', laborHours: 20, laborRate: 110, materialsBudget: 5000, status: 'completed', notes: 'Placeholder: Mike\'s Plumbing',
+          tasks: [
+            { name: 'Rough-in', done: true },
+            { name: 'Install fixtures', done: true },
+          ]},
+        { trade: 'Tiling', laborHours: 24, laborRate: 75, materialsBudget: 4500, status: 'in_progress', notes: 'Placeholder: Artisan Tile Co',
+          tasks: [
+            { name: 'Shower tile', done: true },
+            { name: 'Floor tile', done: false },
             { name: 'Grout and seal', done: false },
+          ]},
+      ],
+    },
+    {
+      name: 'Living Room',
+      zoneType: 'living',
+      trades: [
+        { trade: 'Electrical', laborHours: 24, laborRate: 110, materialsBudget: 6000, status: 'completed', notes: 'Placeholder: Sparks Electric',
+          tasks: [
+            { name: 'Recessed lighting layout (18)', done: true },
+            { name: 'Fireplace wiring', done: true },
+            { name: 'AV pre-wire (surround sound)', done: true },
+            { name: 'Smart home hub wiring', done: true },
+          ]},
+        { trade: 'Flooring', laborHours: 40, laborRate: 75, materialsBudget: 22000, status: 'in_progress', notes: 'Placeholder: Premier Floors',
+          tasks: [
+            { name: 'Remove carpet', done: true },
+            { name: 'Install white oak hardwood', done: true },
+            { name: 'Sand and finish (3 coats)', done: false },
+            { name: 'Stair treads', done: false },
+          ]},
+        { trade: 'Painting', laborHours: 32, laborRate: 65, materialsBudget: 3000, status: 'not_started',
+          tasks: [
+            { name: 'Walls — Sherwin Williams Agreeable Gray', done: false },
+            { name: 'Ceiling — flat white', done: false },
+            { name: 'Accent wall — board and batten', done: false },
+            { name: 'All trim — semi-gloss white', done: false },
           ]},
       ],
     },
@@ -464,48 +549,107 @@ const DEMO_PROJECT = {
       name: 'Exterior',
       zoneType: 'exterior',
       trades: [
-        { trade: 'Roofing', laborHours: 32, laborRate: 70, materialsBudget: 6000, status: 'completed',
+        { trade: 'Roofing', laborHours: 80, laborRate: 80, materialsBudget: 35000, status: 'completed', notes: 'Placeholder: Summit Roofing',
           tasks: [
-            { name: 'Tear off old shingles', done: true },
-            { name: 'Replace underlayment', done: true },
-            { name: 'Install new shingles', done: true },
-            { name: 'Flash and seal', done: true },
+            { name: 'Tear off existing', done: true },
+            { name: 'Replace decking (30%)', done: true },
+            { name: 'Ice & water shield', done: true },
+            { name: 'Install architectural shingles', done: true },
+            { name: 'Flash chimneys and skylights', done: true },
+            { name: 'Install ridge vent', done: true },
+            { name: 'Final inspection — passed', done: true },
           ]},
-        { trade: 'Landscaping', laborHours: 20, laborRate: 50, materialsBudget: 2000, status: 'not_started',
+        { trade: 'Concrete', laborHours: 48, laborRate: 70, materialsBudget: 15000, status: 'completed', notes: 'Placeholder: Texas Concrete Co',
           tasks: [
-            { name: 'Grade yard', done: false },
-            { name: 'Plant beds', done: false },
-            { name: 'Sod lawn', done: false },
+            { name: 'Demo old driveway', done: true },
+            { name: 'Grade and form', done: true },
+            { name: 'Pour new driveway', done: true },
+            { name: 'Pour patio extension', done: true },
+            { name: 'Stamp and seal patio', done: true },
+          ]},
+        { trade: 'Landscaping', laborHours: 60, laborRate: 55, materialsBudget: 20000, status: 'not_started', notes: 'Placeholder: Green Valley Landscape',
+          tasks: [
+            { name: 'Remove dead trees (3)', done: false },
+            { name: 'Grade and level yard', done: false },
+            { name: 'Install irrigation system', done: false },
+            { name: 'Plant beds and shrubs', done: false },
+            { name: 'Sod front and back yard', done: false },
+            { name: 'Outdoor lighting (low voltage)', done: false },
           ]},
       ],
     },
     {
-      name: 'General',
+      name: 'Garage',
+      zoneType: 'garage',
+      trades: [
+        { trade: 'Electrical', laborHours: 24, laborRate: 110, materialsBudget: 5000, status: 'completed', notes: 'Placeholder: Sparks Electric',
+          tasks: [
+            { name: 'EV charger circuit (60A)', done: true },
+            { name: 'LED shop lighting', done: true },
+            { name: 'Subpanel installation', done: true },
+          ]},
+        { trade: 'Concrete', laborHours: 16, laborRate: 70, materialsBudget: 3000, status: 'completed', notes: 'Placeholder: Texas Concrete Co',
+          tasks: [
+            { name: 'Repair cracks', done: true },
+            { name: 'Epoxy floor coating', done: true },
+          ]},
+      ],
+    },
+    {
+      name: 'General / Structural',
       zoneType: 'general',
       trades: [
-        { trade: 'Framing', laborHours: 40, laborRate: 65, materialsBudget: 5000, status: 'completed',
+        { trade: 'Framing', laborHours: 160, laborRate: 75, materialsBudget: 35000, status: 'completed', notes: 'Placeholder: ABC Framing',
           tasks: [
-            { name: 'Kitchen wall demo', done: true },
-            { name: 'Install header beam', done: true },
-            { name: 'Frame bathroom walls', done: true },
-            { name: 'Structural inspection', done: true },
+            { name: 'Demo non-bearing walls', done: true },
+            { name: 'Install LVL beams (kitchen open concept)', done: true },
+            { name: 'Frame master closet expansion', done: true },
+            { name: 'Frame new pantry', done: true },
+            { name: 'Sister floor joists (2nd floor)', done: true },
+            { name: 'Structural engineering inspection', done: true },
           ]},
-        { trade: 'HVAC', laborHours: 24, laborRate: 95, materialsBudget: 4000, status: 'in_progress',
+        { trade: 'HVAC', laborHours: 80, laborRate: 110, materialsBudget: 45000, status: 'in_progress', notes: 'Placeholder: CoolAir HVAC',
           tasks: [
-            { name: 'New ductwork', done: true },
-            { name: 'Install mini-split', done: false },
-            { name: 'Final hookup', done: false },
+            { name: 'Remove old system', done: true },
+            { name: 'Install dual-zone system', done: true },
+            { name: 'Run new ductwork (both floors)', done: true },
+            { name: 'Install smart thermostats (3)', done: true },
+            { name: 'Balance and commission', done: false },
+            { name: 'Final inspection', done: false },
           ]},
-        { trade: 'Drywall', laborHours: 32, laborRate: 55, materialsBudget: 1500, status: 'not_started',
+        { trade: 'Drywall', laborHours: 120, laborRate: 60, materialsBudget: 12000, status: 'in_progress', notes: 'Placeholder: DFW Drywall',
           tasks: [
-            { name: 'Hang drywall', done: false },
-            { name: 'Tape and mud', done: false },
-            { name: 'Sand and prime', done: false },
+            { name: 'Hang drywall — 1st floor', done: true },
+            { name: 'Hang drywall — 2nd floor', done: true },
+            { name: 'Tape and mud — 1st floor', done: true },
+            { name: 'Tape and mud — 2nd floor', done: false },
+            { name: 'Sand smooth (Level 5 finish)', done: false },
+            { name: 'Touch-up and repair', done: false },
+          ]},
+        { trade: 'Insulation', laborHours: 40, laborRate: 55, materialsBudget: 10000, status: 'completed', notes: 'Placeholder: Eco Insulation',
+          tasks: [
+            { name: 'Spray foam exterior walls', done: true },
+            { name: 'Batt insulation interior walls', done: true },
+            { name: 'Attic blown-in (R-49)', done: true },
+            { name: 'Inspection — passed', done: true },
           ]},
       ],
     },
   ],
 };
+
+const DEMO_MESSAGES = [
+  { message: 'Framing crew finished the kitchen beam install today. Looks great — passed structural inspection first try.', offset: -14 },
+  { message: 'Plumbing rough-in for master bath is done. Waiting on the shower fixtures from supplier — ETA Thursday.', offset: -12 },
+  { message: 'Heads up: tile for master shower arrived damaged. Reordered — adds 5 days to that zone.', offset: -10 },
+  { message: 'Roofing is 100% done! Passed final inspection. One less thing to worry about.', offset: -8 },
+  { message: 'Sparks Electric finished all kitchen and living room rough-in. Code inspection scheduled for Monday.', offset: -7 },
+  { message: 'Drywall crew started 1st floor today. Should have both floors hung by end of week.', offset: -5 },
+  { message: 'Replacement tile for master shower came in. Artisan Tile starts back up tomorrow morning.', offset: -4 },
+  { message: 'HVAC dual-zone system installed. Running ductwork now. Should be balanced and ready for inspection by next Friday.', offset: -3 },
+  { message: 'Quick update: Kitchen flooring started — heated mat is down, porcelain going in tomorrow.', offset: -2 },
+  { message: 'Bathroom 2 is DONE — plumbing, tile, electrical, paint all complete. First zone fully signed off! 🎉', offset: -1 },
+];
 
 export function GCDashboardPage() {
   const navigate = useNavigate();
@@ -514,6 +658,7 @@ export function GCDashboardPage() {
   const [activeTab, setActiveTab] = useState<GCTab>('projects');
   const [inviteModalSub, setInviteModalSub] = useState<any>(null);
   const queryClient = useQueryClient();
+  const { addToast } = useToast();
 
   const { ready: orgReady, isLoading: orgLoading } = useAutoOrg();
 
@@ -541,11 +686,18 @@ export function GCDashboardPage() {
   // Demo project loader
   const loadDemoMutation = useMutation({
     mutationFn: async () => {
-      // The API's createGCProject already handles zones + trades + tasks in one call
-      await api.createGCProject(DEMO_PROJECT);
+      const result = await api.createGCProject(DEMO_PROJECT);
+      const projectId = result?.data?.id;
+      // Add demo messages with realistic timestamps
+      if (projectId) {
+        for (const msg of DEMO_MESSAGES) {
+          try { await api.sendGCMessage(projectId, msg.message); } catch {}
+        }
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['gc-projects'] });
+      addToast('Demo project loaded — Henderson Estate $715K', 'success');
     },
   });
 

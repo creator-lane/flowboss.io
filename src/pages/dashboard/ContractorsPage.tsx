@@ -11,8 +11,25 @@ import {
   Mail,
   Briefcase,
   DollarSign,
+  Star,
+  FolderKanban,
 } from 'lucide-react';
 import { CreateContractorModal } from '../../components/contractors/CreateContractorModal';
+
+const TRADE_COLORS: Record<string, string> = {
+  Plumbing: 'bg-blue-100 text-blue-700',
+  Electrical: 'bg-yellow-100 text-yellow-700',
+  HVAC: 'bg-cyan-100 text-cyan-700',
+  Framing: 'bg-orange-100 text-orange-700',
+  Drywall: 'bg-stone-100 text-stone-700',
+  Painting: 'bg-purple-100 text-purple-700',
+  Roofing: 'bg-red-100 text-red-700',
+  Concrete: 'bg-gray-200 text-gray-700',
+  Flooring: 'bg-amber-100 text-amber-700',
+  Landscaping: 'bg-green-100 text-green-700',
+  Tiling: 'bg-teal-100 text-teal-700',
+  Insulation: 'bg-pink-100 text-pink-700',
+};
 
 const formatCurrency = (n: number) =>
   new Intl.NumberFormat('en-US', {
@@ -35,38 +52,124 @@ function SkeletonCard() {
   );
 }
 
+type ContractorTab = 'all' | 'manual' | 'project-subs';
+
 export function ContractorsPage() {
   const navigate = useNavigate();
   const [showCreate, setShowCreate] = useState(false);
   const [search, setSearch] = useState('');
+  const [activeTab, setActiveTab] = useState<ContractorTab>('all');
 
-  const { data: raw, isLoading } = useQuery({
+  // Traditional contractors from the contractors table
+  const { data: raw, isLoading: contractorsLoading } = useQuery({
     queryKey: ['contractors'],
     queryFn: () => api.getContractorsWithStats(),
   });
 
-  const allContractors: any[] = useMemo(() => {
+  // Project subs from GC trades
+  const { data: subsRaw, isLoading: subsLoading } = useQuery({
+    queryKey: ['gc-sub-directory'],
+    queryFn: () => api.getGCSubDirectory(),
+  });
+
+  const isLoading = contractorsLoading || subsLoading;
+
+  const manualContractors: any[] = useMemo(() => {
     const list = raw?.data || raw || [];
-    return Array.isArray(list) ? list : [];
+    return (Array.isArray(list) ? list : []).map((c: any) => ({
+      ...c,
+      _source: 'manual' as const,
+      _displayName: c.companyName || c.company_name || c.name || 'Unnamed Company',
+    }));
   }, [raw]);
 
+  const projectSubs: any[] = useMemo(() => {
+    const list = subsRaw?.data || [];
+    return list.map((s: any) => ({
+      ...s,
+      _source: 'project' as const,
+      _displayName: s.businessName || 'Unknown',
+    }));
+  }, [subsRaw]);
+
+  // Merge and deduplicate — if a manual contractor name matches a project sub name, merge them
+  const allContractors = useMemo(() => {
+    const merged: any[] = [];
+    const usedProjectSubNames = new Set<string>();
+
+    for (const mc of manualContractors) {
+      const name = mc._displayName.toLowerCase().trim();
+      // Check if there's a matching project sub
+      const matchingSub = projectSubs.find(
+        (s) => s._displayName.toLowerCase().trim() === name
+      );
+      if (matchingSub) {
+        usedProjectSubNames.add(matchingSub._displayName.toLowerCase().trim());
+        merged.push({
+          ...mc,
+          _projectSub: matchingSub,
+          _source: 'both',
+        });
+      } else {
+        merged.push(mc);
+      }
+    }
+
+    // Add remaining project subs that didn't match
+    for (const ps of projectSubs) {
+      if (!usedProjectSubNames.has(ps._displayName.toLowerCase().trim())) {
+        merged.push(ps);
+      }
+    }
+
+    return merged;
+  }, [manualContractors, projectSubs]);
+
   const filteredContractors = useMemo(() => {
-    if (!search.trim()) return allContractors;
+    let list = allContractors;
+
+    // Tab filter
+    if (activeTab === 'manual') list = list.filter((c) => c._source === 'manual' || c._source === 'both');
+    if (activeTab === 'project-subs') list = list.filter((c) => c._source === 'project' || c._source === 'both');
+
+    // Search filter
+    if (!search.trim()) return list;
     const q = search.toLowerCase();
-    return allContractors.filter((c: any) => {
-      const companyName = (c.companyName || c.company_name || '').toLowerCase();
+    return list.filter((c: any) => {
+      const companyName = (c._displayName || '').toLowerCase();
       const contactName = (c.name || '').toLowerCase();
       const email = (c.email || '').toLowerCase();
       const phone = (c.phone || '').toLowerCase();
-      return companyName.includes(q) || contactName.includes(q) || email.includes(q) || phone.includes(q);
+      const trades = (c.trades || []).join(' ').toLowerCase();
+      return companyName.includes(q) || contactName.includes(q) || email.includes(q) || phone.includes(q) || trades.includes(q);
     });
-  }, [allContractors, search]);
+  }, [allContractors, search, activeTab]);
+
+  const manualCount = allContractors.filter((c) => c._source === 'manual' || c._source === 'both').length;
+  const projectCount = allContractors.filter((c) => c._source === 'project' || c._source === 'both').length;
+
+  function handleCardClick(contractor: any) {
+    if (contractor._source === 'manual' || contractor._source === 'both') {
+      navigate(`/dashboard/contractors/${contractor.id}`);
+    } else {
+      // Project sub — go to sub profile
+      const profileId = contractor.isPlaceholder
+        ? encodeURIComponent(contractor.businessName || contractor._displayName)
+        : contractor.userId;
+      navigate(`/dashboard/subs/${profileId}`);
+    }
+  }
 
   return (
     <div className="p-4 sm:p-6 lg:p-8">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-        <h1 className="text-2xl font-bold text-neutral-900">Contractors</h1>
+        <div>
+          <h1 className="text-2xl font-bold text-neutral-900">Contractors</h1>
+          <p className="text-sm text-gray-500 mt-0.5">
+            {allContractors.length} total — {manualCount} manual, {projectCount} from projects
+          </p>
+        </div>
         <button
           type="button"
           onClick={() => setShowCreate(true)}
@@ -77,12 +180,38 @@ export function ContractorsPage() {
         </button>
       </div>
 
+      {/* Tabs */}
+      <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1 mb-5 max-w-md">
+        {([
+          { key: 'all' as const, label: 'All', count: allContractors.length },
+          { key: 'manual' as const, label: 'Rolodex', count: manualCount },
+          { key: 'project-subs' as const, label: 'Project Subs', count: projectCount },
+        ]).map((tab) => (
+          <button
+            key={tab.key}
+            onClick={() => setActiveTab(tab.key)}
+            className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-md text-xs font-medium transition-all ${
+              activeTab === tab.key
+                ? 'bg-white text-gray-900 shadow-sm'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            {tab.label}
+            <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${
+              activeTab === tab.key ? 'bg-brand-50 text-brand-600' : 'bg-gray-200 text-gray-500'
+            }`}>
+              {tab.count}
+            </span>
+          </button>
+        ))}
+      </div>
+
       {/* Search */}
       <div className="relative max-w-md mb-6">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
         <input
           type="text"
-          placeholder="Search contractors..."
+          placeholder="Search by name, trade, phone, or email..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent placeholder:text-neutral-400"
@@ -102,8 +231,8 @@ export function ContractorsPage() {
           <p className="text-lg font-medium text-neutral-500 mb-1">No contractors found</p>
           <p className="text-sm text-neutral-400 mb-6">
             {allContractors.length === 0
-              ? 'Add your first contractor to track subcontractor relationships.'
-              : 'Try adjusting your search.'}
+              ? 'Add a contractor or assign subs on your projects to see them here.'
+              : 'Try adjusting your search or switching tabs.'}
           </p>
           {allContractors.length === 0 && (
             <button
@@ -118,54 +247,120 @@ export function ContractorsPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {filteredContractors.map((contractor: any) => (
-            <button
-              key={contractor.id}
-              type="button"
-              onClick={() => navigate(`/dashboard/contractors/${contractor.id}`)}
-              className="w-full text-left bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md transition-all group"
-            >
-              <div className="flex items-start justify-between gap-3 mb-3">
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-sm font-semibold text-neutral-900 truncate">
-                    {contractor.companyName || contractor.company_name || 'Unnamed Company'}
-                  </h3>
-                  {contractor.name && (
-                    <p className="text-xs text-neutral-500 mt-0.5">{contractor.name}</p>
+          {filteredContractors.map((contractor: any) => {
+            const isProjectSub = contractor._source === 'project' || contractor._source === 'both';
+            const isManual = contractor._source === 'manual' || contractor._source === 'both';
+            const trades: string[] = contractor.trades || contractor._projectSub?.trades || [];
+            const projectsList = contractor.projects || contractor._projectSub?.projects || [];
+
+            return (
+              <button
+                key={contractor.id || contractor.userId || contractor._displayName}
+                type="button"
+                onClick={() => handleCardClick(contractor)}
+                className="w-full text-left bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md hover:-translate-y-0.5 transition-all group"
+              >
+                <div className="flex items-start justify-between gap-3 mb-2">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <h3 className="text-sm font-semibold text-neutral-900 truncate group-hover:text-brand-600 transition-colors">
+                        {contractor._displayName}
+                      </h3>
+                      {contractor.isPlaceholder && (
+                        <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-amber-50 text-amber-600 ring-1 ring-inset ring-amber-500/20 flex-shrink-0">
+                          Placeholder
+                        </span>
+                      )}
+                    </div>
+                    {contractor.name && contractor.name !== contractor._displayName && (
+                      <p className="text-xs text-neutral-500">{contractor.name}</p>
+                    )}
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-neutral-300 mt-0.5 flex-shrink-0 group-hover:text-neutral-500 transition-colors" />
+                </div>
+
+                {/* Source badges */}
+                <div className="flex items-center gap-1.5 mb-2.5">
+                  {isManual && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-gray-100 text-gray-600">
+                      <HardHat className="w-2.5 h-2.5" />
+                      Rolodex
+                    </span>
+                  )}
+                  {isProjectSub && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-brand-50 text-brand-600">
+                      <FolderKanban className="w-2.5 h-2.5" />
+                      {(contractor.projectCount || projectsList.length || 0)} project{(contractor.projectCount || projectsList.length || 0) !== 1 ? 's' : ''}
+                    </span>
                   )}
                 </div>
-                <ChevronRight className="w-4 h-4 text-neutral-300 mt-0.5 flex-shrink-0 group-hover:text-neutral-500 transition-colors" />
-              </div>
 
-              <div className="space-y-1 mb-3">
-                {contractor.phone && (
-                  <p className="text-xs text-neutral-400 flex items-center gap-1.5">
-                    <Phone className="w-3 h-3" />
-                    {contractor.phone}
-                  </p>
-                )}
-                {contractor.email && (
-                  <p className="text-xs text-neutral-400 flex items-center gap-1.5">
-                    <Mail className="w-3 h-3" />
-                    <span className="truncate">{contractor.email}</span>
-                  </p>
-                )}
-              </div>
+                {/* Contact info */}
+                <div className="space-y-1 mb-3">
+                  {(contractor.phone) && (
+                    <p className="text-xs text-neutral-400 flex items-center gap-1.5">
+                      <Phone className="w-3 h-3" />
+                      {contractor.phone}
+                    </p>
+                  )}
+                  {(contractor.email) && (
+                    <p className="text-xs text-neutral-400 flex items-center gap-1.5">
+                      <Mail className="w-3 h-3" />
+                      <span className="truncate">{contractor.email}</span>
+                    </p>
+                  )}
+                </div>
 
-              <div className="flex items-center gap-3 flex-wrap">
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-600 rounded text-xs font-medium">
-                  <Briefcase className="w-3 h-3" />
-                  {contractor.jobCount || 0} jobs
-                </span>
-                {(contractor.totalRevenue || 0) > 0 && (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-50 text-green-600 rounded text-xs font-medium">
-                    <DollarSign className="w-3 h-3" />
-                    {formatCurrency(contractor.totalRevenue)}
-                  </span>
+                {/* Trade pills (for project subs) */}
+                {trades.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mb-3">
+                    {trades.slice(0, 4).map((t: string) => (
+                      <span
+                        key={t}
+                        className={`px-2 py-0.5 rounded text-[11px] font-medium ${TRADE_COLORS[t] || 'bg-gray-100 text-gray-600'}`}
+                      >
+                        {t}
+                      </span>
+                    ))}
+                    {trades.length > 4 && (
+                      <span className="px-2 py-0.5 rounded text-[11px] font-medium bg-gray-100 text-gray-500">
+                        +{trades.length - 4}
+                      </span>
+                    )}
+                  </div>
                 )}
-              </div>
-            </button>
-          ))}
+
+                {/* Stats */}
+                <div className="flex items-center gap-3 flex-wrap">
+                  {isManual && (contractor.jobCount || 0) > 0 && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-600 rounded text-xs font-medium">
+                      <Briefcase className="w-3 h-3" />
+                      {contractor.jobCount} jobs
+                    </span>
+                  )}
+                  {isManual && (contractor.totalRevenue || 0) > 0 && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-50 text-green-600 rounded text-xs font-medium">
+                      <DollarSign className="w-3 h-3" />
+                      {formatCurrency(contractor.totalRevenue)}
+                    </span>
+                  )}
+                  {/* Project names for subs */}
+                  {isProjectSub && projectsList.length > 0 && (
+                    <div className="flex flex-wrap gap-1">
+                      {projectsList.slice(0, 2).map((p: any) => (
+                        <span key={p.id} className="text-[10px] bg-gray-50 text-gray-500 px-1.5 py-0.5 rounded">
+                          {p.name?.length > 25 ? p.name.slice(0, 25) + '...' : p.name}
+                        </span>
+                      ))}
+                      {projectsList.length > 2 && (
+                        <span className="text-[10px] text-gray-400">+{projectsList.length - 2} more</span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </button>
+            );
+          })}
         </div>
       )}
 

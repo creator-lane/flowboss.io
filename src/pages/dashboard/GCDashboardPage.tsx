@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../lib/api';
 import {
@@ -132,35 +132,34 @@ function ProjectCard({ project, onClick }: { project: any; onClick: () => void }
 /** Auto-creates the org silently if it doesn't exist, returns true when ready */
 function useAutoOrg() {
   const queryClient = useQueryClient();
+  const [attempted, setAttempted] = useState(false);
+  const [creating, setCreating] = useState(false);
+
   const orgQuery = useQuery({
     queryKey: ['gc-org'],
     queryFn: () => api.getOrganization(),
   });
 
-  const createOrg = useMutation({
-    mutationFn: () => api.createOrganization({ name: 'My Company', type: 'gc' }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['gc-org'] });
-      queryClient.invalidateQueries({ queryKey: ['gc-projects'] });
-    },
-  });
-
   const org = orgQuery.data?.data;
   const isLoading = orgQuery.isLoading;
-  const needsOrg = !isLoading && !org;
-  const [attempted, setAttempted] = useState(false);
 
   // Auto-create org silently when needed (only try once)
   useEffect(() => {
-    if (needsOrg && !createOrg.isPending && !createOrg.isSuccess && !attempted) {
+    if (!isLoading && !org && !attempted && !creating) {
       setAttempted(true);
-      createOrg.mutate();
+      setCreating(true);
+      api.createOrganization({ name: 'My Company', type: 'gc' })
+        .then(() => {
+          queryClient.invalidateQueries({ queryKey: ['gc-org'] });
+          queryClient.invalidateQueries({ queryKey: ['gc-projects'] });
+        })
+        .catch(() => {})
+        .finally(() => setCreating(false));
     }
-  }, [needsOrg, createOrg.isPending, createOrg.isSuccess, attempted]);
+  }, [isLoading, org, attempted, creating, queryClient]);
 
-  // Ready if we have an org, or if we've attempted and it either succeeded or the tables don't exist yet
-  const ready = !isLoading && (!!org || createOrg.isSuccess || attempted);
-  return { ready, isLoading: isLoading || (createOrg.isPending && !attempted) };
+  const ready = !isLoading && (!!org || attempted);
+  return { ready, isLoading: isLoading || creating };
 }
 
 type GCTab = 'projects' | 'subs';

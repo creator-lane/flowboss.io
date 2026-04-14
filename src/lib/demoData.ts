@@ -420,6 +420,8 @@ const EXPENSE_TEMPLATES = [
   { category: 'Marketing', desc: 'Google Ads — monthly', min: 500, max: 1200 },
   { category: 'Marketing', desc: 'Yard signs (25)', min: 200, max: 400 },
   { category: 'Marketing', desc: 'Vehicle wrap payment', min: 350, max: 350 },
+  { category: 'Labor', desc: 'Payroll — technician crew (biweekly)', min: 4200, max: 5800 },
+  { category: 'Labor', desc: 'Payroll — office/dispatch', min: 1800, max: 2200 },
   { category: 'Labor', desc: 'Subcontractor payment — helper', min: 600, max: 2000 },
   { category: 'Labor', desc: 'Weekend overtime — crew', min: 800, max: 2500 },
   { category: 'Other', desc: 'Uniforms and PPE', min: 100, max: 400 },
@@ -445,6 +447,10 @@ export async function loadAllDemoData(
     } catch { /* skip duplicates */ }
   }
   log(`Created ${customerIds.length} customers`);
+
+  // Track expenses from job COGS + dedicated expense loop
+  let expenseCount = 0;
+  let totalExpenses = 0;
 
   // ── 2. Create jobs + invoices across 14 months ──
   log('Creating 14 months of jobs and invoices...');
@@ -524,6 +530,21 @@ export async function loadAllDemoData(
               paidCount++;
               totalRevenue += total;
             }
+
+            // ── COGS: materials/parts cost for this job (30-50% of subtotal) ──
+            // Real trades businesses pay wholesale for parts, mark them up on invoice
+            const cogsPercent = randomBetween(30, 50) / 100;
+            const cogsCost = Math.round(subtotal * cogsPercent);
+            try {
+              await api.createExpense({
+                amount: cogsCost,
+                category: 'Materials',
+                description: `Job materials — ${template.desc.slice(0, 40)}`,
+                date: endDate.toISOString().split('T')[0],
+              });
+              expenseCount++;
+              totalExpenses += cogsCost;
+            } catch {}
           } catch { /* skip */ }
         }
       } catch { /* skip */ }
@@ -531,10 +552,8 @@ export async function loadAllDemoData(
   }
   log(`Created ${jobCount} jobs, ${invoiceCount} invoices (${paidCount} paid = $${Math.round(totalRevenue).toLocaleString()})`);
 
-  // ── 3. Create expenses across 14 months ──
-  log('Creating 14 months of expenses...');
-  let expenseCount = 0;
-  let totalExpenses = 0;
+  // ── 3. Create overhead expenses across 14 months ──
+  log('Creating 14 months of overhead expenses...');
 
   for (let monthsBack = 13; monthsBack >= 0; monthsBack--) {
     // Fixed monthly expenses
@@ -557,8 +576,26 @@ export async function loadAllDemoData(
       } catch {}
     }
 
-    // Variable expenses — 8-15 per month
-    const variableCount = randomBetween(8, 15);
+    // Biweekly payroll (2x per month) — 1 lead tech + 1 helper
+    for (const payDay of [5, 20]) {
+      const d = new Date();
+      d.setMonth(d.getMonth() - monthsBack, payDay);
+      // Lead tech: ~$30/hr × 80hrs = $2,400, helper: ~$18/hr × 80hrs = $1,440
+      const crewPay = randomBetween(3400, 4200);
+      try {
+        await api.createExpense({
+          amount: crewPay,
+          category: 'Labor',
+          description: 'Payroll — crew (biweekly)',
+          date: d.toISOString().split('T')[0],
+        });
+        expenseCount++;
+        totalExpenses += crewPay;
+      } catch {}
+    }
+
+    // Variable expenses — 4-8 per month
+    const variableCount = randomBetween(4, 8);
     const variableExpenses = EXPENSE_TEMPLATES.filter(
       e => !e.desc.includes('monthly') && !e.desc.includes('Monthly')
     );

@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { CreateGCProjectModal } from '../../components/gc/CreateGCProjectModal';
 import { TypeToConfirmDialog } from '../../components/ui/TypeToConfirmDialog';
+import { loadAllDemoData } from '../../lib/demoData';
 
 const STATUS_CONFIG: Record<string, { bg: string; text: string; ring: string; dot: string; label: string }> = {
   planning: { bg: 'bg-gray-50', text: 'text-gray-600', ring: 'ring-gray-500/20', dot: 'bg-gray-400', label: 'Planning' },
@@ -713,21 +714,43 @@ export function GCDashboardPage() {
   const projects: any[] = projectsQuery.data?.data || [];
   const subs: any[] = subsQuery.data?.data || [];
 
-  // Demo project loader
+  // Demo data loader — full business data
+  const [demoProgress, setDemoProgress] = useState<string | null>(null);
   const loadDemoMutation = useMutation({
     mutationFn: async () => {
+      // First load the Henderson Estate (original demo)
+      setDemoProgress('Creating Henderson Estate project...');
       const result = await api.createGCProject(DEMO_PROJECT);
       const projectId = result?.data?.id;
-      // Add demo messages with realistic timestamps
       if (projectId) {
         for (const msg of DEMO_MESSAGES) {
           try { await api.sendGCMessage(projectId, msg.message); } catch {}
         }
       }
+
+      // Then load all additional demo data (2 more projects + historical business data)
+      const stats = await loadAllDemoData((msg) => setDemoProgress(msg));
+      return stats;
     },
-    onSuccess: () => {
+    onSuccess: (stats) => {
       queryClient.invalidateQueries({ queryKey: ['gc-projects'] });
-      addToast('Demo project loaded — Henderson Estate $715K', 'success');
+      queryClient.invalidateQueries({ queryKey: ['gc-sub-directory'] });
+      queryClient.invalidateQueries({ queryKey: ['contractors'] });
+      queryClient.invalidateQueries({ queryKey: ['jobs'] });
+      queryClient.invalidateQueries({ queryKey: ['invoices'] });
+      queryClient.invalidateQueries({ queryKey: ['customers'] });
+      queryClient.invalidateQueries({ queryKey: ['expenses'] });
+      queryClient.invalidateQueries({ queryKey: ['financials'] });
+      queryClient.invalidateQueries({ queryKey: ['insights'] });
+      setDemoProgress(null);
+      addToast(
+        `Demo loaded! 3 projects ($3.2M), ${stats?.jobs || 0} jobs, ${stats?.invoices || 0} invoices, ${stats?.expenses || 0} expenses`,
+        'success',
+      );
+    },
+    onError: () => {
+      setDemoProgress(null);
+      addToast('Some demo data may have failed — check your dashboard', 'error');
     },
   });
 
@@ -813,7 +836,7 @@ export function GCDashboardPage() {
               className="flex items-center gap-2 px-3 py-2 border border-gray-200 text-gray-500 rounded-lg text-xs font-medium hover:bg-gray-50 transition-colors disabled:opacity-50"
             >
               <Zap className="w-3.5 h-3.5" />
-              {loadDemoMutation.isPending ? 'Loading...' : 'Demo'}
+              {loadDemoMutation.isPending ? (demoProgress || 'Loading...') : 'Load Demo Data'}
             </button>
             <button
               onClick={() => setShowCreate(true)}
@@ -945,7 +968,7 @@ export function GCDashboardPage() {
                   className="inline-flex items-center gap-2 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors disabled:opacity-50"
                 >
                   <Zap className="w-4 h-4" />
-                  {loadDemoMutation.isPending ? 'Loading...' : 'Load Demo Project'}
+                  {loadDemoMutation.isPending ? (demoProgress || 'Loading...') : 'Load Demo Data'}
                 </button>
               </div>
             </div>

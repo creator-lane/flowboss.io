@@ -18,6 +18,7 @@ import {
   X,
   Star,
   Zap,
+  Trash2,
 } from 'lucide-react';
 import { CreateGCProjectModal } from '../../components/gc/CreateGCProjectModal';
 
@@ -58,7 +59,7 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
-function ProjectCard({ project, onClick }: { project: any; onClick: () => void }) {
+function ProjectCard({ project, onClick, onDelete }: { project: any; onClick: () => void; onDelete: () => void }) {
   const trades: any[] = project.trades || [];
   const totalTasks = trades.reduce((s: number, t: any) => s + (t.tasks?.length || 0), 0);
   const doneTasks = trades.reduce(
@@ -71,11 +72,20 @@ function ProjectCard({ project, onClick }: { project: any; onClick: () => void }
   return (
     <div
       onClick={onClick}
-      className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-lg hover:shadow-gray-200/50 hover:-translate-y-0.5 hover:border-gray-300 transition-all duration-200 cursor-pointer"
+      className="group bg-white rounded-xl border border-gray-200 p-5 hover:shadow-lg hover:shadow-gray-200/50 hover:-translate-y-0.5 hover:border-gray-300 transition-all duration-200 cursor-pointer"
     >
       <div className="flex items-start justify-between mb-3">
         <h3 className="text-base font-semibold text-gray-900 line-clamp-1">{project.name}</h3>
-        <StatusBadge status={project.status} />
+        <div className="flex items-center gap-2">
+          <StatusBadge status={project.status} />
+          <button
+            onClick={(e) => { e.stopPropagation(); onDelete(); }}
+            className="opacity-0 group-hover:opacity-100 text-gray-300 hover:text-red-500 transition-all p-0.5"
+            title="Delete project"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+          </button>
+        </div>
       </div>
 
       {(project.city || project.state) && (
@@ -701,6 +711,21 @@ export function GCDashboardPage() {
     },
   });
 
+  const deleteProjectMutation = useMutation({
+    mutationFn: (id: string) => api.deleteGCProject(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['gc-projects'] });
+      addToast('Project deleted', 'success');
+    },
+    onError: (err: any) => addToast(err.message || 'Failed to delete', 'error'),
+  });
+
+  const handleDeleteProject = (id: string, name: string) => {
+    if (window.confirm(`Delete "${name}"? This cannot be undone.`)) {
+      deleteProjectMutation.mutate(id);
+    }
+  };
+
   const filtered = useMemo(() => {
     if (!search.trim()) return projects;
     const q = search.toLowerCase();
@@ -871,6 +896,7 @@ export function GCDashboardPage() {
                     key={project.id}
                     project={project}
                     onClick={() => navigate(`/dashboard/projects/${project.id}`)}
+                    onDelete={() => handleDeleteProject(project.id, project.name)}
                   />
                 ))}
               </div>

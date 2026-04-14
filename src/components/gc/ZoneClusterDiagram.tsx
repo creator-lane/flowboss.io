@@ -260,8 +260,8 @@ export function ZoneClusterDiagram({
             onClick={() => onSelectZone(zone.id)}
             data-tour="zone-card"
             className={`absolute z-10 text-left transition-all duration-300 group focus:outline-none ${
-              isSelected ? 'scale-110' : 'hover:scale-105'
-            }`}
+              selectedZoneId && selectedZoneId !== zone.id ? 'opacity-40 scale-95' : ''
+            } ${isSelected ? 'scale-110' : 'hover:scale-105'}`}
             style={{ left: x, top: y, transform: 'translate(-50%, -50%)' }}
           >
             <div

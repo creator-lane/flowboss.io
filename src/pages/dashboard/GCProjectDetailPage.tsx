@@ -28,6 +28,8 @@ import {
   ChevronDown,
   ChevronUp,
   Star,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 import { TimelineBoard } from '../../components/gc/TimelineBoard';
 import { ZoneClusterDiagram } from '../../components/gc/ZoneClusterDiagram';
@@ -385,6 +387,22 @@ export function GCProjectDetailPage() {
             onClose={() => setSelectedTradeId(null)}
             onInviteSub={(tradeId, tradeName) => setInviteModalTrade({ id: tradeId, name: tradeName })}
           />
+
+          {/* Zone Detail Panel */}
+          {selectedZoneId && (
+            <ZoneDetailPanel
+              zoneId={selectedZoneId}
+              zones={zones}
+              trades={trades}
+              projectId={id!}
+              onClose={() => setSelectedZoneId(null)}
+              onSelectTrade={(tradeId) => {
+                setSelectedZoneId(null);
+                setSelectedTradeId(tradeId);
+              }}
+              onInviteSub={(tradeId, tradeName) => setInviteModalTrade({ id: tradeId, name: tradeName })}
+            />
+          )}
         </div>
       )}
 
@@ -780,6 +798,337 @@ function TradeNode({
         </div>
       </div>
     </button>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Zone Detail Slide-in Panel
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+const ZONE_EMOJI_MAP: Record<string, string> = {
+  'Kitchen': '\u{1F373}',
+  'Bathroom': '\u{1F6BF}', 'Bathroom 1': '\u{1F6BF}', 'Bathroom 2': '\u{1F6BF}', 'Master Bathroom': '\u{1F6BF}',
+  'Master Suite': '\u{1F6CF}\u{FE0F}', 'Master Bedroom': '\u{1F6CF}\u{FE0F}',
+  'Bedroom': '\u{1F6CF}\u{FE0F}', 'Bedroom 1': '\u{1F6CF}\u{FE0F}', 'Bedroom 2': '\u{1F6CF}\u{FE0F}', 'Bedroom 3': '\u{1F6CF}\u{FE0F}',
+  'Living Room': '\u{1F6CB}\u{FE0F}', 'Family Room': '\u{1F6CB}\u{FE0F}',
+  'Garage': '\u{1F697}',
+  'Exterior': '\u{1F3E1}',
+  'Basement': '\u{1F3E0}',
+  'Laundry': '\u{1F9FA}',
+  'Office': '\u{1F4BC}',
+  'Dining Room': '\u{1F37D}\u{FE0F}',
+  'General': '\u{1F527}', 'Site-Wide': '\u{1F527}',
+};
+
+const ZONE_ACCENT_MAP: Record<string, string> = {
+  'Kitchen': '#f59e0b',
+  'Bathroom': '#06b6d4', 'Bathroom 1': '#06b6d4', 'Bathroom 2': '#0891b2', 'Master Bathroom': '#0e7490',
+  'Master Suite': '#8b5cf6', 'Master Bedroom': '#8b5cf6',
+  'Living Room': '#22c55e', 'Family Room': '#22c55e',
+  'Garage': '#64748b',
+  'Exterior': '#16a34a',
+  'Basement': '#6b7280',
+  'General': '#2563eb', 'Site-Wide': '#2563eb',
+};
+
+function ZoneDetailPanel({
+  zoneId,
+  zones,
+  trades,
+  projectId,
+  onClose,
+  onSelectTrade,
+  onInviteSub,
+}: {
+  zoneId: string;
+  zones: any[];
+  trades: any[];
+  projectId: string;
+  onClose: () => void;
+  onSelectTrade: (tradeId: string) => void;
+  onInviteSub: (tradeId: string, tradeName: string) => void;
+}) {
+  const [expanded, setExpanded] = useState(false);
+
+  // Find zone data
+  const zone = zones.find((z: any) => z.id === zoneId);
+  const zoneName = zone?.name || 'General';
+  const zoneEmoji = ZONE_EMOJI_MAP[zoneName] || '\u{1F4CD}';
+  const zoneAccent = ZONE_ACCENT_MAP[zoneName] || '#6b7280';
+
+  // Get trades for this zone
+  const zoneTrades = useMemo(() => {
+    if (zoneId === 'general') {
+      const zoneIds = new Set(zones.map((z: any) => z.id));
+      return trades.filter((t: any) => !t.zoneId && !t.zone_id || (t.zoneId && !zoneIds.has(t.zoneId)) || (t.zone_id && !zoneIds.has(t.zone_id)));
+    }
+    return trades.filter((t: any) => t.zoneId === zoneId || t.zone_id === zoneId);
+  }, [zoneId, zones, trades]);
+
+  // Zone-level stats
+  const zoneStats = useMemo(() => {
+    let totalTasks = 0;
+    let doneTasks = 0;
+    let totalLabor = 0;
+    let totalMaterials = 0;
+    let totalBudget = 0;
+
+    for (const t of zoneTrades) {
+      const tasks = t.tasks || [];
+      totalTasks += tasks.length;
+      doneTasks += tasks.filter((tk: any) => tk.done).length;
+      const hours = t.laborHours || t.labor_hours || 0;
+      const rate = t.laborRate || t.labor_rate || 0;
+      totalLabor += hours * rate;
+      totalMaterials += t.materialsBudget || t.materials_budget || 0;
+      totalBudget += t.budget || 0;
+    }
+
+    const progress = totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0;
+    const allocated = totalLabor + totalMaterials || totalBudget;
+
+    return { totalTasks, doneTasks, progress, totalLabor, totalMaterials, allocated };
+  }, [zoneTrades]);
+
+  return (
+    <>
+      {/* Backdrop */}
+      <div
+        className="fixed inset-0 bg-black/20 backdrop-blur-[1px] z-40 transition-opacity duration-200"
+        onClick={onClose}
+      />
+
+      {/* Panel */}
+      <div
+        className="fixed right-0 top-0 bottom-0 w-full max-w-md bg-white shadow-2xl z-50 overflow-y-auto"
+        style={{ animation: 'slideInRight 0.25s ease-out' }}
+      >
+        {/* Header */}
+        <div className="sticky top-0 bg-white z-10 border-b border-gray-100">
+          <div className="flex items-center justify-between p-4">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="text-xl">{zoneEmoji}</span>
+              <div className="min-w-0">
+                <h2 className="text-lg font-bold text-gray-900 truncate">{zoneName}</h2>
+                <p className="text-xs text-gray-400">{zoneTrades.length} trade{zoneTrades.length !== 1 ? 's' : ''}</p>
+              </div>
+            </div>
+            <button
+              onClick={onClose}
+              className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          {/* Zone progress bar */}
+          <div className="px-4 pb-3">
+            <div className="flex items-center justify-between text-xs mb-1.5">
+              <span className="text-gray-500">{zoneStats.doneTasks}/{zoneStats.totalTasks} tasks complete</span>
+              <span className="font-bold" style={{ color: zoneAccent }}>{zoneStats.progress}%</span>
+            </div>
+            <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all duration-500"
+                style={{ width: `${zoneStats.progress}%`, backgroundColor: zoneAccent }}
+              />
+            </div>
+          </div>
+
+          <div className="h-1" style={{ backgroundColor: zoneAccent }} />
+        </div>
+
+        {/* Compact / Expanded Toggle */}
+        <div className="px-4 pt-3 pb-1 flex items-center justify-between">
+          <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Trades</span>
+          <button
+            onClick={() => setExpanded(!expanded)}
+            className="flex items-center gap-1 text-[11px] font-medium text-brand-600 hover:text-brand-700 transition-colors"
+          >
+            {expanded ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+            {expanded ? 'Compact' : 'Expand'}
+          </button>
+        </div>
+
+        {/* Trades List */}
+        <div className="p-4 pt-2 space-y-3">
+          {zoneTrades.length === 0 && (
+            <div className="text-center py-8 text-gray-400 text-sm">No trades in this zone yet</div>
+          )}
+
+          {zoneTrades.map((trade: any) => {
+            const tasks: any[] = trade.tasks || [];
+            const tradeDone = tasks.filter((tk: any) => tk.done).length;
+            const tradeProgress = tasks.length > 0 ? Math.round((tradeDone / tasks.length) * 100) : 0;
+            const statusCfg = TRADE_STATUS[trade.status] || TRADE_STATUS.not_started;
+            const emoji = TRADE_EMOJI[trade.trade] || '\u{1F527}';
+            const accent = TRADE_ACCENT[trade.trade] || '#6b7280';
+
+            // Sub info
+            const placeholderMatch = trade.notes?.match(/^Placeholder:\s*(.+?)(?:\s*\(|$)/);
+            const placeholderName = placeholderMatch ? placeholderMatch[1].trim() : null;
+            const invitedMatch = trade.notes?.match(/^Invited:\s*(.+)/);
+            const invitedEmail = invitedMatch ? invitedMatch[1].trim() : null;
+            const subName = trade.assignedBusinessName || placeholderName || (invitedEmail ? `Invited: ${invitedEmail}` : null) || (trade.assignedUserId ? 'Assigned Sub' : null);
+            const hasAssignee = !!(trade.assignedUserId || trade.assignedOrgId || trade.assignedBusinessName || placeholderName || invitedEmail);
+            const canRate = trade.status === 'completed' && !!trade.assignedUserId;
+
+            // Budget
+            const hours = trade.laborHours || trade.labor_hours || 0;
+            const rate = trade.laborRate || trade.labor_rate || 0;
+            const laborCost = hours * rate;
+            const matBudget = trade.materialsBudget || trade.materials_budget || 0;
+            const tradeBudget = laborCost + matBudget || trade.budget || 0;
+
+            return (
+              <div
+                key={trade.id}
+                className="bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-gray-300 transition-colors"
+                style={{ borderTop: `3px solid ${accent}` }}
+              >
+                <div className="p-3">
+                  {/* Trade name + status */}
+                  <div className="flex items-center justify-between mb-1.5">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="text-sm">{emoji}</span>
+                      <span className="text-sm font-semibold text-gray-900 truncate">{trade.trade}</span>
+                    </div>
+                    <span className={`flex items-center gap-1.5 text-[11px] font-medium px-2 py-0.5 rounded-full ${
+                      trade.status === 'completed' ? 'bg-green-100 text-green-700' :
+                      trade.status === 'in_progress' ? 'bg-blue-100 text-blue-700' :
+                      trade.status === 'blocked' ? 'bg-red-100 text-red-700' :
+                      'bg-gray-100 text-gray-600'
+                    }`}>
+                      <span className={`w-1.5 h-1.5 rounded-full ${statusCfg.dot}`} />
+                      {statusCfg.label}
+                    </span>
+                  </div>
+
+                  {/* Sub name */}
+                  <div className="text-xs mb-2">
+                    {hasAssignee ? (
+                      <span className="text-gray-500">{subName}</span>
+                    ) : (
+                      <span className="text-red-400 font-medium">Unassigned</span>
+                    )}
+                  </div>
+
+                  {/* Progress bar (always shown) */}
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all duration-500"
+                        style={{ width: `${tradeProgress}%`, backgroundColor: accent }}
+                      />
+                    </div>
+                    <span className="text-[10px] text-gray-400 w-16 text-right">{tradeDone}/{tasks.length} tasks</span>
+                    <span className="text-[10px] font-bold w-8 text-right" style={{ color: accent }}>{tradeProgress}%</span>
+                  </div>
+
+                  {/* Expanded details */}
+                  {expanded && (
+                    <div className="mt-2 pt-2 border-t border-gray-100 space-y-1.5">
+                      {tradeBudget > 0 && (
+                        <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                          <DollarSign className="w-3 h-3" />
+                          <span>{formatCurrency(tradeBudget)} budget</span>
+                          {laborCost > 0 && <span className="text-gray-300">|</span>}
+                          {laborCost > 0 && <span>{formatCurrency(laborCost)} labor</span>}
+                          {matBudget > 0 && <span className="text-gray-300">|</span>}
+                          {matBudget > 0 && <span>{formatCurrency(matBudget)} materials</span>}
+                        </div>
+                      )}
+                      {(trade.startDate || trade.endDate) && (
+                        <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                          <Calendar className="w-3 h-3" />
+                          <span>{formatDate(trade.startDate)}{trade.startDate && trade.endDate ? ' - ' : ''}{formatDate(trade.endDate)}</span>
+                        </div>
+                      )}
+                      {/* Task list */}
+                      {tasks.length > 0 && (
+                        <div className="mt-1 space-y-0.5">
+                          {tasks.map((task: any) => (
+                            <div key={task.id} className="flex items-center gap-1.5 text-[11px]">
+                              {task.done ? (
+                                <CheckSquare className="w-3 h-3 text-brand-500 flex-shrink-0" />
+                              ) : (
+                                <Square className="w-3 h-3 text-gray-300 flex-shrink-0" />
+                              )}
+                              <span className={task.done ? 'text-gray-400 line-through' : 'text-gray-600'}>{task.name}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Actions */}
+                  <div className="flex items-center gap-2 mt-2.5 pt-2 border-t border-gray-100">
+                    <button
+                      onClick={() => onSelectTrade(trade.id)}
+                      className="flex items-center gap-1 text-[11px] font-medium text-brand-600 hover:text-brand-700 transition-colors"
+                    >
+                      <ChevronRight className="w-3 h-3" />
+                      View Details
+                    </button>
+                    {!hasAssignee && (
+                      <button
+                        onClick={() => onInviteSub(trade.id, trade.trade)}
+                        className="flex items-center gap-1 text-[11px] font-medium text-orange-600 hover:text-orange-700 transition-colors"
+                      >
+                        <UserPlus className="w-3 h-3" />
+                        Invite Sub
+                      </button>
+                    )}
+                    {canRate && (
+                      <button
+                        onClick={() => onSelectTrade(trade.id)}
+                        className="flex items-center gap-1 text-[11px] font-medium text-amber-600 hover:text-amber-700 transition-colors ml-auto"
+                      >
+                        <Star className="w-3 h-3" />
+                        Rate
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Zone Budget Summary */}
+        {(zoneStats.allocated > 0) && (
+          <div className="mx-4 mb-4 bg-gray-50 rounded-xl p-4 border border-gray-100">
+            <h4 className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Zone Budget</h4>
+            <div className="space-y-1.5">
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">Total</span>
+                <span className="font-semibold text-gray-900">{formatCurrency(zoneStats.allocated)}</span>
+              </div>
+              {zoneStats.totalLabor > 0 && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">Labor</span>
+                  <span className="font-medium text-gray-700">{formatCurrency(zoneStats.totalLabor)}</span>
+                </div>
+              )}
+              {zoneStats.totalMaterials > 0 && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">Materials</span>
+                  <span className="font-medium text-gray-700">{formatCurrency(zoneStats.totalMaterials)}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      <style>{`
+        @keyframes slideInRight {
+          from { transform: translateX(100%); }
+          to { transform: translateX(0); }
+        }
+      `}</style>
+    </>
   );
 }
 

@@ -97,7 +97,12 @@ export default function App() {
         <Route path="financials" element={<Lazy><FinancialsPage /></Lazy>} />
         <Route path="insights" element={<Lazy><InsightsPage /></Lazy>} />
         <Route path="settings" element={<Lazy><SettingsPage /></Lazy>} />
+        {/* 404 catch-all within dashboard */}
+        <Route path="*" element={<Navigate to="/dashboard/home" replace />} />
       </Route>
+
+      {/* Global 404 catch-all */}
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }

@@ -66,10 +66,7 @@ export function ContractorDetailPage() {
   const { data: jobsRaw } = useQuery({
     queryKey: ['contractor-jobs', id],
     queryFn: async () => {
-      // We'll use the supabase client through a simple approach
-      // Since we don't have a dedicated API method, we use getContractorStats which fetches jobs
-      // For now, use a workaround: fetch from getTodaysJobs with month range and filter
-      const result = await api.getTodaysJobs(undefined, 'month');
+      const result = await api.getTodaysJobs(undefined, 'all');
       const allJobs = result?.data || [];
       return allJobs.filter((j: any) => (j.contractorId || j.contractor_id) === id);
     },

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { Wrench } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../lib/auth';
@@ -9,10 +9,17 @@ type AuthMode = 'password' | 'magic-link';
 export function Login() {
   const { session, loading } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
   const redirectTo = searchParams.get('redirect');
 
-  const getPostLoginPath = () => redirectTo || '/dashboard';
+  // Support both ?redirect= query param AND location.state.from (from RequireAuth)
+  const getPostLoginPath = () => {
+    if (redirectTo) return redirectTo;
+    const fromState = (location.state as any)?.from?.pathname;
+    if (fromState && fromState !== '/login') return fromState;
+    return '/dashboard';
+  };
 
   const [mode, setMode] = useState<AuthMode>('password');
   const [email, setEmail] = useState('');

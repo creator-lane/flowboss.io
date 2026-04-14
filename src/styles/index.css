@@ -7,7 +7,7 @@ html {
 }
 
 body {
-  @apply bg-white text-gray-900 antialiased;
+  @apply bg-gray-100 text-gray-900 antialiased;
 }
 
 @keyframes fade-in {
@@ -44,32 +44,32 @@ body {
 
 /* ── Premium card shadows ── */
 .card-shadow {
-  box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
 }
 .card-shadow-hover {
-  box-shadow: 0 4px 12px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.08), 0 4px 10px rgba(0,0,0,0.04);
 }
 
 /* ── Subtle gradient backgrounds ── */
 .bg-gradient-subtle {
-  background: linear-gradient(135deg, #f8fafc 0%, #f0f4ff 100%);
+  background: linear-gradient(135deg, #f1f5f9 0%, #e8eef6 100%);
 }
 .bg-gradient-brand {
   background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 50%, #1e40af 100%);
 }
 .bg-gradient-sidebar {
-  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
 }
 
 /* ── Glow effects for interactive elements ── */
 .glow-brand {
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1), 0 1px 2px rgba(0,0,0,0.05);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15), 0 1px 2px rgba(0,0,0,0.08);
 }
 .glow-success {
-  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.15);
 }
 .glow-danger {
-  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15);
 }
 
 /* ── Better focus rings ── */

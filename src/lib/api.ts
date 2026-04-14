@@ -44,7 +44,17 @@ const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsI
 
 export const api = {
   // -- Jobs ------------------------------------------------------------------
-  getTodaysJobs: async (_technicianId?: string, range?: 'today' | 'tomorrow' | 'week' | 'month', specificDate?: string) => {
+  getTodaysJobs: async (_technicianId?: string, range?: 'today' | 'tomorrow' | 'week' | 'month' | 'all', specificDate?: string) => {
+    // "all" range: no date filter — return everything sorted newest first
+    if (range === 'all') {
+      const { data, error } = await supabase
+        .from('jobs')
+        .select('*, customer:customers(*), property:properties(*)')
+        .order('scheduled_start', { ascending: false });
+      if (error) throw new Error(error.message);
+      return { data: camelify(data || []) };
+    }
+
     const start = specificDate ? new Date(specificDate + 'T00:00:00') : new Date();
     start.setHours(0, 0, 0, 0);
     if (!specificDate && range === 'tomorrow') start.setDate(start.getDate() + 1);
@@ -98,13 +108,13 @@ export const api = {
   updateJob: async (id: string, updates: any) => {
     const { data, error } = await supabase
       .from('jobs')
-      .update(updates)
+      .update(snakeify(updates))
       .eq('id', id)
       .select()
       .single();
 
     if (error) throw new Error(error.message);
-    return { data };
+    return { data: camelify(data) };
   },
 
   deleteJob: async (id: string) => {
@@ -1123,7 +1133,7 @@ export const api = {
 
     const jobList = jobs || [];
     const totalRevenue = jobList.reduce((sum: number, j: any) => {
-      const items = j.line_items || [];
+      const items = j.lineItems || j.line_items || [];
       return sum + items.reduce((s: number, li: any) =>
         s + (Number(li.unit_price || 0) * Number(li.quantity || 1)), 0);
     }, 0);

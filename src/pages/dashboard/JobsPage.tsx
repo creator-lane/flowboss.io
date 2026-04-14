@@ -2,15 +2,15 @@ import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../lib/api';
-import { useAuth } from '../../lib/auth';
-import { format } from 'date-fns';
+import { format, addMonths, subMonths, isThisMonth, startOfMonth } from 'date-fns';
 import {
   Search,
   Plus,
   Briefcase,
   Clock,
-  MapPin,
   ChevronRight,
+  ChevronLeft,
+  Calendar,
 } from 'lucide-react';
 import { CreateJobModal } from '../../components/jobs/CreateJobModal';
 
@@ -29,6 +29,7 @@ const PRIORITY_BADGE: Record<string, string> = {
 };
 
 type FilterTab = 'ALL' | 'SCHEDULED' | 'IN_PROGRESS' | 'COMPLETED';
+type TimeRange = 'all' | 'month';
 
 const FILTER_TABS: { key: FilterTab; label: string }[] = [
   { key: 'ALL', label: 'All' },
@@ -79,10 +80,20 @@ export function JobsPage() {
   const [search, setSearch] = useState('');
   const [activeTab, setActiveTab] = useState<FilterTab>('ALL');
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
+  const [timeRange, setTimeRange] = useState<TimeRange>('all');
+  const [viewMonth, setViewMonth] = useState(() => new Date());
 
+  // Fetch all jobs when 'all', or use month-based query for month view
   const { data: rawJobs, isLoading } = useQuery({
-    queryKey: ['jobs', 'month'],
-    queryFn: () => api.getTodaysJobs(undefined, 'month'),
+    queryKey: ['jobs', timeRange, timeRange === 'month' ? format(viewMonth, 'yyyy-MM') : 'all'],
+    queryFn: () => {
+      if (timeRange === 'all') {
+        return api.getTodaysJobs(undefined, 'all');
+      }
+      // Month range: use the first day of the selected month
+      const monthStart = startOfMonth(viewMonth);
+      return api.getTodaysJobs(undefined, 'month', format(monthStart, 'yyyy-MM-dd'));
+    },
   });
 
   const allJobs: any[] = useMemo(() => {
@@ -125,11 +136,22 @@ export function JobsPage() {
     return format(new Date(iso), 'h:mm a');
   };
 
+  // Month navigation
+  const goToPrevMonth = () => setViewMonth((m) => subMonths(m, 1));
+  const goToNextMonth = () => setViewMonth((m) => addMonths(m, 1));
+  const goToCurrentMonth = () => setViewMonth(new Date());
+
   return (
     <div className="p-4 sm:p-6 lg:p-8">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-        <h1 className="text-2xl font-bold text-neutral-900">Jobs</h1>
+        <div>
+          <h1 className="text-2xl font-bold text-neutral-900">Jobs</h1>
+          <p className="text-sm text-gray-500 mt-0.5">
+            {allJobs.length} job{allJobs.length !== 1 ? 's' : ''}{' '}
+            {timeRange === 'month' ? `in ${format(viewMonth, 'MMMM yyyy')}` : 'total'}
+          </p>
+        </div>
         <button
           type="button"
           onClick={() => setShowCreateJob(true)}
@@ -138,6 +160,64 @@ export function JobsPage() {
           <Plus className="w-4 h-4" />
           Create Job
         </button>
+      </div>
+
+      {/* Time range selector + month navigation */}
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-5">
+        {/* All Time vs Monthly toggle */}
+        <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+          <button
+            type="button"
+            onClick={() => { setTimeRange('all'); setVisibleCount(ITEMS_PER_PAGE); }}
+            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+              timeRange === 'all' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            All Time
+          </button>
+          <button
+            type="button"
+            onClick={() => { setTimeRange('month'); setVisibleCount(ITEMS_PER_PAGE); }}
+            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+              timeRange === 'month' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            <Calendar className="w-3 h-3 inline mr-1" />
+            Monthly
+          </button>
+        </div>
+
+        {/* Month navigation (only visible in month mode) */}
+        {timeRange === 'month' && (
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={goToPrevMonth}
+              className="p-1.5 rounded-md hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-colors"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <span className="text-sm font-medium text-gray-700 min-w-[120px] text-center">
+              {format(viewMonth, 'MMMM yyyy')}
+            </span>
+            <button
+              type="button"
+              onClick={goToNextMonth}
+              className="p-1.5 rounded-md hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-colors"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+            {!isThisMonth(viewMonth) && (
+              <button
+                type="button"
+                onClick={goToCurrentMonth}
+                className="text-xs text-brand-600 hover:text-brand-700 font-medium ml-1"
+              >
+                Today
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Search bar */}
@@ -187,7 +267,7 @@ export function JobsPage() {
       <div className="hidden lg:block bg-white rounded-xl border border-gray-200 overflow-hidden">
         <table className="w-full">
           <thead>
-            <tr className="border-b border-gray-200 bg-gray-50">
+            <tr className="border-b border-gray-200 bg-gray-100/80">
               <th className="text-left text-xs font-semibold text-neutral-500 uppercase tracking-wider px-4 py-3">
                 Customer
               </th>
@@ -218,7 +298,20 @@ export function JobsPage() {
               <tr>
                 <td colSpan={5} className="text-center py-16">
                   <Briefcase className="w-10 h-10 text-neutral-300 mx-auto mb-3" />
-                  <p className="text-sm text-neutral-500">No jobs found</p>
+                  <p className="text-sm text-neutral-500">
+                    {timeRange === 'month'
+                      ? `No jobs in ${format(viewMonth, 'MMMM yyyy')}`
+                      : 'No jobs found'}
+                  </p>
+                  {timeRange === 'month' && (
+                    <button
+                      type="button"
+                      onClick={() => setTimeRange('all')}
+                      className="text-xs text-brand-600 hover:text-brand-700 font-medium mt-2"
+                    >
+                      View all jobs instead
+                    </button>
+                  )}
                 </td>
               </tr>
             ) : (
@@ -282,7 +375,20 @@ export function JobsPage() {
         ) : visibleJobs.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <Briefcase className="w-10 h-10 text-neutral-300 mb-3" />
-            <p className="text-sm text-neutral-500">No jobs found</p>
+            <p className="text-sm text-neutral-500">
+              {timeRange === 'month'
+                ? `No jobs in ${format(viewMonth, 'MMMM yyyy')}`
+                : 'No jobs found'}
+            </p>
+            {timeRange === 'month' && (
+              <button
+                type="button"
+                onClick={() => setTimeRange('all')}
+                className="text-xs text-brand-600 hover:text-brand-700 font-medium mt-2"
+              >
+                View all jobs instead
+              </button>
+            )}
           </div>
         ) : (
           visibleJobs.map((job: any) => {

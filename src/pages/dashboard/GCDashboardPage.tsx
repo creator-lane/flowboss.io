@@ -300,7 +300,7 @@ function SubCard({
   const perfQuery = useQuery({
     queryKey: ['trade-rating', sub.userId],
     queryFn: () => api.getSubPerformance(sub.userId),
-    enabled: !!sub.isPlaceholder && !!sub.userId,
+    enabled: !sub.isPlaceholder && !!sub.userId,
   });
   const score = perfQuery.data?.data?.score;
   const totalRatings = perfQuery.data?.data?.totalRatings || 0;

@@ -1576,7 +1576,7 @@ export const api = {
   getGCProject: async (id: string) => {
     const { data, error } = await supabase
       .from('gc_projects')
-      .select('*, trades:gc_project_trades(*, tasks:gc_project_tasks(*)), messages:gc_project_messages(*)')
+      .select('*, zones:gc_project_zones(*), trades:gc_project_trades(*, tasks:gc_project_tasks(*)), messages:gc_project_messages(*)')
       .eq('id', id)
       .single();
     if (error) throw new Error(error.message);
@@ -1613,14 +1613,52 @@ export const api = {
 
     if (!org) throw new Error('Could not create organization');
 
-    const { trades, ...project } = projectData;
+    const { trades, zones, structureType, sqFootage, bedrooms, bathrooms, stories, ...project } = projectData;
     const { data, error } = await supabase
       .from('gc_projects')
-      .insert({ ...snakeify(project), org_id: org.id, created_by: userId })
+      .insert({
+        ...snakeify(project),
+        org_id: org.id,
+        created_by: userId,
+        structure_type: structureType || null,
+        sq_footage: sqFootage || null,
+        bedrooms: bedrooms || null,
+        bathrooms: bathrooms || null,
+        stories: stories || null,
+      })
       .select().single();
     if (error) throw new Error(error.message);
 
-    // Insert trades
+    // Insert zones (with their trades) if provided
+    if (zones?.length && data) {
+      for (let zi = 0; zi < zones.length; zi++) {
+        const { trades: zoneTrades, ...zoneFields } = zones[zi];
+        const { data: zoneData } = await supabase
+          .from('gc_project_zones')
+          .insert({ gc_project_id: data.id, name: zoneFields.name, zone_type: zoneFields.zoneType || null, sort_order: zi })
+          .select().single();
+
+        if (zoneTrades?.length && zoneData) {
+          for (let ti = 0; ti < zoneTrades.length; ti++) {
+            const { tasks, ...tradeFields } = zoneTrades[ti];
+            const { data: tradeData } = await supabase
+              .from('gc_project_trades')
+              .insert({ ...snakeify(tradeFields), gc_project_id: data.id, zone_id: zoneData.id, sort_order: ti })
+              .select().single();
+
+            if (tasks?.length && tradeData) {
+              await supabase.from('gc_project_tasks').insert(
+                tasks.map((t: any, tki: number) => ({
+                  trade_id: tradeData.id, name: t.name, done: false, sort_order: tki,
+                }))
+              );
+            }
+          }
+        }
+      }
+    }
+
+    // Insert standalone trades (not in zones)
     if (trades?.length && data) {
       for (let i = 0; i < trades.length; i++) {
         const { tasks, ...tradeFields } = trades[i];
@@ -1744,6 +1782,54 @@ export const api = {
 
   deleteGCTradeMaterial: async (id: string) => {
     await supabase.from('gc_trade_materials').delete().eq('id', id);
+  },
+
+  // ── Zones ──
+  getProjectZones: async (projectId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('gc_project_zones')
+        .select('*')
+        .eq('gc_project_id', projectId)
+        .order('sort_order');
+      if (error) throw new Error(error.message);
+      return { data: camelify(data || []) };
+    } catch { return { data: [] }; }
+  },
+
+  addZone: async (projectId: string, name: string, zoneType?: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('gc_project_zones')
+        .insert({ gc_project_id: projectId, name, zone_type: zoneType || null })
+        .select().single();
+      if (error) throw new Error(error.message);
+      return { data: camelify(data) };
+    } catch { return { data: null }; }
+  },
+
+  updateZone: async (zoneId: string, updates: any) => {
+    const { data, error } = await supabase
+      .from('gc_project_zones')
+      .update(snakeify(updates))
+      .eq('id', zoneId)
+      .select().single();
+    if (error) throw new Error(error.message);
+    return { data: camelify(data) };
+  },
+
+  deleteZone: async (zoneId: string) => {
+    await supabase.from('gc_project_zones').delete().eq('id', zoneId);
+  },
+
+  assignTradeToZone: async (tradeId: string, zoneId: string | null) => {
+    const { data, error } = await supabase
+      .from('gc_project_trades')
+      .update({ zone_id: zoneId })
+      .eq('id', tradeId)
+      .select().single();
+    if (error) throw new Error(error.message);
+    return { data: camelify(data) };
   },
 
   // GC Messages

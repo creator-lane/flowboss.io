@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../lib/api';
 import {
@@ -16,6 +16,7 @@ import {
   UserPlus,
   X,
   Star,
+  Zap,
 } from 'lucide-react';
 import { CreateGCProjectModal } from '../../components/gc/CreateGCProjectModal';
 
@@ -361,12 +362,158 @@ function SubCard({
   );
 }
 
+/* ─── Demo Project Data ─── */
+
+const DEMO_PROJECT = {
+  name: 'Smith Residence \u2014 Full Remodel',
+  customerName: 'John & Sarah Smith',
+  address: '1847 Oak Valley Dr',
+  city: 'Austin',
+  state: 'TX',
+  zip: '78704',
+  structureType: 'house',
+  sqFootage: 2400,
+  bedrooms: 3,
+  bathrooms: 2,
+  stories: 2,
+  budget: 85000,
+  startDate: '2026-03-15',
+  targetEndDate: '2026-07-30',
+  status: 'active',
+  zones: [
+    {
+      name: 'Kitchen',
+      zoneType: 'kitchen',
+      trades: [
+        { trade: 'Plumbing', laborHours: 24, laborRate: 95, materialsBudget: 3200, status: 'completed',
+          tasks: [
+            { name: 'Rough-in plumbing', done: true },
+            { name: 'Install sink', done: true },
+            { name: 'Connect dishwasher', done: true },
+            { name: 'Final inspection', done: true },
+          ]},
+        { trade: 'Electrical', laborHours: 20, laborRate: 95, materialsBudget: 1800, status: 'completed',
+          tasks: [
+            { name: 'Run new circuits', done: true },
+            { name: 'Install outlets', done: true },
+            { name: 'Under-cabinet lighting', done: true },
+            { name: 'Inspection', done: true },
+          ]},
+        { trade: 'Flooring', laborHours: 16, laborRate: 60, materialsBudget: 2800, status: 'in_progress',
+          tasks: [
+            { name: 'Remove old flooring', done: true },
+            { name: 'Level subfloor', done: true },
+            { name: 'Install hardwood', done: false },
+            { name: 'Finish and seal', done: false },
+          ]},
+        { trade: 'Painting', laborHours: 12, laborRate: 50, materialsBudget: 400, status: 'not_started',
+          tasks: [
+            { name: 'Prep walls', done: false },
+            { name: 'Prime', done: false },
+            { name: 'Two coats', done: false },
+            { name: 'Touch-ups', done: false },
+          ]},
+      ],
+    },
+    {
+      name: 'Master Bathroom',
+      zoneType: 'bathroom',
+      trades: [
+        { trade: 'Plumbing', laborHours: 20, laborRate: 95, materialsBudget: 2500, status: 'in_progress',
+          tasks: [
+            { name: 'Demo existing', done: true },
+            { name: 'Rough-in', done: true },
+            { name: 'Install shower valve', done: false },
+            { name: 'Install vanity', done: false },
+            { name: 'Final connections', done: false },
+          ]},
+        { trade: 'Tiling', laborHours: 24, laborRate: 65, materialsBudget: 1800, status: 'not_started',
+          tasks: [
+            { name: 'Waterproof shower', done: false },
+            { name: 'Tile shower walls', done: false },
+            { name: 'Tile floor', done: false },
+            { name: 'Grout and seal', done: false },
+          ]},
+        { trade: 'Electrical', laborHours: 8, laborRate: 95, materialsBudget: 600, status: 'completed',
+          tasks: [
+            { name: 'GFCI outlets', done: true },
+            { name: 'Vanity lights', done: true },
+            { name: 'Exhaust fan', done: true },
+          ]},
+      ],
+    },
+    {
+      name: 'Bathroom 2',
+      zoneType: 'bathroom',
+      trades: [
+        { trade: 'Plumbing', laborHours: 12, laborRate: 95, materialsBudget: 1500, status: 'completed',
+          tasks: [
+            { name: 'Rough-in', done: true },
+            { name: 'Install toilet', done: true },
+            { name: 'Install vanity', done: true },
+          ]},
+        { trade: 'Tiling', laborHours: 16, laborRate: 65, materialsBudget: 1200, status: 'in_progress',
+          tasks: [
+            { name: 'Tile tub surround', done: true },
+            { name: 'Tile floor', done: false },
+            { name: 'Grout and seal', done: false },
+          ]},
+      ],
+    },
+    {
+      name: 'Exterior',
+      zoneType: 'exterior',
+      trades: [
+        { trade: 'Roofing', laborHours: 32, laborRate: 70, materialsBudget: 6000, status: 'completed',
+          tasks: [
+            { name: 'Tear off old shingles', done: true },
+            { name: 'Replace underlayment', done: true },
+            { name: 'Install new shingles', done: true },
+            { name: 'Flash and seal', done: true },
+          ]},
+        { trade: 'Landscaping', laborHours: 20, laborRate: 50, materialsBudget: 2000, status: 'not_started',
+          tasks: [
+            { name: 'Grade yard', done: false },
+            { name: 'Plant beds', done: false },
+            { name: 'Sod lawn', done: false },
+          ]},
+      ],
+    },
+    {
+      name: 'General',
+      zoneType: 'general',
+      trades: [
+        { trade: 'Framing', laborHours: 40, laborRate: 65, materialsBudget: 5000, status: 'completed',
+          tasks: [
+            { name: 'Kitchen wall demo', done: true },
+            { name: 'Install header beam', done: true },
+            { name: 'Frame bathroom walls', done: true },
+            { name: 'Structural inspection', done: true },
+          ]},
+        { trade: 'HVAC', laborHours: 24, laborRate: 95, materialsBudget: 4000, status: 'in_progress',
+          tasks: [
+            { name: 'New ductwork', done: true },
+            { name: 'Install mini-split', done: false },
+            { name: 'Final hookup', done: false },
+          ]},
+        { trade: 'Drywall', laborHours: 32, laborRate: 55, materialsBudget: 1500, status: 'not_started',
+          tasks: [
+            { name: 'Hang drywall', done: false },
+            { name: 'Tape and mud', done: false },
+            { name: 'Sand and prime', done: false },
+          ]},
+      ],
+    },
+  ],
+};
+
 export function GCDashboardPage() {
   const navigate = useNavigate();
   const [showCreate, setShowCreate] = useState(false);
   const [search, setSearch] = useState('');
   const [activeTab, setActiveTab] = useState<GCTab>('projects');
   const [inviteModalSub, setInviteModalSub] = useState<any>(null);
+  const queryClient = useQueryClient();
 
   const { ready: orgReady, isLoading: orgLoading } = useAutoOrg();
 
@@ -390,6 +537,17 @@ export function GCDashboardPage() {
 
   const projects: any[] = projectsQuery.data?.data || [];
   const subs: any[] = subsQuery.data?.data || [];
+
+  // Demo project loader
+  const loadDemoMutation = useMutation({
+    mutationFn: async () => {
+      // The API's createGCProject already handles zones + trades + tasks in one call
+      await api.createGCProject(DEMO_PROJECT);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['gc-projects'] });
+    },
+  });
 
   const filtered = useMemo(() => {
     if (!search.trim()) return projects;
@@ -567,13 +725,23 @@ export function GCDashboardPage() {
               <FolderKanban className="w-12 h-12 text-gray-300 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-1">No projects yet</h3>
               <p className="text-sm text-gray-500 mb-6">Create your first project to get started.</p>
-              <button
-                onClick={() => setShowCreate(true)}
-                className="inline-flex items-center gap-2 px-4 py-2.5 bg-brand-500 text-white rounded-lg text-sm font-medium hover:bg-brand-600 transition-colors"
-              >
-                <Plus className="w-4 h-4" />
-                New Project
-              </button>
+              <div className="flex items-center justify-center gap-3">
+                <button
+                  onClick={() => setShowCreate(true)}
+                  className="inline-flex items-center gap-2 px-4 py-2.5 bg-brand-500 text-white rounded-lg text-sm font-medium hover:bg-brand-600 transition-colors"
+                >
+                  <Plus className="w-4 h-4" />
+                  New Project
+                </button>
+                <button
+                  onClick={() => loadDemoMutation.mutate()}
+                  disabled={loadDemoMutation.isPending}
+                  className="inline-flex items-center gap-2 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors disabled:opacity-50"
+                >
+                  <Zap className="w-4 h-4" />
+                  {loadDemoMutation.isPending ? 'Loading...' : 'Load Demo Project'}
+                </button>
+              </div>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">

@@ -30,6 +30,9 @@ import {
   Star,
 } from 'lucide-react';
 import { TimelineBoard } from '../../components/gc/TimelineBoard';
+import { ZoneClusterDiagram } from '../../components/gc/ZoneClusterDiagram';
+import { OnboardingOverlay } from '../../components/gc/OnboardingOverlay';
+import { Tooltip } from '../../components/ui/Tooltip';
 import { useToast } from '../../components/ui/Toast';
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -135,6 +138,7 @@ export function GCProjectDetailPage() {
   const [showAddTradeVisual, setShowAddTradeVisual] = useState(false);
   const [addTradeValue, setAddTradeValue] = useState('');
   const [showEditProject, setShowEditProject] = useState(false);
+  const [selectedZoneId, setSelectedZoneId] = useState<string | null>(null);
 
   const addTradeMutation = useMutation({
     mutationFn: (trade: string) => api.addGCTrade(id!, { trade }),
@@ -164,6 +168,7 @@ export function GCProjectDetailPage() {
   const project = projectQuery.data?.data;
   const messages: any[] = messagesQuery.data?.data || [];
   const trades: any[] = project?.trades || [];
+  const zones: any[] = project?.zones || [];
 
   const totalTasks = trades.reduce((s: number, t: any) => s + (t.tasks?.length || 0), 0);
   const doneTasks = trades.reduce((s: number, t: any) => s + (t.tasks?.filter((tk: any) => tk.done).length || 0), 0);
@@ -266,7 +271,7 @@ export function GCProjectDetailPage() {
         {/* View toggle + progress row */}
         <div className="mt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           {/* Segmented control */}
-          <div className="inline-flex items-center bg-gray-100 rounded-lg p-1">
+          <div className="inline-flex items-center bg-gray-100 rounded-lg p-1" data-tour="view-toggle">
             <button
               onClick={() => setViewMode('visual')}
               className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
@@ -312,6 +317,7 @@ export function GCProjectDetailPage() {
               />
             </div>
             <span className="font-medium text-gray-700">{overallProgress}%</span>
+            <Tooltip text="Weighted completion based on labor hours per trade" />
           </div>
         </div>
       </div>
@@ -319,14 +325,25 @@ export function GCProjectDetailPage() {
       {/* ─── Visual View ─── */}
       {viewMode === 'visual' && (
         <div className="relative">
-          <HubSpokeDiagram
-            project={project}
-            trades={trades}
-            overallProgress={overallProgress}
-            selectedTradeId={selectedTradeId}
-            onSelectTrade={(tradeId) => setSelectedTradeId(tradeId === selectedTradeId ? null : tradeId)}
-            onAddTrade={() => setShowAddTradeVisual(true)}
-          />
+          {zones.length > 0 ? (
+            <ZoneClusterDiagram
+              project={project}
+              trades={trades}
+              zones={zones}
+              overallProgress={overallProgress}
+              selectedZoneId={selectedZoneId}
+              onSelectZone={(zoneId) => setSelectedZoneId(zoneId === selectedZoneId ? null : zoneId)}
+            />
+          ) : (
+            <HubSpokeDiagram
+              project={project}
+              trades={trades}
+              overallProgress={overallProgress}
+              selectedTradeId={selectedTradeId}
+              onSelectTrade={(tradeId) => setSelectedTradeId(tradeId === selectedTradeId ? null : tradeId)}
+              onAddTrade={() => setShowAddTradeVisual(true)}
+            />
+          )}
 
           {/* Quick Add Trade Popup (Visual View) */}
           {showAddTradeVisual && (
@@ -413,6 +430,9 @@ export function GCProjectDetailPage() {
           onClose={() => setShowEditProject(false)}
         />
       )}
+
+      {/* Onboarding */}
+      <OnboardingOverlay onDismiss={() => {}} />
     </div>
   );
 }
@@ -473,6 +493,7 @@ function BudgetBar({ trades, budget }: { trades: any[]; budget?: number }) {
           />
         </div>
         <span className="text-xs font-medium text-gray-500 w-12 text-right">{pct}% allocated</span>
+        <Tooltip text="Total allocated vs budgeted across all trades" />
       </div>
     </div>
   );

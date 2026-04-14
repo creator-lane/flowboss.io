@@ -23,6 +23,7 @@ import {
   Loader2,
   Save,
 } from 'lucide-react';
+import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { CreateInvoiceModal } from '../../components/invoices/CreateInvoiceModal';
 import { EditableLineItems } from '../../components/jobs/EditableLineItems';
 
@@ -82,6 +83,8 @@ export function JobDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   // Fetch job
   const { data: jobData, isLoading } = useQuery({
@@ -209,9 +212,7 @@ export function JobDetailPage() {
   };
 
   const handleDelete = () => {
-    if (window.confirm('Are you sure you want to delete this job? This action cannot be undone.')) {
-      deleteMutation.mutate();
-    }
+    setShowDeleteConfirm(true);
   };
 
   const currentStatusIdx = STATUS_FLOW.indexOf(job?.status as any);
@@ -580,6 +581,20 @@ export function JobDetailPage() {
         onClose={() => setShowCreateInvoice(false)}
         prefillJobId={id}
         prefillCustomerId={job.customerId || job.customer_id}
+      />
+
+      <ConfirmDialog
+        open={showDeleteConfirm}
+        title="Delete Job"
+        message="Are you sure you want to delete this job? This action cannot be undone."
+        variant="danger"
+        confirmLabel="Delete"
+        loading={deleteMutation.isPending}
+        onConfirm={() => {
+          deleteMutation.mutate();
+          setShowDeleteConfirm(false);
+        }}
+        onCancel={() => setShowDeleteConfirm(false)}
       />
     </div>
   );

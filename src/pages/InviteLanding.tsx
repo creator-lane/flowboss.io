@@ -60,7 +60,7 @@ export function InviteLanding() {
             <span className="font-bold text-gray-900 text-lg">FlowBoss</span>
           </div>
           <Link
-            to={`/login?redirect=/dashboard/gc-projects/${projectId}`}
+            to={`/login?redirect=/dashboard/projects/assigned/${projectId}`}
             className="text-sm text-gray-600 hover:text-gray-900 font-medium"
           >
             Already have an account? Log in
@@ -110,7 +110,7 @@ export function InviteLanding() {
             <ArrowRight className="w-4 h-4" />
           </Link>
           <Link
-            to={`/login?redirect=/dashboard/gc-projects/${projectId}`}
+            to={`/login?redirect=/dashboard/projects/assigned/${projectId}`}
             className="inline-flex items-center gap-2 px-8 py-3.5 bg-white text-gray-900 border border-gray-300 rounded-xl text-base font-semibold hover:bg-gray-50 shadow-sm transition-all"
           >
             Log In

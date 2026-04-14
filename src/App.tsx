@@ -27,8 +27,7 @@ const InvoicesPage = lazy(() => import('./pages/dashboard/InvoicesPage').then(m 
 const InvoiceDetailPage = lazy(() => import('./pages/dashboard/InvoiceDetailPage').then(m => ({ default: m.InvoiceDetailPage })));
 const FinancialsPage = lazy(() => import('./pages/dashboard/FinancialsPage').then(m => ({ default: m.FinancialsPage })));
 const InsightsPage = lazy(() => import('./pages/dashboard/InsightsPage').then(m => ({ default: m.InsightsPage })));
-const ProjectsPage = lazy(() => import('./pages/dashboard/ProjectsPage').then(m => ({ default: m.ProjectsPage })));
-const ProjectDetailPage = lazy(() => import('./pages/dashboard/ProjectDetailPage').then(m => ({ default: m.ProjectDetailPage })));
+const CommandCenterPage = lazy(() => import('./pages/dashboard/CommandCenterPage').then(m => ({ default: m.CommandCenterPage })));
 const ContractorsPage = lazy(() => import('./pages/dashboard/ContractorsPage').then(m => ({ default: m.ContractorsPage })));
 const ContractorDetailPage = lazy(() => import('./pages/dashboard/ContractorDetailPage').then(m => ({ default: m.ContractorDetailPage })));
 const SettingsPage = lazy(() => import('./pages/dashboard/SettingsPage').then(m => ({ default: m.SettingsPage })));
@@ -79,7 +78,7 @@ export default function App() {
           </RequireAuth>
         }
       >
-        <Route index element={<Navigate to="/dashboard/schedule" replace />} />
+        <Route index element={<Navigate to="/dashboard/home" replace />} />
         <Route path="schedule" element={<Lazy><SchedulePage /></Lazy>} />
         <Route path="jobs" element={<Lazy><JobsPage /></Lazy>} />
         <Route path="jobs/:id" element={<Lazy><JobDetailPage /></Lazy>} />
@@ -87,13 +86,12 @@ export default function App() {
         <Route path="customers/:id" element={<Lazy><CustomerDetailPage /></Lazy>} />
         <Route path="invoices" element={<Lazy><InvoicesPage /></Lazy>} />
         <Route path="invoices/:id" element={<Lazy><InvoiceDetailPage /></Lazy>} />
-        <Route path="projects" element={<Lazy><ProjectsPage /></Lazy>} />
-        <Route path="projects/:id" element={<Lazy><ProjectDetailPage /></Lazy>} />
+        <Route path="home" element={<Lazy><CommandCenterPage /></Lazy>} />
         <Route path="contractors" element={<Lazy><ContractorsPage /></Lazy>} />
         <Route path="contractors/:id" element={<Lazy><ContractorDetailPage /></Lazy>} />
-        <Route path="gc" element={<Lazy><GCDashboardPage /></Lazy>} />
-        <Route path="gc/:id" element={<Lazy><GCProjectDetailPage /></Lazy>} />
-        <Route path="gc-projects/:id" element={<Lazy><SubProjectViewPage /></Lazy>} />
+        <Route path="projects" element={<Lazy><GCDashboardPage /></Lazy>} />
+        <Route path="projects/:id" element={<Lazy><GCProjectDetailPage /></Lazy>} />
+        <Route path="projects/assigned/:id" element={<Lazy><SubProjectViewPage /></Lazy>} />
         <Route path="financials" element={<Lazy><FinancialsPage /></Lazy>} />
         <Route path="insights" element={<Lazy><InsightsPage /></Lazy>} />
         <Route path="settings" element={<Lazy><SettingsPage /></Lazy>} />

@@ -15,6 +15,7 @@ import {
   Briefcase,
   UserPlus,
   X,
+  Star,
 } from 'lucide-react';
 import { CreateGCProjectModal } from '../../components/gc/CreateGCProjectModal';
 
@@ -291,11 +292,29 @@ function SubCard({
   sub: any;
   onInvite: (sub: any) => void;
 }) {
+  const perfQuery = useQuery({
+    queryKey: ['trade-rating', sub.userId],
+    queryFn: () => api.getSubPerformance(sub.userId),
+    enabled: !!sub.userId,
+  });
+  const score = perfQuery.data?.data?.score;
+  const totalRatings = perfQuery.data?.data?.totalRatings || 0;
+
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md transition-all">
       <div className="flex items-start justify-between mb-3">
         <div>
-          <h3 className="text-base font-semibold text-gray-900">{sub.businessName}</h3>
+          <div className="flex items-center gap-2">
+            <h3 className="text-base font-semibold text-gray-900">{sub.businessName}</h3>
+            {score !== null && score !== undefined && totalRatings > 0 ? (
+              <span className={`inline-flex items-center gap-0.5 text-xs font-semibold ${score >= 4 ? 'text-green-600' : score >= 3 ? 'text-amber-500' : 'text-red-500'}`}>
+                <Star className="w-3 h-3 fill-current" />
+                {score.toFixed(1)}
+              </span>
+            ) : (
+              <span className="text-[10px] text-gray-400">No ratings</span>
+            )}
+          </div>
           <p className="text-sm text-gray-500">{sub.tradePrimary}</p>
         </div>
         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700">
@@ -360,13 +379,6 @@ export function GCDashboardPage() {
   const [activeTab, setActiveTab] = useState<GCTab>('projects');
   const [inviteModalSub, setInviteModalSub] = useState<any>(null);
 
-  const { data: settingsData, isLoading: settingsLoading } = useQuery({
-    queryKey: ['settings'],
-    queryFn: () => api.getSettings(),
-  });
-  const trade = settingsData?.data?.trade;
-  const isGC = trade === 'general_contractor';
-
   const { ready: orgReady, isLoading: orgLoading } = useAutoOrg();
 
   const projectsQuery = useQuery({
@@ -380,6 +392,12 @@ export function GCDashboardPage() {
     queryFn: () => api.getGCSubDirectory(),
     enabled: orgReady && activeTab === 'subs',
   });
+
+  const invitedQuery = useQuery({
+    queryKey: ['invited-projects'],
+    queryFn: () => api.getInvitedProjects(),
+  });
+  const invitedProjects: any[] = invitedQuery.data?.data || [];
 
   const projects: any[] = projectsQuery.data?.data || [];
   const subs: any[] = subsQuery.data?.data || [];
@@ -405,127 +423,13 @@ export function GCDashboardPage() {
     0
   );
 
-  if (orgLoading || settingsLoading) {
+  if (orgLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="w-8 h-8 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
-
-  // ── Sub-contractor view ──────────────────────────────────────────────
-  if (!isGC) {
-    // TODO: Replace with real invited-projects query when backend supports it
-    const invitedProjects: any[] = [];
-    const ownProjects = projects;
-    const hasNothing = invitedProjects.length === 0 && ownProjects.length === 0;
-
-    if (hasNothing) {
-      return (
-        <div className="p-4 lg:p-6 max-w-7xl mx-auto">
-          {/* Breadcrumb */}
-          <div className="text-sm text-gray-400 mb-4">
-            <span>GC Projects</span>
-          </div>
-
-          <div className="text-center py-20">
-            <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
-              <Inbox className="w-8 h-8 text-gray-400" />
-            </div>
-            <h2 className="text-xl font-bold text-gray-900 mb-2">No GC projects yet</h2>
-            <p className="text-sm text-gray-500 mb-2 max-w-md mx-auto">
-              When a general contractor adds you to a project, it will appear here.
-            </p>
-            <p className="text-sm text-gray-500 mb-6">Or start managing your own projects:</p>
-            <button
-              onClick={() => setShowCreate(true)}
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-500 text-white rounded-lg text-sm font-medium hover:bg-brand-600 transition-colors"
-            >
-              <Plus className="w-4 h-4" />
-              Create Project
-            </button>
-          </div>
-
-          <CreateGCProjectModal open={showCreate} onClose={() => setShowCreate(false)} />
-        </div>
-      );
-    }
-
-    // Split view for subs with some data
-    return (
-      <div className="p-4 lg:p-6 max-w-7xl mx-auto">
-        {/* Breadcrumb */}
-        <div className="text-sm text-gray-400 mb-4">
-          <span>GC Projects</span>
-        </div>
-
-        {/* Invited projects section */}
-        {invitedProjects.length > 0 && (
-          <div className="mb-10">
-            <h2 className="text-lg font-bold text-gray-900 mb-1">Projects You're Invited To</h2>
-            <p className="text-sm text-gray-500 mb-4">Projects where a GC has assigned you as a sub-contractor.</p>
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-              {invitedProjects.map((project: any) => (
-                <ProjectCard
-                  key={project.id}
-                  project={project}
-                  onClick={() => navigate(`/dashboard/gc/${project.id}`)}
-                />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Own projects section */}
-        <div>
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h2 className="text-lg font-bold text-gray-900 mb-1">
-                {invitedProjects.length > 0 ? 'Your Own Projects' : 'My Projects'}
-              </h2>
-              <p className="text-sm text-gray-500">Manage your own construction projects and trade assignments.</p>
-            </div>
-            <button
-              onClick={() => setShowCreate(true)}
-              className="flex items-center gap-2 px-4 py-2.5 bg-brand-500 text-white rounded-lg text-sm font-medium hover:bg-brand-600 transition-colors"
-            >
-              <Plus className="w-4 h-4" />
-              New Project
-            </button>
-          </div>
-
-          {ownProjects.length === 0 ? (
-            <div className="bg-white rounded-xl border border-gray-200 border-dashed p-10 text-center">
-              <FolderKanban className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-              <h3 className="text-base font-medium text-gray-900 mb-1">Start managing your own projects</h3>
-              <p className="text-sm text-gray-500 mb-4">Create a project to coordinate trades and subs.</p>
-              <button
-                onClick={() => setShowCreate(true)}
-                className="inline-flex items-center gap-2 px-4 py-2.5 bg-brand-500 text-white rounded-lg text-sm font-medium hover:bg-brand-600 transition-colors"
-              >
-                <Plus className="w-4 h-4" />
-                Create Project
-              </button>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-              {ownProjects.map((project: any) => (
-                <ProjectCard
-                  key={project.id}
-                  project={project}
-                  onClick={() => navigate(`/dashboard/gc/${project.id}`)}
-                />
-              ))}
-            </div>
-          )}
-        </div>
-
-        <CreateGCProjectModal open={showCreate} onClose={() => setShowCreate(false)} />
-      </div>
-    );
-  }
-
-  // ── GC view ──────────────────────────────────────────────────────────
 
   // Filter subs by search
   const filteredSubs = useMemo(() => {
@@ -544,14 +448,14 @@ export function GCDashboardPage() {
     <div className="p-4 lg:p-6 max-w-7xl mx-auto">
       {/* Breadcrumb */}
       <div className="text-sm text-gray-400 mb-4">
-        <span>{activeTab === 'projects' ? 'My Projects' : 'My Subs'}</span>
+        <span>{activeTab === 'projects' ? 'Projects' : 'My Subs'}</span>
       </div>
 
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">
-            {activeTab === 'projects' ? 'My Projects' : 'My Subs'}
+            {activeTab === 'projects' ? 'Projects' : 'My Subs'}
           </h1>
           <p className="text-sm text-gray-500 mt-1">
             {activeTab === 'projects'
@@ -647,6 +551,23 @@ export function GCDashboardPage() {
             />
           </div>
 
+          {/* Invited Projects */}
+          {invitedProjects.length > 0 && (
+            <div className="mb-8">
+              <h2 className="text-lg font-bold text-gray-900 mb-1">Projects You're Invited To</h2>
+              <p className="text-sm text-gray-500 mb-4">Projects where you've been assigned as a sub-contractor.</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                {invitedProjects.map((project: any) => (
+                  <ProjectCard
+                    key={project.id}
+                    project={project}
+                    onClick={() => navigate(`/dashboard/projects/${project.id}`)}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Project Grid */}
           {projectsQuery.isLoading ? (
             <div className="flex items-center justify-center h-32">
@@ -671,7 +592,7 @@ export function GCDashboardPage() {
                 <ProjectCard
                   key={project.id}
                   project={project}
-                  onClick={() => navigate(`/dashboard/gc/${project.id}`)}
+                  onClick={() => navigate(`/dashboard/projects/${project.id}`)}
                 />
               ))}
             </div>

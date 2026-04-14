@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../lib/api';
 import { InviteSubModal } from '../../components/gc/InviteSubModal';
+import { RateSubModal } from '../../components/gc/RateSubModal';
 import {
   ArrowLeft,
   MapPin,
@@ -26,6 +27,7 @@ import {
   Pencil,
   ChevronDown,
   ChevronUp,
+  Star,
 } from 'lucide-react';
 import { TimelineBoard } from '../../components/gc/TimelineBoard';
 
@@ -177,8 +179,8 @@ export function GCProjectDetailPage() {
     return (
       <div className="p-6 text-center">
         <p className="text-gray-500">Project not found.</p>
-        <button onClick={() => navigate('/dashboard/gc')} className="mt-4 text-brand-600 hover:underline text-sm">
-          Back to GC Projects
+        <button onClick={() => navigate('/dashboard/projects')} className="mt-4 text-brand-600 hover:underline text-sm">
+          Back to Projects
         </button>
       </div>
     );
@@ -188,8 +190,8 @@ export function GCProjectDetailPage() {
     <div className="p-4 lg:p-6 max-w-full">
       {/* Breadcrumbs */}
       <div className="flex items-center gap-1.5 text-sm mb-4">
-        <Link to="/dashboard/gc" className="text-gray-500 hover:text-gray-700 transition-colors">
-          GC Projects
+        <Link to="/dashboard/projects" className="text-gray-500 hover:text-gray-700 transition-colors">
+          Projects
         </Link>
         <ChevronRight className="w-3.5 h-3.5 text-gray-400" />
         <span className="text-gray-900 font-medium truncate max-w-[200px]">{project.name}</span>
@@ -808,6 +810,16 @@ function TradeDetailPanelInner({
   const queryClient = useQueryClient();
   const [newTask, setNewTask] = useState('');
   const [statusOpen, setStatusOpen] = useState(false);
+  const [showRateModal, setShowRateModal] = useState(false);
+
+  const canRate = trade.status === 'completed' && !!trade.assignedUserId;
+  const ratingQuery = useQuery({
+    queryKey: ['trade-rating', trade.assignedUserId],
+    queryFn: () => api.getSubPerformance(trade.assignedUserId),
+    enabled: !!trade.assignedUserId,
+  });
+  const subScore = ratingQuery.data?.data?.score;
+  const totalRatings = ratingQuery.data?.data?.totalRatings || 0;
 
   const toggleTask = useMutation({
     mutationFn: ({ taskId, done }: { taskId: string; done: boolean }) => api.toggleGCTask(taskId, done),
@@ -937,6 +949,34 @@ function TradeDetailPanelInner({
                     <Phone className="w-3 h-3" /> {trade.assignedPhone}
                   </div>
                 )}
+                {/* Rating section */}
+                {canRate && (
+                  <div className="mt-2 pt-2 border-t border-gray-200">
+                    <button
+                      onClick={() => setShowRateModal(true)}
+                      className="flex items-center gap-1.5 text-xs font-medium text-amber-600 hover:text-amber-700 transition-colors"
+                    >
+                      <Star className="w-3.5 h-3.5" />
+                      Rate Performance
+                    </button>
+                    {subScore !== null && subScore !== undefined && totalRatings > 0 && (
+                      <div className="flex items-center gap-1.5 mt-1">
+                        <div className="flex">
+                          {[1, 2, 3, 4, 5].map((s) => (
+                            <Star
+                              key={s}
+                              className={`w-3 h-3 ${s <= Math.round(subScore) ? 'fill-current text-amber-400' : 'text-gray-300'}`}
+                            />
+                          ))}
+                        </div>
+                        <span className={`text-xs font-semibold ${subScore >= 4 ? 'text-green-600' : subScore >= 3 ? 'text-amber-500' : 'text-red-500'}`}>
+                          {subScore.toFixed(1)}
+                        </span>
+                        <span className="text-[10px] text-gray-400">({totalRatings})</span>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             ) : (
               <button
@@ -1060,6 +1100,19 @@ function TradeDetailPanelInner({
           </div>
         </div>
       </div>
+
+      {/* Rate Sub Modal */}
+      {canRate && (
+        <RateSubModal
+          open={showRateModal}
+          onClose={() => setShowRateModal(false)}
+          tradeId={trade.id}
+          projectId={projectId}
+          subName={subName || 'Sub'}
+          subUserId={trade.assignedUserId}
+          tradeName={trade.trade}
+        />
+      )}
 
       <style>{`
         @keyframes slideInRight {

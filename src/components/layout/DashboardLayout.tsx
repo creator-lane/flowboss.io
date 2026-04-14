@@ -1,14 +1,13 @@
 import { useState } from 'react';
 import { Outlet, NavLink, Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
 import {
   Wrench,
+  Home,
   Calendar,
   Briefcase,
   Users,
   FileText,
   FolderKanban,
-  Building2,
   HardHat,
   BarChart3,
   Lightbulb,
@@ -17,37 +16,27 @@ import {
   Menu,
   X,
   MoreHorizontal,
-  Info,
 } from 'lucide-react';
 import { useAuth } from '../../lib/auth';
-import { api } from '../../lib/api';
 
 interface NavItem {
   to: string;
   label: string;
   icon: React.ElementType;
-  tooltip?: string;
 }
 
-function buildNavItems(isGC: boolean): NavItem[] {
-  return [
-    {
-      to: '/dashboard/gc',
-      label: isGC ? 'My Projects' : 'GC Projects',
-      icon: Building2,
-      tooltip: 'Manage projects with sub-contractors, or view projects you\'ve been invited to',
-    },
-    { to: '/dashboard/schedule', label: 'Schedule', icon: Calendar },
-    { to: '/dashboard/jobs', label: 'Jobs', icon: Briefcase },
-    { to: '/dashboard/customers', label: 'Customers', icon: Users },
-    { to: '/dashboard/invoices', label: 'Invoices', icon: FileText },
-    { to: '/dashboard/projects', label: 'Projects', icon: FolderKanban },
-    { to: '/dashboard/contractors', label: 'Contractors', icon: HardHat },
-    { to: '/dashboard/financials', label: 'Financials', icon: BarChart3 },
-    { to: '/dashboard/insights', label: 'Insights', icon: Lightbulb },
-    { to: '/dashboard/settings', label: 'Settings', icon: Settings },
-  ];
-}
+const navItems: NavItem[] = [
+  { to: '/dashboard/home', label: 'Home', icon: Home },
+  { to: '/dashboard/schedule', label: 'Schedule', icon: Calendar },
+  { to: '/dashboard/jobs', label: 'Jobs', icon: Briefcase },
+  { to: '/dashboard/customers', label: 'Customers', icon: Users },
+  { to: '/dashboard/invoices', label: 'Invoices', icon: FileText },
+  { to: '/dashboard/projects', label: 'Projects', icon: FolderKanban },
+  { to: '/dashboard/contractors', label: 'Contractors', icon: HardHat },
+  { to: '/dashboard/financials', label: 'Financials', icon: BarChart3 },
+  { to: '/dashboard/insights', label: 'Insights', icon: Lightbulb },
+  { to: '/dashboard/settings', label: 'Settings', icon: Settings },
+];
 
 // Show first 4 items + a "More" toggle for the rest on mobile
 const MOBILE_PRIMARY_COUNT = 4;
@@ -67,9 +56,6 @@ export function DashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
 
-  const { data: settingsData } = useQuery({ queryKey: ['settings'], queryFn: () => api.getSettings() });
-  const isGC = settingsData?.data?.trade === 'general_contractor';
-  const navItems = buildNavItems(isGC);
   const mobilePrimaryItems = navItems.filter((item) => item.label !== 'Settings').slice(0, MOBILE_PRIMARY_COUNT);
   const mobileOverflowItems = navItems.filter((item) => item.label !== 'Settings').slice(MOBILE_PRIMARY_COUNT);
 
@@ -110,7 +96,7 @@ export function DashboardLayout() {
 
         {/* Nav */}
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-          {navItems.map(({ to, label, icon: Icon, tooltip }) => (
+          {navItems.map(({ to, label, icon: Icon }) => (
             <NavLink
               key={to}
               to={to}
@@ -125,14 +111,6 @@ export function DashboardLayout() {
             >
               <Icon className="w-5 h-5" />
               {label}
-              {tooltip && (
-                <span className="relative group ml-auto">
-                  <Info className="w-3.5 h-3.5 text-neutral-400" />
-                  <span className="absolute left-6 top-1/2 -translate-y-1/2 z-50 hidden group-hover:block w-56 px-3 py-2 text-xs text-white bg-gray-800 rounded-lg shadow-lg whitespace-normal">
-                    {tooltip}
-                  </span>
-                </span>
-              )}
             </NavLink>
           ))}
         </nav>

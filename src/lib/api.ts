@@ -1810,6 +1810,55 @@ export const api = {
     }
   },
 
+  rateTradePerformance: async (data: { tradeId: string; gcProjectId: string; subUserId?: string; timeliness: number; quality: number; communication: number; budgetAdherence: number; overall: number; notes?: string }) => {
+    const userId = await getUserId();
+    try {
+      const { data: result, error } = await supabase
+        .from('gc_trade_ratings')
+        .insert({ trade_id: data.tradeId, gc_project_id: data.gcProjectId, sub_user_id: data.subUserId || null, rated_by: userId, timeliness: data.timeliness, quality: data.quality, communication: data.communication, budget_adherence: data.budgetAdherence, overall: data.overall, notes: data.notes || null })
+        .select().single();
+      if (error) throw new Error(error.message);
+      return { data: result };
+    } catch { return { data: null }; }
+  },
+
+  getSubPerformance: async (subUserId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('gc_trade_ratings')
+        .select('*')
+        .eq('sub_user_id', subUserId)
+        .order('created_at', { ascending: false });
+      if (error) return { data: { ratings: [], score: null, breakdown: null, totalRatings: 0 } };
+      const ratings = data || [];
+      if (ratings.length === 0) return { data: { ratings: [], score: null, breakdown: null, totalRatings: 0 } };
+      const avg = (field: string) => ratings.reduce((s: number, r: any) => s + (r[field] || 0), 0) / ratings.length;
+      const q = avg('quality'), t = avg('timeliness'), b = avg('budget_adherence'), c = avg('communication');
+      const score = (q * 0.35) + (t * 0.25) + (b * 0.25) + (c * 0.15);
+      return { data: { ratings, score: Math.round(score * 10) / 10, breakdown: { quality: Math.round(q * 10) / 10, timeliness: Math.round(t * 10) / 10, budgetAdherence: Math.round(b * 10) / 10, communication: Math.round(c * 10) / 10 }, totalRatings: ratings.length } };
+    } catch { return { data: { ratings: [], score: null, breakdown: null, totalRatings: 0 } }; }
+  },
+
+  getInvitedProjects: async () => {
+    try {
+      const userId = await getUserId();
+      const { data: assignments } = await supabase
+        .from('gc_project_trades')
+        .select('gc_project_id')
+        .eq('assigned_user_id', userId);
+      if (!assignments?.length) return { data: [] };
+      const projectIds = [...new Set(assignments.map((a: any) => a.gc_project_id))];
+      const { data, error } = await supabase
+        .from('gc_projects')
+        .select('*, trades:gc_project_trades(*, tasks:gc_project_tasks(*))')
+        .in('id', projectIds);
+      if (error) return { data: [] };
+      return { data: camelify(data || []) };
+    } catch {
+      return { data: [] };
+    }
+  },
+
   // Assign an existing sub to a trade on a project
   assignSubToTrade: async (tradeId: string, userId: string) => {
     const { data, error } = await supabase

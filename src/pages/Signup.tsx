@@ -119,11 +119,11 @@ export function Signup() {
           }
 
           // Redirect to the GC project view (skip checkout for invited subs)
-          navigate(`/dashboard/gc-projects/${inviteProjectId}`, { replace: true });
+          navigate(`/dashboard/projects/assigned/${inviteProjectId}`, { replace: true });
         } catch (inviteErr) {
           console.error('Invite linking failed:', inviteErr);
           // Still redirect to the project even if linking partially failed
-          navigate(`/dashboard/gc-projects/${inviteProjectId}`, { replace: true });
+          navigate(`/dashboard/projects/assigned/${inviteProjectId}`, { replace: true });
         }
         return;
       }
@@ -265,7 +265,7 @@ export function Signup() {
           <p className="text-center text-sm text-gray-500 mt-5">
             Already have an account?{' '}
             <Link
-              to={isInvite ? `/login?redirect=/dashboard/gc-projects/${inviteProjectId}` : '/login'}
+              to={isInvite ? `/login?redirect=/dashboard/projects/assigned/${inviteProjectId}` : '/login'}
               className="text-brand-500 hover:text-brand-600 font-medium"
             >
               Log in

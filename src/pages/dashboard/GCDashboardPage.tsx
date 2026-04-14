@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../lib/api';
@@ -129,37 +129,27 @@ function ProjectCard({ project, onClick }: { project: any; onClick: () => void }
   );
 }
 
-/** Auto-creates the org silently if it doesn't exist, returns true when ready */
+/** Simple org check — creates org on first visit if needed */
 function useAutoOrg() {
-  const queryClient = useQueryClient();
-  const [attempted, setAttempted] = useState(false);
-  const [creating, setCreating] = useState(false);
+  const [ready, setReady] = useState(false);
+  const didRun = useRef(false);
 
-  const orgQuery = useQuery({
-    queryKey: ['gc-org'],
-    queryFn: () => api.getOrganization(),
-  });
-
-  const org = orgQuery.data?.data;
-  const isLoading = orgQuery.isLoading;
-
-  // Auto-create org silently when needed (only try once)
   useEffect(() => {
-    if (!isLoading && !org && !attempted && !creating) {
-      setAttempted(true);
-      setCreating(true);
-      api.createOrganization({ name: 'My Company', type: 'gc' })
-        .then(() => {
-          queryClient.invalidateQueries({ queryKey: ['gc-org'] });
-          queryClient.invalidateQueries({ queryKey: ['gc-projects'] });
-        })
-        .catch(() => {})
-        .finally(() => setCreating(false));
-    }
-  }, [isLoading, org, attempted, creating, queryClient]);
+    if (didRun.current) return;
+    didRun.current = true;
 
-  const ready = !isLoading && (!!org || attempted);
-  return { ready, isLoading: isLoading || creating };
+    (async () => {
+      try {
+        const { data: org } = await api.getOrganization();
+        if (!org) {
+          await api.createOrganization({ name: 'My Company', type: 'gc' }).catch(() => {});
+        }
+      } catch {}
+      setReady(true);
+    })();
+  }, []);
+
+  return { ready, isLoading: !ready };
 }
 
 type GCTab = 'projects' | 'subs';

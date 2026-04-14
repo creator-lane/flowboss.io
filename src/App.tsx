@@ -34,6 +34,7 @@ const SettingsPage = lazy(() => import('./pages/dashboard/SettingsPage').then(m 
 const GCDashboardPage = lazy(() => import('./pages/dashboard/GCDashboardPage').then(m => ({ default: m.GCDashboardPage })));
 const GCProjectDetailPage = lazy(() => import('./pages/dashboard/GCProjectDetailPage').then(m => ({ default: m.GCProjectDetailPage })));
 const SubProjectViewPage = lazy(() => import('./pages/dashboard/SubProjectViewPage').then(m => ({ default: m.SubProjectViewPage })));
+const SubProfilePage = lazy(() => import('./pages/dashboard/SubProfilePage').then(m => ({ default: m.SubProfilePage })));
 
 function LazyFallback() {
   return (
@@ -92,6 +93,7 @@ export default function App() {
         <Route path="projects" element={<Lazy><GCDashboardPage /></Lazy>} />
         <Route path="projects/:id" element={<Lazy><GCProjectDetailPage /></Lazy>} />
         <Route path="projects/assigned/:id" element={<Lazy><SubProjectViewPage /></Lazy>} />
+        <Route path="subs/:subId" element={<Lazy><SubProfilePage /></Lazy>} />
         <Route path="financials" element={<Lazy><FinancialsPage /></Lazy>} />
         <Route path="insights" element={<Lazy><InsightsPage /></Lazy>} />
         <Route path="settings" element={<Lazy><SettingsPage /></Lazy>} />

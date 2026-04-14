@@ -1869,46 +1869,93 @@ export const api = {
 
       if (error) return { data: [] };
 
-      // Collect unique assigned users
-      const subMap = new Map<string, { userId: string; trades: string[]; projectCount: number; projects: { id: string; name: string }[] }>();
+      // Collect unique assigned users (real subs)
+      const subMap = new Map<string, { userId: string; trades: string[]; projectCount: number; projects: { id: string; name: string }[]; isPlaceholder?: boolean; phone?: string }>();
+
+      // Also collect placeholder subs from notes
+      const placeholderMap = new Map<string, { userId: string; trades: string[]; projectCount: number; projects: { id: string; name: string }[]; isPlaceholder: boolean; phone: string; businessName: string }>();
 
       for (const project of (projects || [])) {
         for (const trade of (project.trades || [])) {
           const uid = (trade as any).assigned_user_id;
-          if (!uid) continue;
-          const existing = subMap.get(uid) || { userId: uid, trades: [] as string[], projectCount: 0, projects: [] as { id: string; name: string }[] };
-          if (!existing.trades.includes((trade as any).trade)) existing.trades.push((trade as any).trade);
-          if (!existing.projects.find((p) => p.id === project.id)) {
-            existing.projects.push({ id: project.id, name: project.name });
-            existing.projectCount++;
+          const notes = (trade as any).notes || '';
+          const tradeName = (trade as any).trade;
+
+          if (uid) {
+            // Real sub
+            const existing = subMap.get(uid) || { userId: uid, trades: [] as string[], projectCount: 0, projects: [] as { id: string; name: string }[] };
+            if (!existing.trades.includes(tradeName)) existing.trades.push(tradeName);
+            if (!existing.projects.find((p) => p.id === project.id)) {
+              existing.projects.push({ id: project.id, name: project.name });
+              existing.projectCount++;
+            }
+            subMap.set(uid, existing);
+          } else {
+            // Check for placeholder in notes
+            const placeholderMatch = notes.match(/^Placeholder:\s*(.+?)(?:\s*\((.+?)\)|$)/);
+            const invitedMatch = notes.match(/^Invited:\s*(.+?)(?:\s*\((.+?)\)|$)/);
+            let name = '';
+            let phone = '';
+
+            if (placeholderMatch) {
+              name = placeholderMatch[1].trim();
+              phone = placeholderMatch[2]?.trim() || '';
+            } else if (invitedMatch) {
+              name = invitedMatch[2]?.trim() || invitedMatch[1].trim();
+              phone = '';
+            }
+
+            if (name) {
+              const existing = placeholderMap.get(name) || {
+                userId: `placeholder-${encodeURIComponent(name)}`,
+                trades: [] as string[],
+                projectCount: 0,
+                projects: [] as { id: string; name: string }[],
+                isPlaceholder: true,
+                phone: '',
+                businessName: name,
+              };
+              if (!existing.trades.includes(tradeName)) existing.trades.push(tradeName);
+              if (!existing.projects.find((p) => p.id === project.id)) {
+                existing.projects.push({ id: project.id, name: project.name });
+                existing.projectCount++;
+              }
+              if (phone && !existing.phone) existing.phone = phone;
+              placeholderMap.set(name, existing);
+            }
           }
-          subMap.set(uid, existing);
         }
       }
 
-      // Fetch profiles for each sub
+      // Fetch profiles for real subs
       const userIds = Array.from(subMap.keys());
-      if (userIds.length === 0) return { data: [] };
+      let profiles: any[] = [];
+      if (userIds.length > 0) {
+        const { data } = await supabase
+          .from('profiles')
+          .select('id, business_name, phone, trade')
+          .in('id', userIds);
+        profiles = data || [];
+      }
 
-      const { data: profiles } = await supabase
-        .from('profiles')
-        .select('id, business_name, phone, trade')
-        .in('id', userIds);
-
-      // Fetch emails from auth — profiles table may not have email
-      // We'll try to get it from auth.users via the profiles join or skip
-
-      const subs = Array.from(subMap.values()).map(sub => {
-        const profile = (profiles || []).find((p: any) => p.id === sub.userId);
+      const realSubs = Array.from(subMap.values()).map(sub => {
+        const profile = profiles.find((p: any) => p.id === sub.userId);
         return {
           ...sub,
           businessName: profile?.business_name || 'Unknown',
           phone: profile?.phone || '',
           tradePrimary: profile?.trade || sub.trades[0] || '',
+          isPlaceholder: false,
         };
       });
 
-      return { data: subs };
+      // Placeholder subs
+      const placeholderSubs = Array.from(placeholderMap.values()).map(sub => ({
+        ...sub,
+        tradePrimary: sub.trades[0] || '',
+      }));
+
+      return { data: [...realSubs, ...placeholderSubs] };
     } catch {
       return { data: [] };
     }

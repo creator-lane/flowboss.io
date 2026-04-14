@@ -141,6 +141,7 @@ export function GCProjectDetailPage() {
   const [addTradeValue, setAddTradeValue] = useState('');
   const [showEditProject, setShowEditProject] = useState(false);
   const [selectedZoneId, setSelectedZoneId] = useState<string | null>(null);
+  const [previousZoneId, setPreviousZoneId] = useState<string | null>(null);
 
   const addTradeMutation = useMutation({
     mutationFn: (trade: string) => api.addGCTrade(id!, { trade }),
@@ -384,7 +385,12 @@ export function GCProjectDetailPage() {
             trade={selectedTrade}
             projectId={id!}
             messages={messages}
-            onClose={() => setSelectedTradeId(null)}
+            onClose={() => { setSelectedTradeId(null); setPreviousZoneId(null); }}
+            onBack={previousZoneId ? () => {
+              setSelectedTradeId(null);
+              setSelectedZoneId(previousZoneId);
+              setPreviousZoneId(null);
+            } : undefined}
             onInviteSub={(tradeId, tradeName) => setInviteModalTrade({ id: tradeId, name: tradeName })}
           />
 
@@ -397,6 +403,7 @@ export function GCProjectDetailPage() {
               projectId={id!}
               onClose={() => setSelectedZoneId(null)}
               onSelectTrade={(tradeId) => {
+                setPreviousZoneId(selectedZoneId);
                 setSelectedZoneId(null);
                 setSelectedTradeId(tradeId);
               }}
@@ -849,6 +856,7 @@ function ZoneDetailPanel({
   onInviteSub: (tradeId: string, tradeName: string) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
+  const navigateToSub = useNavigate();
 
   // Find zone data
   const zone = zones.find((z: any) => z.id === zoneId);
@@ -1006,9 +1014,19 @@ function ZoneDetailPanel({
 
                   {/* Sub name */}
                   <div className="text-xs mb-2">
-                    {hasAssignee ? (
-                      <span className="text-gray-500">{subName}</span>
-                    ) : (
+                    {hasAssignee ? (() => {
+                      const subProfileLink = trade.assignedUserId || (placeholderName ? encodeURIComponent(placeholderName) : null);
+                      return subProfileLink ? (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); navigateToSub(`/dashboard/subs/${subProfileLink}`); }}
+                          className="text-brand-600 hover:text-brand-700 font-medium hover:underline transition-colors"
+                        >
+                          {subName}
+                        </button>
+                      ) : (
+                        <span className="text-gray-500">{subName}</span>
+                      );
+                    })() : (
                       <span className="text-red-400 font-medium">Unassigned</span>
                     )}
                   </div>
@@ -1141,12 +1159,14 @@ function TradeDetailPanel({
   projectId,
   messages,
   onClose,
+  onBack,
   onInviteSub,
 }: {
   trade: any | null;
   projectId: string;
   messages: any[];
   onClose: () => void;
+  onBack?: () => void;
   onInviteSub?: (tradeId: string, tradeName: string) => void;
 }) {
   const queryClient = useQueryClient();
@@ -1175,6 +1195,9 @@ function TradeDetailPanel({
   const subName = trade.assignedBusinessName || placeholderName2 || (invitedEmail2 ? `Invited: ${invitedEmail2}` : null) || (trade.assignedUserId ? 'Assigned Sub' : null);
   const doneTasks = tasks.filter((t: any) => t.done).length;
 
+  // Build sub identifier for profile link
+  const subProfileId = trade.assignedUserId || (placeholderName2 ? encodeURIComponent(placeholderName2) : null);
+
   return (
     <TradeDetailPanelInner
       trade={trade}
@@ -1186,8 +1209,10 @@ function TradeDetailPanel({
       tradeMessages={tradeMessages}
       hasAssignee={hasAssignee}
       subName={subName}
+      subProfileId={subProfileId}
       doneTasks={doneTasks}
       onClose={onClose}
+      onBack={onBack}
       onInviteSub={onInviteSub}
     />
   );
@@ -1202,8 +1227,10 @@ function TradeDetailPanelInner({
   emoji,
   tradeMessages,
   subName,
+  subProfileId,
   doneTasks,
   onClose,
+  onBack,
   onInviteSub,
 }: {
   trade: any;
@@ -1215,12 +1242,15 @@ function TradeDetailPanelInner({
   tradeMessages: any[];
   hasAssignee: boolean;
   subName: string | null;
+  subProfileId: string | null;
   doneTasks: number;
   onClose: () => void;
+  onBack?: () => void;
   onInviteSub?: (tradeId: string, tradeName: string) => void;
 }) {
   const queryClient = useQueryClient();
   const { addToast } = useToast();
+  const navigateToSub = useNavigate();
   const [newTask, setNewTask] = useState('');
   const [statusOpen, setStatusOpen] = useState(false);
   const [showRateModal, setShowRateModal] = useState(false);
@@ -1297,11 +1327,31 @@ function TradeDetailPanelInner({
       >
         {/* Header */}
         <div className="sticky top-0 bg-white z-10 border-b border-gray-100">
-          <div className="flex items-center justify-between p-4">
+          {/* Back button row */}
+          {onBack && (
+            <button
+              onClick={onBack}
+              className="flex items-center gap-1.5 px-4 pt-3 pb-1 text-xs font-medium text-brand-600 hover:text-brand-700 transition-colors"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              Back to Zone
+            </button>
+          )}
+          <div className="flex items-center justify-between p-4 pt-2">
             <div className="flex items-center gap-2 min-w-0">
               <span className="text-lg">{emoji}</span>
               <h2 className="text-lg font-bold text-gray-900 truncate">{trade.trade}</h2>
-              {subName && <span className="text-sm text-gray-400 truncate hidden sm:inline">- {subName}</span>}
+              {subName && subProfileId && (
+                <button
+                  onClick={() => navigateToSub(`/dashboard/subs/${subProfileId}`)}
+                  className="text-sm text-brand-600 hover:text-brand-700 truncate hidden sm:inline transition-colors hover:underline"
+                >
+                  - {subName}
+                </button>
+              )}
+              {subName && !subProfileId && (
+                <span className="text-sm text-gray-400 truncate hidden sm:inline">- {subName}</span>
+              )}
             </div>
             <button
               onClick={onClose}
@@ -1355,7 +1405,16 @@ function TradeDetailPanelInner({
             <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2 block">Subcontractor</label>
             {subName ? (
               <div className="bg-gray-50 rounded-lg p-3">
-                <p className="font-medium text-gray-900 text-sm">{subName}</p>
+                {subProfileId ? (
+                  <button
+                    onClick={() => navigateToSub(`/dashboard/subs/${subProfileId}`)}
+                    className="font-medium text-brand-600 hover:text-brand-700 text-sm hover:underline transition-colors"
+                  >
+                    {subName}
+                  </button>
+                ) : (
+                  <p className="font-medium text-gray-900 text-sm">{subName}</p>
+                )}
                 {trade.assignedEmail && (
                   <div className="flex items-center gap-1.5 mt-1 text-xs text-gray-500">
                     <Mail className="w-3 h-3" /> {trade.assignedEmail}

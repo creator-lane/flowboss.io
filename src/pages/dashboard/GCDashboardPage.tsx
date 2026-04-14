@@ -938,6 +938,7 @@ export function GCDashboardPage() {
                   key={project.id}
                   project={project}
                   onClick={() => navigate(`/dashboard/projects/${project.id}`)}
+                  onDelete={() => handleDeleteProject(project.id, project.name)}
                 />
               ))}
             </div>

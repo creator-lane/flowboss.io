@@ -10,8 +10,6 @@ import {
   Building2,
   CheckSquare,
   Square,
-  Send,
-  MessageSquare,
   Clock,
   DollarSign,
   Phone,
@@ -242,13 +240,8 @@ export function SubProjectViewPage() {
       {/* ── 3. My Budget ── */}
       <BudgetCard trades={visibleTrades} accent={accent} />
 
-      {/* ── 4. Messages ── */}
-      <SubMessageSection
-        projectId={id!}
-        messages={allMessages}
-        currentUserId={currentUserId}
-        myTradeIds={visibleTrades.map((t: any) => t.id)}
-      />
+      {/* ── 4. Project Updates from GC ── */}
+      <SubBannerSection messages={allMessages} />
 
       {/* ── 5. Project Timeline ── */}
       <ProjectTimeline
@@ -494,110 +487,89 @@ function BudgetCard({ trades, accent }: { trades: any[]; accent: ReturnType<type
 }
 
 /* ========================================================================= */
-/*  4. Messages (chat-bubble style)                                           */
+/*  4. Project Updates Banner (read-only for subs)                            */
 /* ========================================================================= */
 
-function SubMessageSection({
-  projectId,
-  messages,
-  currentUserId,
-  myTradeIds,
-}: {
-  projectId: string;
-  messages: any[];
-  currentUserId: string | null;
-  myTradeIds: string[];
-}) {
-  const queryClient = useQueryClient();
-  const { addToast } = useToast();
-  const [msg, setMsg] = useState('');
-  const scrollRef = useRef<HTMLDivElement>(null);
+const SUB_BANNER_CATEGORIES: Record<string, { icon: string; bg: string; border: string; text: string; iconBg: string; label: string }> = {
+  general: { icon: '\u{1F4E2}', bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-900', iconBg: 'bg-blue-100', label: 'General Update' },
+  schedule: { icon: '\u{1F4C5}', bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-900', iconBg: 'bg-amber-100', label: 'Schedule Change' },
+  safety: { icon: '\u{26A0}\u{FE0F}', bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-900', iconBg: 'bg-red-100', label: 'Safety Notice' },
+  change_order: { icon: '\u{1F4DD}', bg: 'bg-purple-50', border: 'border-purple-200', text: 'text-purple-900', iconBg: 'bg-purple-100', label: 'Change Order' },
+  milestone: { icon: '\u{1F389}', bg: 'bg-green-50', border: 'border-green-200', text: 'text-green-900', iconBg: 'bg-green-100', label: 'Milestone' },
+};
 
-  const filteredMessages = messages.filter(
-    (m: any) => !m.tradeId || myTradeIds.includes(m.tradeId)
-  );
+function parseSubBanner(message: string) {
+  const colonIdx = message.indexOf(':');
+  if (colonIdx > 0 && colonIdx < 20) {
+    const prefix = message.substring(0, colonIdx).toLowerCase();
+    const cat = SUB_BANNER_CATEGORIES[prefix];
+    if (cat) return { category: cat, text: message.substring(colonIdx + 1).trim() };
+  }
+  return { category: SUB_BANNER_CATEGORIES.general, text: message };
+}
 
-  useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
-  }, [filteredMessages.length]);
+function SubBannerSection({ messages }: { messages: any[] }) {
+  const [showAll, setShowAll] = useState(false);
 
-  const sendMessage = useMutation({
-    mutationFn: (message: string) => api.sendGCMessage(projectId, message),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['gc-messages', projectId] });
-      setMsg('');
-    },
-    onError: (err: any) => addToast(err.message || 'Failed to send message', 'error'),
-  });
+  // Project-level messages (no trade_id) = banners
+  const banners = messages
+    .filter((m: any) => !m.tradeId)
+    .sort((a: any, b: any) => new Date(b.createdAt || b.created_at).getTime() - new Date(a.createdAt || a.created_at).getTime());
+
+  if (banners.length === 0) return null;
+
+  const latest = banners[0];
+  const { category, text } = parseSubBanner(latest.message);
+  const older = banners.slice(1);
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-      <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-2">
-        <MessageSquare className="w-4 h-4 text-gray-400" />
-        <h2 className="text-base font-semibold text-gray-900">Messages</h2>
-        {filteredMessages.length > 0 && (
-          <span className="text-xs text-gray-400">({filteredMessages.length})</span>
-        )}
-      </div>
-
-      <div ref={scrollRef} className="h-80 overflow-y-auto px-5 py-4 space-y-3 bg-gray-50/50">
-        {filteredMessages.length === 0 ? (
-          <p className="text-sm text-gray-400 text-center py-12">
-            No messages yet. Start a conversation with the GC below.
-          </p>
-        ) : (
-          filteredMessages.map((m: any) => {
-            const isMe = m.senderId === currentUserId || m.sender_id === currentUserId;
-            return (
-              <div key={m.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-[75%] ${isMe ? 'order-2' : ''}`}>
-                  {!isMe && (
-                    <p className="text-xs text-gray-400 mb-1 ml-1">
-                      {m.sender?.businessName || 'GC'}
-                    </p>
-                  )}
-                  <div
-                    className={`px-4 py-2.5 rounded-2xl text-sm ${
-                      isMe
-                        ? 'bg-brand-500 text-white rounded-br-md'
-                        : 'bg-white border border-gray-200 text-gray-700 rounded-bl-md'
-                    }`}
-                  >
-                    <p className="whitespace-pre-wrap">{m.message}</p>
-                  </div>
-                  <p className={`text-xs text-gray-400 mt-1 ${isMe ? 'text-right mr-1' : 'ml-1'}`}>
-                    {formatTime(m.createdAt || m.created_at)}
-                  </p>
-                </div>
-              </div>
-            );
-          })
-        )}
-      </div>
-
-      <div className="px-5 py-3 border-t border-gray-200 bg-white">
-        <div className="flex items-center gap-2">
-          <input
-            type="text"
-            placeholder="Type a message..."
-            value={msg}
-            onChange={(e) => setMsg(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && msg.trim()) sendMessage.mutate(msg.trim());
-            }}
-            className="flex-1 px-4 py-2.5 border border-gray-200 rounded-full text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
-          />
-          <button
-            onClick={() => msg.trim() && sendMessage.mutate(msg.trim())}
-            disabled={!msg.trim() || sendMessage.isPending}
-            className="p-2.5 text-white bg-brand-500 rounded-full hover:bg-brand-600 disabled:opacity-50 transition-colors"
-          >
-            <Send className="w-4 h-4" />
-          </button>
+    <div>
+      {/* Active banner */}
+      <div className={`${category.bg} ${category.border} border rounded-xl px-4 py-3 shadow-sm`}>
+        <div className="flex items-start gap-3">
+          <div className={`${category.iconBg} w-8 h-8 rounded-lg flex items-center justify-center text-base flex-shrink-0`}>
+            {category.icon}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-0.5">
+              <span className={`text-xs font-semibold uppercase tracking-wide ${category.text} opacity-70`}>
+                {category.label}
+              </span>
+              <span className="text-xs text-gray-400">{formatTime(latest.createdAt || latest.created_at)}</span>
+            </div>
+            <p className={`text-sm font-medium ${category.text}`}>{text}</p>
+            {latest.sender?.businessName && (
+              <p className="text-xs text-gray-500 mt-1">— {latest.sender.businessName}</p>
+            )}
+          </div>
         </div>
       </div>
+
+      {/* Older banners */}
+      {older.length > 0 && (
+        <div className="mt-2">
+          <button
+            onClick={() => setShowAll(!showAll)}
+            className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            {showAll ? 'Hide' : `${older.length} older update${older.length !== 1 ? 's' : ''}`}
+          </button>
+          {showAll && (
+            <div className="mt-2 space-y-1.5">
+              {older.map((b: any) => {
+                const { category: cat, text: t } = parseSubBanner(b.message);
+                return (
+                  <div key={b.id} className="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg">
+                    <span className="text-sm">{cat.icon}</span>
+                    <p className="text-xs text-gray-600 flex-1 truncate">{t}</p>
+                    <span className="text-[10px] text-gray-400 flex-shrink-0">{formatTime(b.createdAt || b.created_at)}</span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

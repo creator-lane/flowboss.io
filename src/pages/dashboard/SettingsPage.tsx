@@ -18,8 +18,11 @@ import {
   BookOpen,
   Link2,
   Unplug,
+  Users,
+  Bell,
 } from 'lucide-react';
 import { PricebookManager } from '../../components/settings/PricebookManager';
+import { TeamManager } from '../../components/settings/TeamManager';
 
 const TRADE_OPTIONS = [
   { value: 'plumbing', label: 'Plumbing' },
@@ -33,6 +36,7 @@ const TABS = [
   { key: 'pricebook', label: 'Pricebook', icon: BookOpen },
   { key: 'payments', label: 'Payments', icon: CreditCard },
   { key: 'integrations', label: 'Integrations', icon: Link2 },
+  { key: 'team', label: 'Team', icon: Users },
 ] as const;
 
 type TabKey = (typeof TABS)[number]['key'];
@@ -256,6 +260,27 @@ export function SettingsPage() {
   const [connectingQB, setConnectingQB] = useState(false);
   const [qbAuthUrl, setQbAuthUrl] = useState('');
   const [qbError, setQbError] = useState('');
+
+  // Digest preferences
+  const [digestFrequency, setDigestFrequency] = useState<string | null>(null);
+  const [digestEmail, setDigestEmail] = useState<string | null>(null);
+  const [digestSaveMsg, setDigestSaveMsg] = useState('');
+
+  const displayDigestFrequency = digestFrequency ?? profile?.digest_frequency ?? profile?.digestFrequency ?? 'none';
+  const displayDigestEmail = digestEmail ?? profile?.digest_email ?? profile?.digestEmail ?? user?.email ?? '';
+
+  const digestMutation = useMutation({
+    mutationFn: () => api.updateDigestPreferences(displayDigestFrequency, displayDigestEmail),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['settings'] });
+      setDigestSaveMsg('Preferences saved!');
+      setTimeout(() => setDigestSaveMsg(''), 3000);
+    },
+    onError: () => {
+      setDigestSaveMsg('Failed to save. Please try again.');
+      setTimeout(() => setDigestSaveMsg(''), 3000);
+    },
+  });
 
   const [syncInvoices, setSyncInvoices] = useState<boolean | null>(null);
   const [syncCustomers, setSyncCustomers] = useState<boolean | null>(null);
@@ -492,6 +517,69 @@ export function SettingsPage() {
                 <Trash2 className="w-4 h-4" />
                 Delete Account
               </a>
+            </div>
+          </div>
+
+          {/* Notifications / Email Digests */}
+          <div className="bg-white rounded-xl border border-neutral-200 p-6 mb-6">
+            <div className="flex items-center gap-2 mb-4">
+              <Bell className="w-5 h-5 text-brand-500" />
+              <h2 className="text-lg font-bold text-neutral-900">Email Digests</h2>
+            </div>
+            <p className="text-sm text-neutral-500 mb-5">
+              Get a summary of your projects, jobs, and financials delivered to your inbox.
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div>
+                <label className="block text-sm font-semibold text-neutral-600 mb-1.5">Frequency</label>
+                <select
+                  value={displayDigestFrequency}
+                  onChange={(e) => setDigestFrequency(e.target.value)}
+                  className="w-full px-3 py-2.5 border border-neutral-300 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none bg-white appearance-none"
+                >
+                  <option value="none">None</option>
+                  <option value="daily">Daily</option>
+                  <option value="weekly">Weekly</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-neutral-600 mb-1.5">Email</label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+                  <input
+                    type="email"
+                    value={displayDigestEmail}
+                    onChange={(e) => setDigestEmail(e.target.value)}
+                    placeholder="you@company.com"
+                    className="w-full pl-10 pr-4 py-2.5 border border-neutral-300 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-5 flex items-center gap-3">
+              <button
+                onClick={() => digestMutation.mutate()}
+                disabled={digestMutation.isPending}
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-500 text-white font-semibold rounded-lg hover:bg-brand-600 disabled:opacity-50 transition text-sm"
+              >
+                {digestMutation.isPending ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Save className="w-4 h-4" />
+                )}
+                Save Preferences
+              </button>
+              {digestSaveMsg && (
+                <span
+                  className={`text-sm font-medium ${
+                    digestSaveMsg.includes('saved') ? 'text-green-600' : 'text-red-600'
+                  }`}
+                >
+                  {digestSaveMsg}
+                </span>
+              )}
             </div>
           </div>
         </>
@@ -765,6 +853,13 @@ export function SettingsPage() {
               {qbError && <p className="text-sm text-red-600">{qbError}</p>}
             </div>
           )}
+        </div>
+      )}
+
+      {/* Team Tab */}
+      {activeTab === 'team' && (
+        <div className="bg-white rounded-xl border border-neutral-200 p-6">
+          <TeamManager />
         </div>
       )}
     </div>

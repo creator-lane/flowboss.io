@@ -1859,6 +1859,80 @@ export const api = {
     }
   },
 
+  // ── Team ──
+  getTeamMembersWeb: async () => {
+    try {
+      const userId = await getUserId();
+      // Get user's org first
+      const { data: org } = await supabase
+        .from('organizations')
+        .select('id')
+        .eq('owner_id', userId)
+        .single();
+      if (!org) return { data: [] };
+
+      const { data, error } = await supabase
+        .from('team_members')
+        .select('*')
+        .eq('org_id', org.id)
+        .order('created_at', { ascending: false });
+      if (error) throw new Error(error.message);
+      return { data: camelify(data || []) };
+    } catch {
+      return { data: [] };
+    }
+  },
+
+  addTeamMember: async (member: { name: string; email?: string; phone?: string; role: string }) => {
+    try {
+      const userId = await getUserId();
+      const { data: org } = await supabase
+        .from('organizations')
+        .select('id')
+        .eq('owner_id', userId)
+        .single();
+      if (!org) throw new Error('No organization found');
+
+      const { data, error } = await supabase
+        .from('team_members')
+        .insert({ ...member, org_id: org.id, invited_by: userId, status: 'invited' })
+        .select()
+        .single();
+      if (error) throw new Error(error.message);
+      return { data: camelify(data) };
+    } catch (e: any) {
+      throw new Error(e.message || 'Failed to add team member');
+    }
+  },
+
+  updateTeamMember: async (id: string, updates: any) => {
+    try {
+      const clean = snakeify(updates);
+      const { data, error } = await supabase
+        .from('team_members')
+        .update(clean)
+        .eq('id', id)
+        .select()
+        .single();
+      if (error) throw new Error(error.message);
+      return { data: camelify(data) };
+    } catch (e: any) {
+      throw new Error(e.message || 'Failed to update');
+    }
+  },
+
+  removeTeamMember: async (id: string) => {
+    await supabase.from('team_members').delete().eq('id', id);
+  },
+
+  updateDigestPreferences: async (frequency: string, email?: string) => {
+    const userId = await getUserId();
+    const updates: any = { digest_frequency: frequency };
+    if (email) updates.digest_email = email;
+    const { error } = await supabase.from('profiles').update(updates).eq('id', userId);
+    if (error) throw new Error(error.message);
+  },
+
   // Assign an existing sub to a trade on a project
   assignSubToTrade: async (tradeId: string, userId: string) => {
     const { data, error } = await supabase

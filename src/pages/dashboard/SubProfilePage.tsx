@@ -11,7 +11,6 @@ import {
   MapPin,
   ChevronRight,
   Building2,
-  UserPlus,
   Calendar,
   Clock,
   TrendingUp,

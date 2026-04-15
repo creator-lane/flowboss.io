@@ -130,8 +130,8 @@ export function Signup() {
         return;
       }
 
-      // 4. Normal signup: redirect to checkout
-      navigate(`/checkout?plan=${plan}`, { replace: true });
+      // 4. Normal signup: redirect to onboarding wizard
+      navigate('/onboarding', { replace: true });
     } catch (err: any) {
       setError(err.message || 'Something went wrong. Please try again.');
     } finally {

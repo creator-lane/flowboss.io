@@ -10,6 +10,11 @@ body {
   @apply bg-gray-100 text-gray-900 antialiased;
 }
 
+/* Dark mode body */
+.dark body {
+  @apply bg-gray-950 text-gray-100;
+}
+
 @keyframes fade-in {
   from { opacity: 0; transform: translate(-50%, -8px); }
   to { opacity: 1; transform: translate(-50%, 0); }
@@ -54,6 +59,9 @@ body {
 .bg-gradient-subtle {
   background: linear-gradient(135deg, #f1f5f9 0%, #e8eef6 100%);
 }
+.dark .bg-gradient-subtle {
+  background: linear-gradient(135deg, #1e293b 0%, #111827 100%);
+}
 .bg-gradient-brand {
   background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 50%, #1e40af 100%);
 }
@@ -76,6 +84,9 @@ body {
 .focus-ring:focus-within {
   box-shadow: 0 0 0 2px white, 0 0 0 4px #2563eb;
 }
+.dark .focus-ring:focus-within {
+  box-shadow: 0 0 0 2px #111827, 0 0 0 4px #60a5fa;
+}
 
 /* ── Smooth transitions on all interactive elements ── */
 button, a, input, select, textarea {
@@ -87,3 +98,69 @@ button, a, input, select, textarea {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+
+.dark ::-webkit-scrollbar-thumb { background: #4b5563; }
+.dark ::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+
+/* ── Dark mode card shadows ── */
+.dark .card-shadow {
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.2);
+}
+.dark .card-shadow-hover {
+  box-shadow: 0 8px 25px rgba(0,0,0,0.3), 0 4px 10px rgba(0,0,0,0.2);
+}
+
+/* ── Global dark mode surface overrides ──────────────────────────
+   These catch the most common Tailwind patterns across ALL pages
+   so we don't need dark: variants on every single element.
+   Specific dark: overrides in components take precedence. ─────── */
+
+/* White cards → dark surface */
+.dark .bg-white { background-color: #111827 !important; }  /* gray-900 */
+.dark .bg-gray-50 { background-color: #1f2937 !important; } /* gray-800 */
+.dark .bg-gray-100 { background-color: #030712 !important; } /* gray-950 */
+
+/* Gray borders → darker borders */
+.dark .border-gray-200 { border-color: #1f2937 !important; } /* gray-800 */
+.dark .border-gray-100 { border-color: #1f2937 !important; }
+.dark .divide-gray-100 > :not([hidden]) ~ :not([hidden]) { border-color: #1f2937 !important; }
+.dark .divide-gray-200 > :not([hidden]) ~ :not([hidden]) { border-color: #374151 !important; }
+
+/* Text colors */
+.dark .text-gray-900 { color: #f3f4f6 !important; }  /* gray-100 */
+.dark .text-gray-800 { color: #e5e7eb !important; }  /* gray-200 */
+.dark .text-gray-700 { color: #d1d5db !important; }  /* gray-300 */
+.dark .text-gray-600 { color: #9ca3af !important; }  /* gray-400 */
+.dark .text-gray-500 { color: #6b7280 !important; }  /* gray-500 stays */
+.dark .text-neutral-900 { color: #f3f4f6 !important; }
+.dark .text-neutral-700 { color: #d1d5db !important; }
+.dark .text-neutral-500 { color: #9ca3af !important; }
+
+/* Placeholder text */
+.dark .placeholder\:text-neutral-400::placeholder { color: #6b7280 !important; }
+
+/* Hover states */
+.dark .hover\:bg-gray-50:hover { background-color: #1f2937 !important; }
+.dark .hover\:bg-gray-100:hover { background-color: #374151 !important; }
+
+/* Inputs */
+.dark input, .dark select, .dark textarea {
+  background-color: #1f2937 !important;
+  border-color: #374151 !important;
+  color: #f3f4f6 !important;
+}
+.dark input::placeholder, .dark textarea::placeholder {
+  color: #6b7280 !important;
+}
+
+/* Table headers */
+.dark .bg-gray-100\/80 { background-color: rgba(17, 24, 39, 0.8) !important; }
+.dark thead tr { border-color: #374151 !important; }
+
+/* Skeleton loading */
+.dark .bg-gray-200 { background-color: #374151 !important; }
+
+/* Keep sidebar as-is (already dark) — prevent double-darkening */
+.dark aside .bg-white,
+.dark aside .bg-gray-50,
+.dark aside .bg-gray-100 { background-color: unset !important; }

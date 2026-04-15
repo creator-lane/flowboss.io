@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Outlet, NavLink, Link } from 'react-router-dom';
 import {
   Wrench,
@@ -16,8 +16,12 @@ import {
   Menu,
   X,
   MoreHorizontal,
+  Moon,
+  Sun,
 } from 'lucide-react';
 import { useAuth } from '../../lib/auth';
+import { useProfile } from '../../hooks/useProfile';
+import { useTheme } from '../../hooks/useTheme';
 import { GlobalSearch } from './GlobalSearch';
 
 interface NavItem {
@@ -26,7 +30,7 @@ interface NavItem {
   icon: React.ElementType;
 }
 
-const navItems: NavItem[] = [
+const BASE_NAV: NavItem[] = [
   { to: '/dashboard/home', label: 'Home', icon: Home },
   { to: '/dashboard/schedule', label: 'Schedule', icon: Calendar },
   { to: '/dashboard/jobs', label: 'Jobs', icon: Briefcase },
@@ -38,6 +42,76 @@ const navItems: NavItem[] = [
   { to: '/dashboard/insights', label: 'Insights', icon: Lightbulb },
   { to: '/dashboard/settings', label: 'Settings', icon: Settings },
 ];
+
+/**
+ * Reorder sidebar nav based on onboarding data.
+ *
+ * - GC: Projects + Contractors move up right after Home
+ * - Sub: Schedule + Jobs first, Projects hidden (they see assigned projects inline)
+ * - Solo: Contractors hidden (no crew to manage)
+ * - Priorities bump matching items higher in the list
+ */
+function personaliseNav(
+  role: string | undefined,
+  isSolo: boolean,
+  priorities: string[],
+): NavItem[] {
+  let items = [...BASE_NAV];
+
+  // Map priority labels → nav labels for promotion
+  const PRIORITY_TO_NAV: Record<string, string> = {
+    'Scheduling & dispatch': 'Schedule',
+    'Invoicing & payments': 'Invoices',
+    'Project management': 'Projects',
+    'Finding reliable subs': 'Contractors',
+    'Tracking job costs': 'Financials',
+    'Building my reputation': 'Settings', // FlowBoss Score lives here
+  };
+
+  // Hide items that aren't relevant
+  if (role === 'sub') {
+    // Subs don't create GC projects — they see assigned ones on Command Center
+    items = items.filter((i) => i.label !== 'Projects');
+  }
+  if (isSolo) {
+    // Solo operators don't manage a crew
+    items = items.filter((i) => i.label !== 'Contractors');
+  }
+
+  // GC: promote Projects + Contractors right after Home
+  if (role === 'gc' || role === 'both') {
+    const promoted = ['Projects', 'Contractors'];
+    const homeIdx = items.findIndex((i) => i.label === 'Home');
+    const toPromote = items.filter((i) => promoted.includes(i.label));
+    const rest = items.filter((i) => !promoted.includes(i.label));
+    items = [...rest.slice(0, homeIdx + 1), ...toPromote, ...rest.slice(homeIdx + 1)];
+  }
+
+  // Priorities: promote matching nav items (after Home, before Settings)
+  if (priorities.length > 0) {
+    const promotedLabels = priorities
+      .map((p) => PRIORITY_TO_NAV[p])
+      .filter(Boolean)
+      .filter((label) => items.some((i) => i.label === label));
+
+    if (promotedLabels.length > 0) {
+      const homeIdx = items.findIndex((i) => i.label === 'Home');
+      const settingsIdx = items.findIndex((i) => i.label === 'Settings');
+      const middleItems = items.slice(homeIdx + 1, settingsIdx === -1 ? undefined : settingsIdx);
+      const beforeHome = items.slice(0, homeIdx + 1);
+      const afterSettings = settingsIdx === -1 ? [] : items.slice(settingsIdx);
+
+      // Sort middle: promoted first (in priority order), then the rest in original order
+      const promoted = middleItems.filter((i) => promotedLabels.includes(i.label));
+      const notPromoted = middleItems.filter((i) => !promotedLabels.includes(i.label));
+      promoted.sort((a, b) => promotedLabels.indexOf(a.label) - promotedLabels.indexOf(b.label));
+
+      items = [...beforeHome, ...promoted, ...notPromoted, ...afterSettings];
+    }
+  }
+
+  return items;
+}
 
 // Show first 4 items + a "More" toggle for the rest on mobile
 const MOBILE_PRIMARY_COUNT = 4;
@@ -54,8 +128,15 @@ function getUserInitials(email: string | undefined): string {
 
 export function DashboardLayout() {
   const { user, signOut } = useAuth();
+  const { profile, isGC, isSub, isSolo, priorities } = useProfile();
+  const { theme, toggle: toggleTheme, isDark } = useTheme();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
+
+  const navItems = useMemo(
+    () => personaliseNav(profile?.business_role, isSolo, priorities),
+    [profile?.business_role, isSolo, priorities],
+  );
 
   const mobilePrimaryItems = navItems.filter((item) => item.label !== 'Settings').slice(0, MOBILE_PRIMARY_COUNT);
   const mobileOverflowItems = navItems.filter((item) => item.label !== 'Settings').slice(MOBILE_PRIMARY_COUNT);
@@ -63,7 +144,7 @@ export function DashboardLayout() {
   const initials = getUserInitials(user?.email);
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex h-screen bg-gray-100 dark:bg-gray-950">
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div
@@ -143,7 +224,7 @@ export function DashboardLayout() {
       {/* Main area */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top bar */}
-        <header className="h-14 bg-white border-b border-gray-200/80 shadow-sm shadow-gray-200/50 flex items-center justify-between px-4 lg:px-6 sticky top-0 z-20">
+        <header className="h-14 bg-white dark:bg-gray-900 border-b border-gray-200/80 dark:border-gray-800 shadow-sm shadow-gray-200/50 dark:shadow-black/20 flex items-center justify-between px-4 lg:px-6 sticky top-0 z-20">
           <div className="flex items-center gap-3">
             <button
               type="button"
@@ -153,11 +234,19 @@ export function DashboardLayout() {
               <Menu className="w-5 h-5" />
             </button>
             {/* Breadcrumb area — just branding for now */}
-            <span className="text-sm font-medium text-gray-400 hidden lg:block">Dashboard</span>
+            <span className="text-sm font-medium text-gray-400 dark:text-gray-500 hidden lg:block">Dashboard</span>
           </div>
           <div className="flex items-center gap-3">
             <GlobalSearch />
-            <div className="w-8 h-8 bg-brand-100 text-brand-700 rounded-full flex items-center justify-center text-xs font-semibold lg:hidden">
+            <button
+              type="button"
+              onClick={toggleTheme}
+              className="p-2 rounded-lg text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+            >
+              {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            </button>
+            <div className="w-8 h-8 bg-brand-100 dark:bg-brand-900/50 text-brand-700 dark:text-brand-300 rounded-full flex items-center justify-center text-xs font-semibold lg:hidden">
               {initials}
             </div>
           </div>
@@ -170,12 +259,12 @@ export function DashboardLayout() {
       </div>
 
       {/* Mobile bottom nav */}
-      <nav className="fixed bottom-0 inset-x-0 z-30 bg-white border-t border-gray-200 shadow-[0_-2px_10px_rgba(0,0,0,0.06)] lg:hidden">
+      <nav className="fixed bottom-0 inset-x-0 z-30 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 shadow-[0_-2px_10px_rgba(0,0,0,0.06)] lg:hidden">
         {/* More menu overflow */}
         {moreMenuOpen && (
           <>
             <div className="fixed inset-0 z-20" onClick={() => setMoreMenuOpen(false)} />
-            <div className="absolute bottom-16 right-2 z-30 bg-white rounded-xl shadow-xl border border-gray-200 py-2 min-w-[180px]">
+            <div className="absolute bottom-16 right-2 z-30 bg-white dark:bg-gray-900 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 py-2 min-w-[180px]">
               {mobileOverflowItems.map(({ to, label, icon: Icon }) => (
                 <NavLink
                   key={to}

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Users, Briefcase, FileText, FolderKanban } from 'lucide-react';
+import { Search, Users, Briefcase, FileText, FolderKanban, HardHat } from 'lucide-react';
 import { api } from '../../lib/api';
 
 interface SearchResults {
@@ -8,9 +8,10 @@ interface SearchResults {
   customers: any[];
   invoices: any[];
   projects: any[];
+  contractors: any[];
 }
 
-const emptyResults: SearchResults = { jobs: [], customers: [], invoices: [], projects: [] };
+const emptyResults: SearchResults = { jobs: [], customers: [], invoices: [], projects: [], contractors: [] };
 
 export function GlobalSearch() {
   const [open, setOpen] = useState(false);
@@ -52,11 +53,12 @@ export function GlobalSearch() {
 
     setLoading(true);
     try {
-      const [jobsRes, customersRes, invoicesRes, projectsRes] = await Promise.all([
+      const [jobsRes, customersRes, invoicesRes, projectsRes, contractorsRes] = await Promise.all([
         api.getTodaysJobs(undefined, 'month').catch(() => ({ data: [] })),
         api.getCustomers({ search: q }).catch(() => ({ data: [] })),
         api.getInvoices().catch(() => ({ data: [] })),
         api.getGCProjects().catch(() => ({ data: [] })),
+        api.getContractors().catch(() => ({ data: [] })),
       ]);
 
       const lq = q.toLowerCase();
@@ -89,7 +91,17 @@ export function GlobalSearch() {
         )
         .slice(0, 5);
 
-      setResults({ jobs, customers, invoices, projects });
+      const contractors = (contractorsRes.data || [])
+        .filter(
+          (c: any) =>
+            c.company_name?.toLowerCase().includes(lq) ||
+            c.contact_name?.toLowerCase().includes(lq) ||
+            c.phone?.toLowerCase().includes(lq) ||
+            c.email?.toLowerCase().includes(lq)
+        )
+        .slice(0, 5);
+
+      setResults({ jobs, customers, invoices, projects, contractors });
     } catch {
       setResults(emptyResults);
     } finally {
@@ -112,7 +124,8 @@ export function GlobalSearch() {
     results.jobs.length > 0 ||
     results.customers.length > 0 ||
     results.invoices.length > 0 ||
-    results.projects.length > 0;
+    results.projects.length > 0 ||
+    results.contractors.length > 0;
 
   const noResults = !hasResults && !loading;
 
@@ -147,7 +160,7 @@ export function GlobalSearch() {
                 autoFocus
                 value={query}
                 onChange={(e) => handleChange(e.target.value)}
-                placeholder="Search jobs, customers, invoices..."
+                placeholder="Search jobs, customers, invoices, contractors..."
                 className="flex-1 text-sm outline-none bg-transparent"
               />
               <kbd className="text-[10px] text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded">
@@ -272,6 +285,35 @@ export function GlobalSearch() {
                         {p.customerName && (
                           <span className="ml-2 text-xs text-gray-400">
                             {p.customerName}
+                          </span>
+                        )}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Contractors */}
+              {results.contractors.length > 0 && (
+                <div>
+                  <div className="px-4 py-1.5 text-[10px] font-semibold text-gray-400 uppercase tracking-wide">
+                    Contractors
+                  </div>
+                  {results.contractors.map((c: any) => (
+                    <button
+                      key={c.id}
+                      type="button"
+                      onClick={() => goTo(`/dashboard/contractors/${c.id}`)}
+                      className="flex items-center gap-3 px-4 py-2 hover:bg-gray-50 w-full text-left transition-colors"
+                    >
+                      <HardHat className="w-4 h-4 text-gray-400 shrink-0" />
+                      <div className="min-w-0">
+                        <span className="text-sm text-gray-900">
+                          {c.company_name || c.contact_name || 'Unnamed Contractor'}
+                        </span>
+                        {c.contact_name && c.company_name && (
+                          <span className="ml-2 text-xs text-gray-400">
+                            {c.contact_name}
                           </span>
                         )}
                       </div>

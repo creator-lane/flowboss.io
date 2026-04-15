@@ -2,6 +2,8 @@ import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { api } from '../../lib/api';
+import { JOB_STATUS_BADGE } from '../../lib/constants';
+import { useProfile } from '../../hooks/useProfile';
 import { format, parseISO, isBefore, startOfMonth } from 'date-fns';
 import {
   Calendar,
@@ -16,6 +18,7 @@ import {
   Clock,
   HardHat,
   MapPin,
+  Star,
   X,
 } from 'lucide-react';
 import { CreateGCProjectModal } from '../../components/gc/CreateGCProjectModal';
@@ -41,12 +44,7 @@ const fmtCurrency = (n: number) =>
 
 const todayStr = format(new Date(), 'yyyy-MM-dd');
 
-const JOB_STATUS_BADGE: Record<string, { bg: string; text: string; ring: string; dot: string; label: string }> = {
-  SCHEDULED: { bg: 'bg-blue-50', text: 'text-blue-600', ring: 'ring-blue-500/20', dot: 'bg-blue-500', label: 'Scheduled' },
-  EN_ROUTE: { bg: 'bg-amber-50', text: 'text-amber-600', ring: 'ring-amber-500/20', dot: 'bg-amber-500', label: 'En Route' },
-  IN_PROGRESS: { bg: 'bg-cyan-50', text: 'text-cyan-600', ring: 'ring-cyan-500/20', dot: 'bg-cyan-500', label: 'In Progress' },
-  COMPLETED: { bg: 'bg-green-50', text: 'text-green-600', ring: 'ring-green-500/20', dot: 'bg-green-500', label: 'Completed' },
-};
+// JOB_STATUS_BADGE imported from constants
 
 const PROJECT_STATUS_DOT: Record<string, string> = {
   NOT_STARTED: 'bg-gray-400',
@@ -67,12 +65,12 @@ function StatusBadge({ status }: { status: string }) {
 // ── Skeleton Components ──────────────────────────────────────────────
 
 function SkeletonBar({ className = '' }: { className?: string }) {
-  return <div className={`bg-gray-200 rounded animate-pulse ${className}`} />;
+  return <div className={`bg-gray-200 dark:bg-gray-700 rounded animate-pulse ${className}`} />;
 }
 
 function SectionSkeleton() {
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
+    <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-5 space-y-3">
       <SkeletonBar className="h-4 w-32" />
       <SkeletonBar className="h-3 w-full" />
       <SkeletonBar className="h-3 w-3/4" />
@@ -83,6 +81,7 @@ function SectionSkeleton() {
 // ── Main Component ───────────────────────────────────────────────────
 
 export function CommandCenterPage() {
+  const { isGC, isSub, isSolo, hasPriority, profile } = useProfile();
   const [showNewProject, setShowNewProject] = useState(false);
   const [showNewInvoice, setShowNewInvoice] = useState(false);
   const [showNewJob, setShowNewJob] = useState(false);
@@ -279,13 +278,16 @@ export function CommandCenterPage() {
       )}
 
       {/* 1. Welcome Header */}
-      <div className="bg-gradient-to-r from-brand-500/5 via-brand-500/[0.02] to-transparent rounded-2xl p-6 mb-0">
+      <div className="bg-gradient-to-r from-brand-500/5 via-brand-500/[0.02] to-transparent dark:from-brand-500/10 dark:via-brand-500/5 dark:to-transparent rounded-2xl p-6 mb-0">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">
-              {greeting}, {settings?.business_name || 'there'}
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white dark:text-white">
+              {greeting}, {settings?.business_name || profile?.business_name || 'there'}
             </h1>
-            <p className="text-sm text-neutral-500">{formattedDate}</p>
+            <p className="text-sm text-neutral-500">
+              {formattedDate}
+              {profile?.trade && <span className="ml-2 text-brand-500 font-medium">· {profile.trade}</span>}
+            </p>
           </div>
           <div className="flex flex-wrap gap-2">
             {projects.length > 0 && (
@@ -308,11 +310,11 @@ export function CommandCenterPage() {
         </div>
       </div>
 
-      {/* 2. Active Projects Strip */}
-      {projects.length > 0 && (
+      {/* 2. Active Projects Strip — GCs and 'both' see this prominently */}
+      {projects.length > 0 && isGC && (
         <section>
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Active Projects</h2>
+            <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">Active Projects</h2>
             <Link to="/dashboard/projects" className="text-xs text-brand-600 font-medium hover:underline">
               View All
             </Link>
@@ -338,15 +340,15 @@ export function CommandCenterPage() {
                 <Link
                   key={p.id}
                   to={`/dashboard/projects/${p.id}`}
-                  className="shrink-0 w-52 bg-white rounded-xl border border-gray-200 p-4 hover:border-brand-300 hover:shadow-lg hover:shadow-gray-200/50 hover:-translate-y-0.5 transition-all duration-200"
+                  className="shrink-0 w-52 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-4 hover:border-brand-300 hover:shadow-lg hover:shadow-gray-200/50 dark:hover:shadow-black/30 hover:-translate-y-0.5 transition-all duration-200"
                 >
                   <div className="flex items-center gap-2 mb-2">
                     <span className={`w-2 h-2 rounded-full ${statusDot}`} />
-                    <span className="text-sm font-semibold text-gray-900 truncate">
+                    <span className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">
                       {p.name || p.projectName || p.project_name}
                     </span>
                   </div>
-                  <div className="w-full bg-gray-100 rounded-full h-1.5 mb-2">
+                  <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-1.5 mb-2">
                     <div
                       className="bg-brand-500 h-1.5 rounded-full transition-all"
                       style={{ width: `${progress}%` }}
@@ -363,7 +365,7 @@ export function CommandCenterPage() {
             <button
               type="button"
               onClick={() => setShowNewProject(true)}
-              className="shrink-0 w-52 bg-white rounded-xl border-2 border-dashed border-gray-200 p-4 flex flex-col items-center justify-center gap-2 text-gray-400 hover:border-brand-300 hover:text-brand-500 transition-colors"
+              className="shrink-0 w-52 bg-white dark:bg-gray-900 rounded-xl border-2 border-dashed border-gray-200 dark:border-gray-700 p-4 flex flex-col items-center justify-center gap-2 text-gray-400 hover:border-brand-300 hover:text-brand-500 transition-colors"
             >
               <Plus className="w-5 h-5" />
               <span className="text-xs font-medium">New Project</span>
@@ -377,7 +379,7 @@ export function CommandCenterPage() {
         {alerts.length > 0 ? (
           <div className="space-y-2">
             {alerts.map((a) => (
-              <div key={a.id} className="flex items-center gap-3 p-3 bg-red-50 border border-red-100 rounded-lg">
+              <div key={a.id} className="flex items-center gap-3 p-3 bg-red-50 dark:bg-red-950/30 border border-red-100 dark:border-red-900/50 rounded-lg">
                 <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
                 <span className="text-sm text-red-700">{a.message}</span>
                 <Link to={a.link} className="ml-auto text-xs text-red-600 font-medium whitespace-nowrap">
@@ -387,18 +389,18 @@ export function CommandCenterPage() {
             ))}
           </div>
         ) : (
-          <div className="flex items-center gap-3 p-3 bg-green-50 border border-green-100 rounded-lg">
-            <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0" />
-            <span className="text-sm text-green-700">All clear -- you're on track</span>
+          <div className="flex items-center gap-3 p-3 bg-green-50 dark:bg-green-950/30 border border-green-100 dark:border-green-900/50 rounded-lg">
+            <CheckCircle2 className="w-4 h-4 text-green-600 dark:text-green-400 shrink-0" />
+            <span className="text-sm text-green-700 dark:text-green-300">All clear -- you're on track</span>
           </div>
         )}
       </section>
 
-      {/* 3b. Your GC Projects (sub view) */}
-      {invitedProjects.length > 0 && (
+      {/* 3b. Your GC Projects (sub view) — only for subs/both */}
+      {invitedProjects.length > 0 && isSub && (
         <section>
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Your GC Projects</h2>
+            <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">Your GC Projects</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {invitedProjects.map((proj: any) => {
@@ -453,7 +455,7 @@ export function CommandCenterPage() {
                 <Link
                   key={proj.id}
                   to={`/dashboard/projects/assigned/${proj.id}`}
-                  className="bg-white rounded-xl border border-gray-200 hover:border-brand-300 hover:shadow-lg hover:shadow-brand-100/50 hover:-translate-y-0.5 transition-all duration-200 overflow-hidden"
+                  className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 hover:border-brand-300 hover:shadow-lg hover:shadow-brand-100/50 dark:hover:shadow-black/30 hover:-translate-y-0.5 transition-all duration-200 overflow-hidden"
                 >
                   {/* Banner strip */}
                   {latestBanner && (
@@ -534,17 +536,22 @@ export function CommandCenterPage() {
       )}
 
       {/* 4. Today's Schedule + 5. Financial Snapshot */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-        {/* Today's Schedule (3/5) */}
-        <div className="lg:col-span-3 bg-white rounded-xl border border-gray-200 p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_1px_2px_rgba(0,0,0,0.02)]">
+      {/* If user's top priority is financial, give financials more space */}
+      <div className={`grid grid-cols-1 lg:grid-cols-5 gap-4 ${
+        hasPriority('Invoicing & payments') || hasPriority('Tracking job costs') ? 'lg:[direction:rtl] [&>*]:lg:[direction:ltr]' : ''
+      }`}>
+        {/* Today's Schedule (3/5, or 2/5 if finance-first) */}
+        <div className={`${
+          hasPriority('Invoicing & payments') || hasPriority('Tracking job costs') ? 'lg:col-span-2' : 'lg:col-span-3'
+        } bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_1px_2px_rgba(0,0,0,0.02)]`}>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Today's Schedule</h2>
+            <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">Today's Schedule</h2>
             <Link to="/dashboard/schedule" className="text-xs text-brand-600 font-medium hover:underline">
               View Full Schedule
             </Link>
           </div>
           {todaysJobs.length > 0 ? (
-            <div className="divide-y divide-gray-100">
+            <div className="divide-y divide-gray-100 dark:divide-gray-800">
               {todaysJobs.slice(0, 5).map((job: any) => {
                 const customer = job.customer;
                 const customerName = customer
@@ -556,12 +563,12 @@ export function CommandCenterPage() {
                   <Link
                     key={job.id}
                     to={`/dashboard/jobs/${job.id}`}
-                    className="flex items-center justify-between py-3 first:pt-0 last:pb-0 hover:bg-gray-50 -mx-2 px-2 rounded-lg transition-colors"
+                    className="flex items-center justify-between py-3 first:pt-0 last:pb-0 hover:bg-gray-50 dark:hover:bg-gray-800 -mx-2 px-2 rounded-lg transition-colors"
                   >
                     <div className="flex items-center gap-3 min-w-0">
                       <Clock className="w-4 h-4 text-gray-400 shrink-0" />
                       <div className="min-w-0">
-                        <span className="text-sm font-medium text-gray-900 truncate block">{customerName}</span>
+                        <span className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate block">{customerName}</span>
                         {timeStr && <span className="text-xs text-gray-500">{timeStr}</span>}
                       </div>
                     </div>
@@ -593,24 +600,26 @@ export function CommandCenterPage() {
           )}
         </div>
 
-        {/* Financial Snapshot (2/5) */}
-        <div className="lg:col-span-2 space-y-4">
-          <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_1px_2px_rgba(0,0,0,0.02)]">
+        {/* Financial Snapshot (2/5, or 3/5 if finance-first) */}
+        <div className={`${
+          hasPriority('Invoicing & payments') || hasPriority('Tracking job costs') ? 'lg:col-span-3' : 'lg:col-span-2'
+        } space-y-4`}>
+          <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_1px_2px_rgba(0,0,0,0.02)]">
             <div className="flex items-center gap-2 mb-1">
               <DollarSign className="w-4 h-4 text-amber-500" />
-              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Outstanding</span>
+              <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Outstanding</span>
             </div>
-            <p className="text-2xl font-bold text-gray-900">{fmtCurrency(financials.outstandingTotal)}</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white">{fmtCurrency(financials.outstandingTotal)}</p>
             <p className="text-xs text-gray-500 mt-1">
               {financials.outstandingCount} unpaid invoice{financials.outstandingCount !== 1 ? 's' : ''}
             </p>
           </div>
-          <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_1px_2px_rgba(0,0,0,0.02)]">
+          <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_1px_2px_rgba(0,0,0,0.02)]">
             <div className="flex items-center gap-2 mb-1">
               <DollarSign className="w-4 h-4 text-green-500" />
-              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">This Month</span>
+              <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">This Month</span>
             </div>
-            <p className="text-2xl font-bold text-gray-900">{fmtCurrency(financials.monthRevenue)}</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white">{fmtCurrency(financials.monthRevenue)}</p>
             <p className="text-xs text-gray-500 mt-1">
               {financials.monthPaidCount} paid invoice{financials.monthPaidCount !== 1 ? 's' : ''}
             </p>
@@ -618,20 +627,42 @@ export function CommandCenterPage() {
         </div>
       </div>
 
-      {/* 6. Quick Actions */}
+      {/* 5b. FlowBoss Score teaser for subs */}
+      {isSub && (
+        <Link
+          to="/dashboard/settings"
+          className="flex items-center gap-4 bg-gradient-to-r from-amber-50 via-white to-white rounded-xl border border-amber-200/60 p-4 hover:border-amber-300 hover:shadow-md transition-all group"
+        >
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-400 to-amber-500 flex items-center justify-center shadow-sm shadow-amber-400/20 shrink-0">
+            <Star className="w-6 h-6 text-white" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h3 className="text-sm font-semibold text-gray-900">Your FlowBoss Score</h3>
+            <p className="text-xs text-gray-500">
+              Build your reputation across GC projects. View your score and project history.
+            </p>
+          </div>
+          <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-amber-500 transition-colors shrink-0" />
+        </Link>
+      )}
+
+      {/* 6. Quick Actions — personalized by role */}
       <section>
-        <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">Quick Actions</h2>
-        <div className="grid grid-cols-3 gap-3">
-          <button
-            type="button"
-            onClick={() => setShowNewProject(true)}
-            className="flex flex-col items-center gap-2 p-4 bg-gradient-to-br from-brand-50 to-white rounded-xl border border-brand-100 hover:border-brand-300 hover:shadow-lg hover:shadow-brand-100/50 hover:-translate-y-0.5 transition-all duration-200 text-center"
-          >
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center shadow-sm shadow-brand-500/20">
-              <Building2 className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-sm font-medium text-gray-700">New Project</span>
-          </button>
+        <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-3">Quick Actions</h2>
+        <div className={`grid gap-3 ${isGC ? 'grid-cols-3' : 'grid-cols-2 sm:grid-cols-3'}`}>
+          {/* GC: New Project button */}
+          {isGC && (
+            <button
+              type="button"
+              onClick={() => setShowNewProject(true)}
+              className="flex flex-col items-center gap-2 p-4 bg-gradient-to-br from-brand-50 to-white rounded-xl border border-brand-100 hover:border-brand-300 hover:shadow-lg hover:shadow-brand-100/50 hover:-translate-y-0.5 transition-all duration-200 text-center"
+            >
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center shadow-sm shadow-brand-500/20">
+                <Building2 className="w-5 h-5 text-white" />
+              </div>
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">New Project</span>
+            </button>
+          )}
           <button
             type="button"
             onClick={() => setShowNewInvoice(true)}
@@ -640,7 +671,7 @@ export function CommandCenterPage() {
             <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center shadow-sm shadow-emerald-500/20">
               <FileText className="w-5 h-5 text-white" />
             </div>
-            <span className="text-sm font-medium text-gray-700">Create Invoice</span>
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Create Invoice</span>
           </button>
           <button
             type="button"
@@ -650,8 +681,20 @@ export function CommandCenterPage() {
             <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-violet-500 to-violet-600 flex items-center justify-center shadow-sm shadow-violet-500/20">
               <Briefcase className="w-5 h-5 text-white" />
             </div>
-            <span className="text-sm font-medium text-gray-700">Add Job</span>
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Add Job</span>
           </button>
+          {/* Sub: View Schedule as prominent action */}
+          {isSub && !isGC && (
+            <Link
+              to="/dashboard/schedule"
+              className="flex flex-col items-center gap-2 p-4 bg-gradient-to-br from-cyan-50 to-white rounded-xl border border-cyan-100 hover:border-cyan-300 hover:shadow-lg hover:shadow-cyan-100/50 hover:-translate-y-0.5 transition-all duration-200 text-center"
+            >
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-500 to-cyan-600 flex items-center justify-center shadow-sm shadow-cyan-500/20">
+                <Calendar className="w-5 h-5 text-white" />
+              </div>
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">View Schedule</span>
+            </Link>
+          )}
         </div>
       </section>
 

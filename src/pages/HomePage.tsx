@@ -278,7 +278,7 @@ function LiveActivityFeed() {
           LIVE
         </div>
       </div>
-      <div className="space-y-2">
+      <div className="space-y-2 min-h-[280px]">
         {events.slice(0, visibleCount).map((e, i) => (
           <div
             key={`${e.who}-${e.time}-${i}`}
@@ -338,8 +338,8 @@ function ZoneClusterMock() {
         key={z.name}
         type="button"
         onClick={() => setSelected(isSel ? null : idx)}
-        className={`text-left rounded-xl border-2 p-4 transition-all cursor-pointer hover:shadow-lg hover:-translate-y-0.5 ${colorMap[z.color]} ${
-          isSel ? 'ring-2 ring-offset-2 ring-blue-500 scale-[1.02]' : ''
+        className={`text-left rounded-xl border-2 p-4 transition-all cursor-pointer hover:shadow-lg hover:-translate-y-0.5 min-h-[200px] ${colorMap[z.color]} ${
+          isSel ? 'ring-2 ring-offset-2 ring-blue-500' : ''
         }`}
       >
         <div className="flex items-center justify-between mb-2">
@@ -722,7 +722,7 @@ function AutoPlayingInviteFlow() {
       {/* Active demo panel */}
       <div className="bg-gray-800/60 border border-white/10 rounded-2xl p-5 backdrop-blur-sm min-h-[320px]">
         <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-3">Step {steps[active].step} preview</div>
-        <div key={active}>{steps[active].demo}</div>
+        <div key={active} className="min-h-[280px]">{steps[active].demo}</div>
       </div>
     </div>
   );
@@ -741,7 +741,7 @@ function LiveActivityFeedDark() {
     return () => clearInterval(iv);
   }, [events.length]);
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 min-h-[200px]">
       {events.slice(0, count).map((e, i) => (
         <div
           key={i}

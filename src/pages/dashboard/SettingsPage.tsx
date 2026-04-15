@@ -20,6 +20,7 @@ import {
   Unplug,
   Users,
   Bell,
+  Shield,
 } from 'lucide-react';
 import { PricebookManager } from '../../components/settings/PricebookManager';
 import { TeamManager } from '../../components/settings/TeamManager';
@@ -163,6 +164,157 @@ function SubscriptionCard() {
           Manage Billing
         </button>
       )}
+    </div>
+  );
+}
+
+function ScoreRing({ score, size = 96 }: { score: number; size?: number }) {
+  const pct = (score / 5) * 100;
+  const color = score >= 4.0 ? '#22c55e' : score >= 3.0 ? '#f59e0b' : '#ef4444';
+  const strokeWidth = 8;
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference - (pct / 100) * circumference;
+
+  return (
+    <div className="relative" style={{ width: size, height: size }}>
+      <svg width={size} height={size} className="-rotate-90">
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke="#e5e7eb"
+          strokeWidth={strokeWidth}
+        />
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke={color}
+          strokeWidth={strokeWidth}
+          strokeLinecap="round"
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
+          className="transition-all duration-700"
+        />
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <span className="text-2xl font-bold text-neutral-900">{score.toFixed(1)}</span>
+        <span className="text-[10px] text-neutral-400 -mt-0.5">/ 5.0</span>
+      </div>
+    </div>
+  );
+}
+
+function DimensionBar({ label, value, weight }: { label: string; value: number; weight: string }) {
+  const pct = (value / 5) * 100;
+  const barColor = value >= 4.0 ? 'bg-brand-500' : value >= 3.0 ? 'bg-amber-400' : 'bg-red-500';
+
+  return (
+    <div className="space-y-1">
+      <div className="flex items-center justify-between text-sm">
+        <span className="font-medium text-neutral-700">{label}</span>
+        <span className="text-neutral-400 text-xs">{weight}</span>
+      </div>
+      <div className="flex items-center gap-3">
+        <div className="flex-1 h-2.5 bg-neutral-100 rounded-full overflow-hidden">
+          <div
+            className={`h-full rounded-full ${barColor} transition-all duration-700`}
+            style={{ width: `${pct}%` }}
+          />
+        </div>
+        <span className="text-sm font-semibold text-neutral-900 w-8 text-right">
+          {value.toFixed(1)}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function FlowBossScoreCard() {
+  const { user } = useAuth();
+
+  const { data: perfData, isLoading } = useQuery({
+    queryKey: ['sub-performance', user?.id],
+    queryFn: () => api.getSubPerformance(user!.id),
+    enabled: !!user?.id,
+  });
+
+  const score = perfData?.data?.score ?? null;
+  const breakdown = perfData?.data?.breakdown;
+  const totalRatings = perfData?.data?.totalRatings ?? 0;
+
+  if (isLoading) {
+    return (
+      <div className="bg-white rounded-xl border border-neutral-200 p-6 mb-6">
+        <div className="flex items-center gap-2 mb-5">
+          <Shield className="w-5 h-5 text-brand-500" />
+          <h2 className="text-lg font-bold text-neutral-900">Your FlowBoss Score</h2>
+        </div>
+        <div className="animate-pulse flex items-center gap-6">
+          <div className="w-24 h-24 rounded-full bg-neutral-100" />
+          <div className="flex-1 space-y-3">
+            <div className="h-3 bg-neutral-100 rounded w-3/4" />
+            <div className="h-3 bg-neutral-100 rounded w-1/2" />
+            <div className="h-3 bg-neutral-100 rounded w-2/3" />
+            <div className="h-3 bg-neutral-100 rounded w-1/2" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Empty state: no ratings yet
+  if (score === null || totalRatings === 0) {
+    return (
+      <div className="bg-white rounded-xl border border-neutral-200 p-6 mb-6">
+        <div className="flex items-center gap-2 mb-4">
+          <Shield className="w-5 h-5 text-brand-500" />
+          <h2 className="text-lg font-bold text-neutral-900">Your FlowBoss Score</h2>
+        </div>
+        <div className="flex flex-col items-center text-center py-6">
+          <div className="w-16 h-16 rounded-full bg-brand-50 flex items-center justify-center mb-4">
+            <Shield className="w-8 h-8 text-brand-300" />
+          </div>
+          <p className="text-sm text-neutral-500 max-w-sm">
+            Your FlowBoss Score builds as GCs rate your work on projects. Complete trades to start building your reputation.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-white rounded-xl border border-neutral-200 p-6 mb-6">
+      <div className="flex items-center gap-2 mb-5">
+        <Shield className="w-5 h-5 text-brand-500" />
+        <h2 className="text-lg font-bold text-neutral-900">Your FlowBoss Score</h2>
+      </div>
+
+      <div className="flex items-start gap-8">
+        {/* Score ring */}
+        <div className="flex-shrink-0">
+          <ScoreRing score={score} />
+        </div>
+
+        {/* Dimension bars */}
+        <div className="flex-1 space-y-3">
+          {breakdown && (
+            <>
+              <DimensionBar label="Quality" value={breakdown.quality} weight="35%" />
+              <DimensionBar label="Timeliness" value={breakdown.timeliness} weight="25%" />
+              <DimensionBar label="Budget Adherence" value={breakdown.budgetAdherence} weight="25%" />
+              <DimensionBar label="Communication" value={breakdown.communication} weight="15%" />
+            </>
+          )}
+        </div>
+      </div>
+
+      <p className="text-xs text-neutral-400 mt-4">
+        Based on {totalRatings} rating{totalRatings !== 1 ? 's' : ''} from GC projects
+      </p>
     </div>
   );
 }
@@ -486,6 +638,9 @@ export function SettingsPage() {
               </>
             )}
           </div>
+
+          {/* FlowBoss Score */}
+          <FlowBossScoreCard />
 
           {/* Account */}
           <div className="bg-white rounded-xl border border-neutral-200 p-6 mb-6">

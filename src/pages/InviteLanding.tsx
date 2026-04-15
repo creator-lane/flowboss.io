@@ -1,12 +1,22 @@
-import { useParams, Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useState, useEffect } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { api } from '../lib/api';
+import { useAuth } from '../lib/auth';
 import {
   ClipboardCheck,
   MessageSquare,
   BarChart3,
   Gift,
   ArrowRight,
+  CheckCircle2,
+  MapPin,
+  Calendar,
+  ListChecks,
+  Building2,
+  Loader2,
+  AlertCircle,
+  Smartphone,
 } from 'lucide-react';
 
 const FEATURES = [
@@ -32,14 +42,36 @@ const FEATURES = [
   },
 ];
 
+const PENDING_INVITE_KEY = 'pendingInvite';
+
 export function InviteLanding() {
   const { projectId, tradeId } = useParams<{ projectId: string; tradeId: string }>();
+  const { user, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
+  const [accepted, setAccepted] = useState(false);
+  const [assignError, setAssignError] = useState<string | null>(null);
 
-  // Try to fetch project info (may fail if not authed - that's fine)
+  const isLoggedIn = !!user;
+
+  // Store pending invite in localStorage so it survives login/signup redirect
+  useEffect(() => {
+    if (projectId && tradeId) {
+      localStorage.setItem(PENDING_INVITE_KEY, JSON.stringify({ projectId, tradeId }));
+    }
+  }, [projectId, tradeId]);
+
+  // Clear pending invite after successful accept
+  useEffect(() => {
+    if (accepted) {
+      localStorage.removeItem(PENDING_INVITE_KEY);
+    }
+  }, [accepted]);
+
+  // Fetch project info (only works if user is authenticated due to RLS)
   const projectQuery = useQuery({
-    queryKey: ['gc-project-public', projectId],
+    queryKey: ['gc-project-invite', projectId],
     queryFn: () => api.getGCProject(projectId!),
-    enabled: !!projectId,
+    enabled: !!projectId && isLoggedIn,
     retry: false,
   });
 
@@ -47,28 +79,225 @@ export function InviteLanding() {
   const trade = project?.trades?.find((t: any) => t.id === tradeId);
   const projectName = project?.name;
   const tradeName = trade?.trade;
+  const projectAddress = project?.address;
+  const taskCount = trade?.tasks?.length || 0;
+  const alreadyAssigned = trade?.assignedUserId === user?.id;
 
+  // Format date range for trade
+  const tradeDateRange = (() => {
+    if (!trade?.tasks?.length) return null;
+    const dates = trade.tasks
+      .filter((t: any) => t.startDate || t.endDate)
+      .flatMap((t: any) => [t.startDate, t.endDate].filter(Boolean));
+    if (!dates.length) return null;
+    const sorted = dates.sort();
+    const start = new Date(sorted[0]).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    const end = new Date(sorted[sorted.length - 1]).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    return `${start} - ${end}`;
+  })();
+
+  // Assign sub to trade mutation
+  const assignMutation = useMutation({
+    mutationFn: () => api.assignSubToTrade(tradeId!, user!.id),
+    onSuccess: () => {
+      setAccepted(true);
+      setTimeout(() => {
+        navigate(`/dashboard/projects/assigned/${projectId}`, { replace: true });
+      }, 2000);
+    },
+    onError: (err: any) => {
+      setAssignError(err.message || 'Failed to accept invite. Please try again.');
+    },
+  });
+
+  function handleAccept() {
+    setAssignError(null);
+    assignMutation.mutate();
+  }
+
+  const inviteUrl = `/invite/${projectId}/${tradeId}`;
+  const signupUrl = `/signup?invite=${projectId}&trade=${tradeId}`;
+  const loginUrl = `/login?redirect=${encodeURIComponent(inviteUrl)}`;
+
+  // Loading state
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-gray-400 animate-spin" />
+      </div>
+    );
+  }
+
+  // --- SUCCESS STATE ---
+  if (accepted) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50">
+        <Header loginUrl={loginUrl} isLoggedIn={isLoggedIn} />
+        <main className="max-w-lg mx-auto px-4 py-20 text-center">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-10">
+            <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-5">
+              <CheckCircle2 className="w-8 h-8 text-green-600" />
+            </div>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">You're In!</h1>
+            <p className="text-gray-500 mb-2">
+              You've been assigned to <span className="font-semibold text-gray-700">{tradeName || 'this trade'}</span>
+              {projectName && <> on <span className="font-semibold text-gray-700">{projectName}</span></>}.
+            </p>
+            <p className="text-sm text-gray-400 mb-6">Redirecting to your project...</p>
+            <Loader2 className="w-5 h-5 text-gray-400 animate-spin mx-auto" />
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  // --- ALREADY ASSIGNED STATE ---
+  if (isLoggedIn && alreadyAssigned) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50">
+        <Header loginUrl={loginUrl} isLoggedIn={isLoggedIn} />
+        <main className="max-w-lg mx-auto px-4 py-20 text-center">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-10">
+            <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-5">
+              <CheckCircle2 className="w-8 h-8 text-blue-600" />
+            </div>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">Already on This Project</h1>
+            <p className="text-gray-500 mb-6">
+              You're already assigned to <span className="font-semibold text-gray-700">{tradeName || 'this trade'}</span>
+              {projectName && <> on <span className="font-semibold text-gray-700">{projectName}</span></>}.
+            </p>
+            <Link
+              to={`/dashboard/projects/assigned/${projectId}`}
+              className="inline-flex items-center gap-2 px-6 py-3 bg-gray-900 text-white rounded-xl text-sm font-semibold hover:bg-gray-800 transition-colors"
+            >
+              Go to Project
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  // --- LOGGED IN: ACCEPT INVITE ---
+  if (isLoggedIn) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50">
+        <Header loginUrl={loginUrl} isLoggedIn={isLoggedIn} />
+        <main className="max-w-lg mx-auto px-4 py-12 lg:py-20">
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-brand-50 text-brand-700 rounded-full text-sm font-medium mb-6">
+              <ClipboardCheck className="w-4 h-4" />
+              Project Invitation
+            </div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-3">
+              {projectName ? `Join ${projectName}` : "You've been invited to a project"}
+            </h1>
+            {tradeName && (
+              <p className="text-gray-500 text-lg">
+                as <span className="font-semibold text-gray-700">{tradeName}</span>
+              </p>
+            )}
+          </div>
+
+          {/* Project details card */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mb-6">
+            {projectQuery.isLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="w-6 h-6 text-gray-400 animate-spin" />
+              </div>
+            ) : project ? (
+              <div className="space-y-4">
+                {projectName && (
+                  <div className="flex items-start gap-3">
+                    <Building2 className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-xs text-gray-400 uppercase tracking-wide font-medium">Project</p>
+                      <p className="text-sm font-semibold text-gray-900">{projectName}</p>
+                    </div>
+                  </div>
+                )}
+                {projectAddress && (
+                  <div className="flex items-start gap-3">
+                    <MapPin className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-xs text-gray-400 uppercase tracking-wide font-medium">Location</p>
+                      <p className="text-sm text-gray-700">{projectAddress}</p>
+                    </div>
+                  </div>
+                )}
+                {tradeName && (
+                  <div className="flex items-start gap-3">
+                    <ClipboardCheck className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-xs text-gray-400 uppercase tracking-wide font-medium">Your Trade</p>
+                      <p className="text-sm font-semibold text-gray-700">{tradeName}</p>
+                    </div>
+                  </div>
+                )}
+                {tradeDateRange && (
+                  <div className="flex items-start gap-3">
+                    <Calendar className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-xs text-gray-400 uppercase tracking-wide font-medium">Schedule</p>
+                      <p className="text-sm text-gray-700">{tradeDateRange}</p>
+                    </div>
+                  </div>
+                )}
+                {taskCount > 0 && (
+                  <div className="flex items-start gap-3">
+                    <ListChecks className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-xs text-gray-400 uppercase tracking-wide font-medium">Tasks</p>
+                      <p className="text-sm text-gray-700">{taskCount} task{taskCount !== 1 ? 's' : ''} assigned</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <p className="text-sm text-gray-500 text-center py-4">
+                Project details will be available once you accept.
+              </p>
+            )}
+          </div>
+
+          {/* Error message */}
+          {assignError && (
+            <div className="flex items-center gap-2 px-4 py-3 bg-red-50 border border-red-200 rounded-xl mb-4 text-sm text-red-700">
+              <AlertCircle className="w-4 h-4 flex-shrink-0" />
+              {assignError}
+            </div>
+          )}
+
+          {/* Accept button */}
+          <button
+            onClick={handleAccept}
+            disabled={assignMutation.isPending}
+            className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-gray-900 text-white rounded-xl text-base font-semibold hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-gray-900/20 transition-all hover:shadow-xl"
+          >
+            {assignMutation.isPending ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                Accepting...
+              </>
+            ) : (
+              <>
+                <CheckCircle2 className="w-5 h-5" />
+                Accept & Join Project
+              </>
+            )}
+          </button>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  // --- NOT LOGGED IN: SIGN UP / LOG IN ---
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50">
-      {/* Header */}
-      <header className="border-b border-gray-200 bg-white/80 backdrop-blur-sm">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">FB</span>
-            </div>
-            <span className="font-bold text-gray-900 text-lg">FlowBoss</span>
-          </div>
-          <Link
-            to={`/login?redirect=/dashboard/projects/assigned/${projectId}`}
-            className="text-sm text-gray-600 hover:text-gray-900 font-medium"
-          >
-            Already have an account? Log in
-          </Link>
-        </div>
-      </header>
+      <Header loginUrl={loginUrl} isLoggedIn={false} />
 
-      {/* Hero */}
       <main className="max-w-4xl mx-auto px-4 py-12 lg:py-20">
         <div className="text-center mb-12">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-brand-50 text-brand-700 rounded-full text-sm font-medium mb-6">
@@ -80,40 +309,26 @@ export function InviteLanding() {
             You've been invited to a project
           </h1>
 
-          {(projectName || tradeName) && (
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-4">
-              {projectName && (
-                <span className="inline-flex items-center px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-semibold text-gray-900 shadow-sm">
-                  {projectName}
-                </span>
-              )}
-              {tradeName && (
-                <span className="inline-flex items-center px-4 py-2 bg-blue-50 border border-blue-200 rounded-lg text-sm font-semibold text-blue-700 shadow-sm">
-                  {tradeName}
-                </span>
-              )}
-            </div>
-          )}
-
           <p className="text-gray-500 max-w-lg mx-auto text-base leading-relaxed">
-            Join this project on FlowBoss to see your tasks, communicate with the GC, and manage your work.
+            A general contractor has invited you to join their project on FlowBoss.
+            Sign up or log in to see your tasks and get started.
           </p>
         </div>
 
         {/* CTA buttons */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
           <Link
-            to={`/signup?invite=${projectId}&trade=${tradeId}`}
+            to={signupUrl}
             className="inline-flex items-center gap-2 px-8 py-3.5 bg-gray-900 text-white rounded-xl text-base font-semibold hover:bg-gray-800 shadow-lg shadow-gray-900/20 transition-all hover:shadow-xl"
           >
-            Sign Up
+            Sign Up to Accept
             <ArrowRight className="w-4 h-4" />
           </Link>
           <Link
-            to={`/login?redirect=/dashboard/projects/assigned/${projectId}`}
+            to={loginUrl}
             className="inline-flex items-center gap-2 px-8 py-3.5 bg-white text-gray-900 border border-gray-300 rounded-xl text-base font-semibold hover:bg-gray-50 shadow-sm transition-all"
           >
-            Log In
+            Already have an account? Log In
           </Link>
         </div>
 
@@ -165,12 +380,50 @@ export function InviteLanding() {
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-gray-200 bg-white mt-12">
-        <div className="max-w-4xl mx-auto px-4 py-6 text-center text-xs text-gray-400">
-          FlowBoss - Project management for construction professionals
-        </div>
-      </footer>
+      <Footer />
     </div>
+  );
+}
+
+// --- Shared sub-components ---
+
+function Header({ loginUrl, isLoggedIn }: { loginUrl: string; isLoggedIn: boolean }) {
+  return (
+    <header className="border-b border-gray-200 bg-white/80 backdrop-blur-sm">
+      <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center">
+            <span className="text-white font-bold text-sm">FB</span>
+          </div>
+          <span className="font-bold text-gray-900 text-lg">FlowBoss</span>
+        </div>
+        {!isLoggedIn && (
+          <Link
+            to={loginUrl}
+            className="text-sm text-gray-600 hover:text-gray-900 font-medium"
+          >
+            Already have an account? Log in
+          </Link>
+        )}
+        {isLoggedIn && (
+          <Link
+            to="/dashboard"
+            className="text-sm text-gray-600 hover:text-gray-900 font-medium"
+          >
+            Go to Dashboard
+          </Link>
+        )}
+      </div>
+    </header>
+  );
+}
+
+function Footer() {
+  return (
+    <footer className="border-t border-gray-200 bg-white mt-12">
+      <div className="max-w-4xl mx-auto px-4 py-6 text-center text-xs text-gray-400">
+        FlowBoss - Project management for construction professionals
+      </div>
+    </footer>
   );
 }

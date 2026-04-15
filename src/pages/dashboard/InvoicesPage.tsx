@@ -12,6 +12,8 @@ import {
   DollarSign,
 } from 'lucide-react';
 import { CreateInvoiceModal } from '../../components/invoices/CreateInvoiceModal';
+import { EmptyState } from '../../components/ui/EmptyState';
+import { SpotlightTip } from '../../components/ui/SpotlightTip';
 
 type FilterTab = 'all' | 'draft' | 'sent' | 'paid' | 'overdue';
 
@@ -148,13 +150,20 @@ export function InvoicesPage() {
             {!isLoading && `${invoices.length} total invoices`}
           </p>
         </div>
-        <button
-          onClick={() => setShowCreateModal(true)}
-          className="flex items-center gap-2 px-4 py-2.5 bg-brand-500 text-white rounded-lg text-sm font-semibold hover:bg-brand-600 transition-colors shadow-sm"
+        <SpotlightTip
+          tipId="invoices-create-btn"
+          title="Bill your customers"
+          message="Create invoices with line items, tax, and payment links. FlowBoss tracks who's paid."
+          position="left"
         >
-          <Plus className="w-4 h-4" />
-          Create Invoice
-        </button>
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="flex items-center gap-2 px-4 py-2.5 bg-brand-500 text-white rounded-lg text-sm font-semibold hover:bg-brand-600 transition-colors shadow-sm"
+          >
+            <Plus className="w-4 h-4" />
+            Create Invoice
+          </button>
+        </SpotlightTip>
       </div>
 
       {/* Summary Cards */}
@@ -298,19 +307,14 @@ export function InvoicesPage() {
         </table>
 
         {!isLoading && filtered.length === 0 && (
-          <div className="text-center py-12">
-            <FileText className="w-12 h-12 text-neutral-300 mx-auto mb-3" />
-            <p className="text-sm font-medium text-neutral-500">
-              {filter === 'all'
-                ? 'No invoices yet'
-                : `No ${filter} invoices`}
-            </p>
-            <p className="text-xs text-neutral-400 mt-1">
-              {filter === 'all'
-                ? 'Create your first invoice to get started'
-                : 'Try a different filter'}
-            </p>
-          </div>
+          <EmptyState
+            icon={FileText}
+            title="No invoices yet"
+            description="Create an invoice to bill your customers. FlowBoss handles the math, sends payment links, and tracks who's paid."
+            actionLabel="Create Your First Invoice"
+            onAction={() => setShowCreateModal(true)}
+            accentColor="emerald"
+          />
         )}
       </div>
 
@@ -371,14 +375,14 @@ export function InvoicesPage() {
             })}
 
         {!isLoading && filtered.length === 0 && (
-          <div className="text-center py-12">
-            <FileText className="w-12 h-12 text-neutral-300 mx-auto mb-3" />
-            <p className="text-sm font-medium text-neutral-500">
-              {filter === 'all'
-                ? 'No invoices yet'
-                : `No ${filter} invoices`}
-            </p>
-          </div>
+          <EmptyState
+            icon={FileText}
+            title="No invoices yet"
+            description="Create an invoice to bill your customers. FlowBoss handles the math, sends payment links, and tracks who's paid."
+            actionLabel="Create Your First Invoice"
+            onAction={() => setShowCreateModal(true)}
+            accentColor="emerald"
+          />
         )}
       </div>
 

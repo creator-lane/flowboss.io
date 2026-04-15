@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react';
-import { Outlet, NavLink, Link } from 'react-router-dom';
+import { useState, useMemo, useEffect, useCallback } from 'react';
+import { Outlet, NavLink, Link, useLocation } from 'react-router-dom';
 import {
   Wrench,
   Home,
@@ -126,10 +126,61 @@ function getUserInitials(email: string | undefined): string {
   return name.slice(0, 2).toUpperCase();
 }
 
+// ── Visited pages tracker (for pulse dots on unvisited nav items) ──
+const VISITED_KEY = 'flowboss-visited-pages';
+const SIGNUP_KEY = 'flowboss-signup-ts';
+
+function useVisitedPages() {
+  const location = useLocation();
+  const [visited, setVisited] = useState<Set<string>>(() => {
+    try {
+      const stored = localStorage.getItem(VISITED_KEY);
+      return stored ? new Set(JSON.parse(stored)) : new Set();
+    } catch {
+      return new Set();
+    }
+  });
+
+  // Track first signup time for "new user" detection
+  const isNewUser = useMemo(() => {
+    try {
+      const ts = localStorage.getItem(SIGNUP_KEY);
+      if (!ts) {
+        localStorage.setItem(SIGNUP_KEY, Date.now().toString());
+        return true;
+      }
+      return Date.now() - parseInt(ts) < 7 * 24 * 60 * 60 * 1000; // 7 days
+    } catch {
+      return false;
+    }
+  }, []);
+
+  // Mark current page as visited
+  useEffect(() => {
+    const page = location.pathname.replace('/dashboard/', '').split('/')[0] || 'home';
+    if (!visited.has(page)) {
+      const next = new Set(visited);
+      next.add(page);
+      setVisited(next);
+      try {
+        localStorage.setItem(VISITED_KEY, JSON.stringify([...next]));
+      } catch { /* ignore */ }
+    }
+  }, [location.pathname]);
+
+  const hasVisited = useCallback((label: string) => {
+    const key = label.toLowerCase();
+    return visited.has(key);
+  }, [visited]);
+
+  return { hasVisited, isNewUser };
+}
+
 export function DashboardLayout() {
   const { user, signOut } = useAuth();
   const { profile, isGC, isSub, isSolo, priorities } = useProfile();
   const { theme, toggle: toggleTheme, isDark } = useTheme();
+  const { hasVisited, isNewUser } = useVisitedPages();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
 
@@ -178,23 +229,29 @@ export function DashboardLayout() {
 
         {/* Nav */}
         <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
-          {navItems.map(({ to, label, icon: Icon }) => (
-            <NavLink
-              key={to}
-              to={to}
-              onClick={() => setSidebarOpen(false)}
-              className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 ${
-                  isActive
-                    ? 'bg-brand-500/20 text-white shadow-sm shadow-brand-500/10 border-l-[3px] border-brand-400 ml-0'
-                    : 'text-slate-400 hover:text-white hover:bg-white/[0.06]'
-                }`
-              }
-            >
-              <Icon className="w-5 h-5 flex-shrink-0" />
-              {label}
-            </NavLink>
-          ))}
+          {navItems.map(({ to, label, icon: Icon }) => {
+            const showDot = isNewUser && label !== 'Home' && label !== 'Settings' && !hasVisited(label);
+            return (
+              <NavLink
+                key={to}
+                to={to}
+                onClick={() => setSidebarOpen(false)}
+                className={({ isActive }) =>
+                  `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 ${
+                    isActive
+                      ? 'bg-brand-500/20 text-white shadow-sm shadow-brand-500/10 border-l-[3px] border-brand-400 ml-0'
+                      : 'text-slate-400 hover:text-white hover:bg-white/[0.06]'
+                  }`
+                }
+              >
+                <Icon className="w-5 h-5 flex-shrink-0" />
+                {label}
+                {showDot && (
+                  <span className="ml-auto w-2 h-2 rounded-full bg-brand-400 animate-pulse" />
+                )}
+              </NavLink>
+            );
+          })}
         </nav>
 
         {/* User section + sign out */}

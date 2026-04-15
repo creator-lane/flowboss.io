@@ -14,6 +14,8 @@ import {
   Calendar,
 } from 'lucide-react';
 import { CreateJobModal } from '../../components/jobs/CreateJobModal';
+import { EmptyState } from '../../components/ui/EmptyState';
+import { SpotlightTip } from '../../components/ui/SpotlightTip';
 
 const STATUS_BADGE = JOB_STATUS_BADGE;
 
@@ -141,14 +143,21 @@ export function JobsPage() {
             {timeRange === 'month' ? `in ${format(viewMonth, 'MMMM yyyy')}` : 'total'}
           </p>
         </div>
-        <button
-          type="button"
-          onClick={() => setShowCreateJob(true)}
-          className="inline-flex items-center gap-2 px-4 py-2.5 bg-brand-500 text-white rounded-lg text-sm font-medium hover:bg-brand-600 transition-colors"
+        <SpotlightTip
+          tipId="jobs-create-btn"
+          title="Create your first job"
+          message="Track work, assign crew, and generate invoices — all from one place."
+          position="left"
         >
-          <Plus className="w-4 h-4" />
-          Create Job
-        </button>
+          <button
+            type="button"
+            onClick={() => setShowCreateJob(true)}
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-brand-500 text-white rounded-lg text-sm font-medium hover:bg-brand-600 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            Create Job
+          </button>
+        </SpotlightTip>
       </div>
 
       {/* Time range selector + month navigation */}
@@ -285,22 +294,15 @@ export function JobsPage() {
               </>
             ) : visibleJobs.length === 0 ? (
               <tr>
-                <td colSpan={5} className="text-center py-16">
-                  <Briefcase className="w-10 h-10 text-neutral-300 mx-auto mb-3" />
-                  <p className="text-sm text-neutral-500">
-                    {timeRange === 'month'
-                      ? `No jobs in ${format(viewMonth, 'MMMM yyyy')}`
-                      : 'No jobs found'}
-                  </p>
-                  {timeRange === 'month' && (
-                    <button
-                      type="button"
-                      onClick={() => setTimeRange('all')}
-                      className="text-xs text-brand-600 hover:text-brand-700 font-medium mt-2"
-                    >
-                      View all jobs instead
-                    </button>
-                  )}
+                <td colSpan={5}>
+                  <EmptyState
+                    icon={Briefcase}
+                    title="No jobs yet"
+                    description="Jobs are the heart of FlowBoss. Create one to start tracking your work, scheduling your crew, and billing your customers."
+                    actionLabel="Create Your First Job"
+                    onAction={() => setShowCreateJob(true)}
+                    accentColor="brand"
+                  />
                 </td>
               </tr>
             ) : (
@@ -362,23 +364,14 @@ export function JobsPage() {
             </div>
           ))
         ) : visibleJobs.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-center">
-            <Briefcase className="w-10 h-10 text-neutral-300 mb-3" />
-            <p className="text-sm text-neutral-500">
-              {timeRange === 'month'
-                ? `No jobs in ${format(viewMonth, 'MMMM yyyy')}`
-                : 'No jobs found'}
-            </p>
-            {timeRange === 'month' && (
-              <button
-                type="button"
-                onClick={() => setTimeRange('all')}
-                className="text-xs text-brand-600 hover:text-brand-700 font-medium mt-2"
-              >
-                View all jobs instead
-              </button>
-            )}
-          </div>
+          <EmptyState
+            icon={Briefcase}
+            title="No jobs yet"
+            description="Jobs are the heart of FlowBoss. Create one to start tracking your work, scheduling your crew, and billing your customers."
+            actionLabel="Create Your First Job"
+            onAction={() => setShowCreateJob(true)}
+            accentColor="brand"
+          />
         ) : (
           visibleJobs.map((job: any) => {
             const customerName =

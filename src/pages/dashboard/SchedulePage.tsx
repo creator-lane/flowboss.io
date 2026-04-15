@@ -36,6 +36,8 @@ import {
   HardHat,
 } from 'lucide-react';
 import { CreateJobModal } from '../../components/jobs/CreateJobModal';
+import { EmptyState } from '../../components/ui/EmptyState';
+import { SpotlightTip } from '../../components/ui/SpotlightTip';
 
 // ── Types & constants ───────────────────────────────────────────────
 type ViewMode = 'day' | 'week' | 'month';
@@ -266,7 +268,14 @@ export function SchedulePage() {
             )}
           </h1>
         </div>
-        <ViewToggle view={view} onChange={setView} />
+        <SpotlightTip
+          tipId="schedule-view-toggle"
+          title="Switch your view"
+          message="Day view shows your lineup. Week and month views help you plan ahead and spot gaps."
+          position="bottom"
+        >
+          <ViewToggle view={view} onChange={setView} />
+        </SpotlightTip>
       </div>
 
       {/* Earnings summary (day view only) */}
@@ -428,15 +437,14 @@ function DayView({
           <SkeletonCard />
         </>
       ) : isEmpty ? (
-        <div className="flex flex-col items-center justify-center py-20 text-center">
-          <CalendarDays className="w-12 h-12 text-neutral-300 mb-4" />
-          <p className="text-lg font-medium text-neutral-500">
-            No jobs scheduled for this day
-          </p>
-          <p className="text-sm text-neutral-400 mt-1">
-            Select a different date or create a new job.
-          </p>
-        </div>
+        <EmptyState
+          icon={CalendarDays}
+          title="Your schedule is wide open"
+          description="Once you create jobs with scheduled dates, they'll show up here. You can view by day, week, or month."
+          actionLabel="Create a Job"
+          actionHref="/dashboard/jobs"
+          accentColor="cyan"
+        />
       ) : (
         <>
           {jobs.map((job: any) => {

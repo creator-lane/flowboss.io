@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../lib/api';
 import { CreateCustomerModal } from '../../components/customers/CreateCustomerModal';
+import { EmptyState } from '../../components/ui/EmptyState';
 import {
   Search,
   Plus,
@@ -198,28 +199,26 @@ export function CustomersPage() {
 
       {/* Empty state */}
       {!isLoading && customers.length === 0 && (
-        <div className="text-center py-16">
-          <Users className="w-12 h-12 text-neutral-300 mx-auto mb-3" />
-          <p className="text-base font-medium text-neutral-500">
-            {debouncedSearch
-              ? 'No customers match your search'
-              : 'No customers yet'}
-          </p>
-          <p className="text-sm text-neutral-400 mt-1">
-            {debouncedSearch
-              ? 'Try a different search term'
-              : 'Add your first customer to get started'}
-          </p>
-          {!debouncedSearch && (
-            <button
-              onClick={() => setShowCreateModal(true)}
-              className="mt-4 inline-flex items-center gap-2 px-4 py-2.5 bg-brand-500 text-white rounded-lg text-sm font-semibold hover:bg-brand-600 transition-colors"
-            >
-              <Plus className="w-4 h-4" />
-              Add Your First Customer
-            </button>
-          )}
-        </div>
+        debouncedSearch ? (
+          <div className="text-center py-16">
+            <Users className="w-12 h-12 text-neutral-300 mx-auto mb-3" />
+            <p className="text-base font-medium text-neutral-500">
+              No customers match your search
+            </p>
+            <p className="text-sm text-neutral-400 mt-1">
+              Try a different search term
+            </p>
+          </div>
+        ) : (
+          <EmptyState
+            icon={Users}
+            title="No customers yet"
+            description="Add your first customer to start creating jobs, sending invoices, and building your client list."
+            actionLabel="Add Your First Customer"
+            onAction={() => setShowCreateModal(true)}
+            accentColor="brand"
+          />
+        )
       )}
     </div>
   );

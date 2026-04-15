@@ -20,11 +20,15 @@ import {
   MapPin,
   Star,
   X,
+  ArrowRight,
+  Zap,
+  Users,
 } from 'lucide-react';
 import { CreateGCProjectModal } from '../../components/gc/CreateGCProjectModal';
 import { CreateInvoiceModal } from '../../components/invoices/CreateInvoiceModal';
 import { CreateJobModal } from '../../components/jobs/CreateJobModal';
 import { SetupChecklist } from '../../components/dashboard/SetupChecklist';
+import { SpotlightTip } from '../../components/ui/SpotlightTip';
 
 // ── Helpers ──────────────────────────────────────────────────────────
 
@@ -332,6 +336,108 @@ export function CommandCenterPage() {
         hasPhone={!!(settings?.phone || profile?.phone)}
         hasBusinessName={!!(settings?.business_name || profile?.business_name)}
       />
+
+      {/* 1c. Smart Nudges — contextual prompts based on user state */}
+      {(() => {
+        const nudges: { id: string; icon: React.ElementType; color: string; message: string; cta: string; href?: string; onClick?: () => void }[] = [];
+
+        // Has customers but no jobs
+        if (allCustomers.length > 0 && allJobs.length === 0) {
+          nudges.push({
+            id: 'no-jobs',
+            icon: Zap,
+            color: 'brand',
+            message: `You have ${allCustomers.length} customer${allCustomers.length > 1 ? 's' : ''} — ready to create your first job?`,
+            cta: 'Create a Job',
+            onClick: () => setShowNewJob(true),
+          });
+        }
+
+        // Has completed jobs but no invoices
+        const completedJobs = allJobs.filter((j: any) => j.status === 'COMPLETED');
+        if (completedJobs.length > 0 && invoices.length === 0) {
+          nudges.push({
+            id: 'no-invoices',
+            icon: FileText,
+            color: 'emerald',
+            message: `${completedJobs.length} completed job${completedJobs.length > 1 ? 's' : ''} without an invoice. Time to get paid!`,
+            cta: 'Create Invoice',
+            onClick: () => setShowNewInvoice(true),
+          });
+        }
+
+        // Has jobs but none scheduled
+        if (allJobs.length > 0 && allJobs.every((j: any) => !(j.scheduledStart || j.scheduled_start))) {
+          nudges.push({
+            id: 'no-schedule',
+            icon: Calendar,
+            color: 'cyan',
+            message: 'Your jobs need dates! Schedule them so your crew knows where to be.',
+            cta: 'Open Schedule',
+            href: '/dashboard/schedule',
+          });
+        }
+
+        // GC with no projects
+        if (isGC && projects.length === 0) {
+          nudges.push({
+            id: 'no-projects',
+            icon: Building2,
+            color: 'violet',
+            message: 'Set up your first project to start managing scopes, subs, and timelines.',
+            cta: 'New Project',
+            onClick: () => setShowNewProject(true),
+          });
+        }
+
+        // Has invoices but none sent
+        if (invoices.length > 0 && invoices.every((i: any) => i.status === 'draft')) {
+          nudges.push({
+            id: 'drafts-only',
+            icon: DollarSign,
+            color: 'amber',
+            message: `You have ${invoices.length} draft invoice${invoices.length > 1 ? 's' : ''}. Send them to start collecting payments.`,
+            cta: 'View Invoices',
+            href: '/dashboard/invoices',
+          });
+        }
+
+        if (nudges.length === 0) return null;
+
+        // Show max 2 nudges
+        const COLOR_MAP: Record<string, { bg: string; icon: string; border: string }> = {
+          brand: { bg: 'bg-brand-50 dark:bg-brand-950/20', icon: 'text-brand-600 dark:text-brand-400', border: 'border-brand-100 dark:border-brand-900/40' },
+          emerald: { bg: 'bg-emerald-50 dark:bg-emerald-950/20', icon: 'text-emerald-600 dark:text-emerald-400', border: 'border-emerald-100 dark:border-emerald-900/40' },
+          cyan: { bg: 'bg-cyan-50 dark:bg-cyan-950/20', icon: 'text-cyan-600 dark:text-cyan-400', border: 'border-cyan-100 dark:border-cyan-900/40' },
+          violet: { bg: 'bg-violet-50 dark:bg-violet-950/20', icon: 'text-violet-600 dark:text-violet-400', border: 'border-violet-100 dark:border-violet-900/40' },
+          amber: { bg: 'bg-amber-50 dark:bg-amber-950/20', icon: 'text-amber-600 dark:text-amber-400', border: 'border-amber-100 dark:border-amber-900/40' },
+        };
+
+        return (
+          <div className="space-y-2">
+            {nudges.slice(0, 2).map((n) => {
+              const Icon = n.icon;
+              const colors = COLOR_MAP[n.color] || COLOR_MAP.brand;
+              const inner = (
+                <div key={n.id} className={`flex items-center gap-3.5 px-4 py-3 rounded-xl border ${colors.bg} ${colors.border} group cursor-pointer hover:shadow-md transition-all`}>
+                  <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${colors.bg} shrink-0`}>
+                    <Icon className={`w-5 h-5 ${colors.icon}`} />
+                  </div>
+                  <p className="flex-1 text-sm text-gray-700 dark:text-gray-300">{n.message}</p>
+                  <span className={`inline-flex items-center gap-1 text-xs font-semibold ${colors.icon} whitespace-nowrap group-hover:gap-2 transition-all`}>
+                    {n.cta}
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </span>
+                </div>
+              );
+              if (n.href) {
+                return <Link key={n.id} to={n.href}>{inner}</Link>;
+              }
+              return <button key={n.id} type="button" onClick={n.onClick} className="w-full text-left">{inner}</button>;
+            })}
+          </div>
+        );
+      })()}
 
       {/* 2. Active Projects Strip — GCs and 'both' see this prominently */}
       {projects.length > 0 && isGC && (
@@ -671,7 +777,15 @@ export function CommandCenterPage() {
 
       {/* 6. Quick Actions — personalized by role */}
       <section>
-        <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-3">Quick Actions</h2>
+        <SpotlightTip
+          tipId="home-quick-actions"
+          title="Your shortcuts"
+          message="Jump straight to creating jobs, invoices, or projects. These adapt based on your role."
+          position="top"
+          delay={1500}
+        >
+          <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-3">Quick Actions</h2>
+        </SpotlightTip>
         <div className={`grid gap-3 ${isGC ? 'grid-cols-3' : 'grid-cols-2 sm:grid-cols-3'}`}>
           {/* GC: New Project button */}
           {isGC && (

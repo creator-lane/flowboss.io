@@ -23,7 +23,9 @@ import {
   Receipt,
   Clock,
   Zap,
+  Lightbulb,
 } from 'lucide-react';
+import { EmptyState as EmptyStateBanner } from '../../components/ui/EmptyState';
 
 // ── Currency / number formatting ────────────────────────────────────
 const fmtCurrency = new Intl.NumberFormat('en-US', {
@@ -458,7 +460,37 @@ export function InsightsPage() {
     );
   }
 
+  // ── Check if all sections are empty ───────────────────────────
+  const allEmpty =
+    analytics.totalRevenue === 0 &&
+    analytics.completedJobsCount === 0 &&
+    analytics.moneyMakers.length === 0 &&
+    analytics.customerLeaderboard.length === 0 &&
+    analytics.serviceAreas.length === 0 &&
+    analytics.expenseBreakdown.length === 0;
+
   // ── Render ────────────────────────────────────────────────────
+  if (allEmpty) {
+    return (
+      <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold text-neutral-900">Insights</h1>
+          <p className="text-sm text-neutral-500 mt-1">
+            Your business analytics at a glance
+          </p>
+        </div>
+        <EmptyStateBanner
+          icon={Lightbulb}
+          title="Insights are on their way"
+          description="As you complete jobs and send invoices, FlowBoss will surface patterns — your most profitable services, busiest days, and top customers."
+          actionLabel="Go to Jobs"
+          actionHref="/dashboard/jobs"
+          accentColor="violet"
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-8">
       {/* Page header */}

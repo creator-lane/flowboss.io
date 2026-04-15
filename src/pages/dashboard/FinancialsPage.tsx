@@ -38,6 +38,7 @@ import {
   Layers,
   HardHat,
 } from 'lucide-react';
+import { EmptyState } from '../../components/ui/EmptyState';
 
 // ── Types ─────────────────────────────────────────────────────────────
 type Period = 'week' | 'month' | 'year';
@@ -754,7 +755,14 @@ export function FinancialsPage() {
           ) : barData.length > 0 ? (
             <BarChart data={barData} maxVal={barChartMax} />
           ) : (
-            <p className="text-neutral-400 text-center py-12 text-sm">No data for this period</p>
+            <EmptyState
+              icon={BarChart3}
+              title="No financial data yet"
+              description="Your revenue, expenses, and profit charts will appear here once you start creating invoices and tracking job costs."
+              actionLabel="Create an Invoice"
+              actionHref="/dashboard/invoices"
+              accentColor="amber"
+            />
           )}
         </div>
 

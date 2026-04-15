@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Wrench } from 'lucide-react';
 import { supabase } from '../lib/supabase';
@@ -30,6 +30,7 @@ export function Signup() {
   const [trade, setTrade] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const justSignedUp = useRef(false);
 
   // Fetch project name for invite context
   const [inviteProjectName, setInviteProjectName] = useState<string | null>(null);
@@ -46,10 +47,12 @@ export function Signup() {
   }, [inviteProjectId]);
 
   useEffect(() => {
-    if (!loading && session) {
-      navigate('/dashboard', { replace: true });
+    // Only redirect if user arrived at /signup already authenticated.
+    // Don't redirect after a fresh signup — handleSubmit controls navigation.
+    if (!loading && session && !justSignedUp.current) {
+      navigate('/onboarding', { replace: true });
     }
-  }, [session, loading, navigate]);
+  }, [loading, session, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,6 +64,7 @@ export function Signup() {
     }
 
     setSubmitting(true);
+    justSignedUp.current = true;
 
     try {
       // 1. Create the auth user
@@ -75,20 +79,31 @@ export function Signup() {
         return;
       }
 
-      // 2. Update their profile with business name and trade
-      if (signUpData.user) {
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .update({ business_name: businessName, trade })
-          .eq('id', signUpData.user.id);
-
-        if (profileError) {
-          addToast('Profile update failed — you can fix this in Settings', 'error');
-          // Non-blocking — they can update later in settings
-        }
+      // 2. Check if email confirmation is required (session will be null if so)
+      if (!signUpData.session) {
+        // Email confirmation is on — tell the user
+        setSubmitting(false);
+        setError('');
+        addToast('Check your email to confirm your account, then log in.', 'success');
+        // Stash signup data for after confirmation
+        try {
+          localStorage.setItem('flowboss-signup', JSON.stringify({ businessName, trade }));
+        } catch { /* ignore */ }
+        return;
       }
 
-      // 3. If this is an invite signup, link the sub to the GC project
+      // 3. Stash signup fields so onboarding can pre-fill them (don't write to profile yet —
+      //    Onboarding handles the full save so it doesn't auto-skip on business_name check)
+      try {
+        localStorage.setItem('flowboss-signup', JSON.stringify({
+          businessName,
+          trade,
+        }));
+      } catch {
+        // localStorage write failed — onboarding will just start blank
+      }
+
+      // 4. If this is an invite signup, link the sub to the GC project (session exists here)
       if (isInvite && signUpData.user) {
         try {
           const newUserId = signUpData.user.id;
@@ -130,7 +145,7 @@ export function Signup() {
         return;
       }
 
-      // 4. Normal signup: redirect to onboarding wizard
+      // 5. Normal signup: redirect to onboarding wizard
       navigate('/onboarding', { replace: true });
     } catch (err: any) {
       setError(err.message || 'Something went wrong. Please try again.');

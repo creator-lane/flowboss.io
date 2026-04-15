@@ -376,7 +376,9 @@ export function Onboarding() {
     }
   }, [authLoading, session, navigate]);
 
-  // Auto-skip for existing users who already onboarded
+  // Auto-skip for existing users who already completed onboarding.
+  // We check business_role (only set by onboarding), NOT business_name
+  // (which Signup used to write, causing an instant skip).
   useEffect(() => {
     if (!session) return;
     let cancelled = false;
@@ -384,9 +386,27 @@ export function Onboarding() {
     (async () => {
       try {
         const { data: profile } = await api.getSettings();
-        if (!cancelled && profile?.business_name) {
+        if (!cancelled && profile?.business_role) {
+          // Already onboarded — go to dashboard
           navigate('/dashboard', { replace: true });
           return;
+        }
+        // Pre-fill from signup localStorage if available
+        if (!cancelled) {
+          try {
+            const stashed = localStorage.getItem('flowboss-signup');
+            if (stashed) {
+              const { businessName, trade } = JSON.parse(stashed);
+              setData((prev) => ({
+                ...prev,
+                businessName: businessName || prev.businessName,
+                trade: trade || prev.trade,
+              }));
+              localStorage.removeItem('flowboss-signup');
+            }
+          } catch {
+            // Bad parse — ignore
+          }
         }
       } catch {
         // Profile fetch failed — let them onboard

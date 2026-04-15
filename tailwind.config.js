@@ -2,6 +2,22 @@
 export default {
   darkMode: 'class',
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
+  safelist: [
+    // Dynamic color classes used in HomePage interactive mocks
+    ...['blue', 'green', 'purple', 'amber', 'indigo', 'rose', 'cyan'].flatMap((c) => [
+      `bg-${c}-50`,
+      `bg-${c}-100`,
+      `bg-${c}-500`,
+      `bg-${c}-500/10`,
+      `bg-${c}-500/20`,
+      `bg-${c}-500/30`,
+      `text-${c}-300`,
+      `text-${c}-500`,
+      `text-${c}-600`,
+      `text-${c}-700`,
+      `border-${c}-200`,
+    ]),
+  ],
   theme: {
     extend: {
       keyframes: {

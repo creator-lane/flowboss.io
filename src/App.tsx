@@ -15,6 +15,7 @@ import { Onboarding } from './pages/Onboarding';
 import { Pricing } from './pages/Pricing';
 import { Checkout } from './pages/Checkout';
 import { RequireAuth } from './components/auth/RequireAuth';
+import { RequireSubscription } from './components/auth/RequireSubscription';
 import { DashboardLayout } from './components/layout/DashboardLayout';
 import { InviteLanding } from './pages/InviteLanding';
 
@@ -77,7 +78,9 @@ export default function App() {
         path="/dashboard"
         element={
           <RequireAuth>
-            <DashboardLayout />
+            <RequireSubscription>
+              <DashboardLayout />
+            </RequireSubscription>
           </RequireAuth>
         }
       >

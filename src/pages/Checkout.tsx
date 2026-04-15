@@ -22,54 +22,47 @@ export function Checkout() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // When the edge function is deployed, uncomment this to auto-redirect to Stripe
-  useEffect(() => {
+  // Explicit button click → create Stripe session and redirect. No auto-fire on mount:
+  // that would yank users to Stripe any time routing happens to land on /checkout.
+  async function createCheckoutSession() {
     if (!session) return;
-
-    async function createCheckoutSession() {
-      setLoading(true);
-      setError('');
-
+    setLoading(true);
+    setError('');
+    try {
+      const response = await fetch(
+        'https://besbtasjpqmfqjkudmgu.supabase.co/functions/v1/create-checkout-session',
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${session!.access_token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ plan: planKey, userId: session!.user.id }),
+        }
+      );
+      const body = await response.text();
+      if (!response.ok) {
+        setError(`Checkout failed (HTTP ${response.status}): ${body}`);
+        setLoading(false);
+        return;
+      }
       try {
-        const response = await fetch(
-          'https://besbtasjpqmfqjkudmgu.supabase.co/functions/v1/create-checkout-session',
-          {
-            method: 'POST',
-            headers: {
-              Authorization: `Bearer ${session!.access_token}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ plan: planKey, userId: session!.user.id }),
-          }
-        );
-
-        const body = await response.text();
-        if (!response.ok) {
-          setError(`Checkout failed (HTTP ${response.status}): ${body}`);
-          setLoading(false);
-          return;
-        }
-
-        try {
-          const { url } = JSON.parse(body);
-          if (url) {
-            window.location.href = url;
-          } else {
-            setError(`Checkout failed: no URL in response. Body: ${body}`);
-            setLoading(false);
-          }
-        } catch {
-          setError(`Checkout failed: bad JSON. Body: ${body}`);
+        const { url } = JSON.parse(body);
+        if (url) {
+          window.location.href = url;
+        } else {
+          setError(`Checkout failed: no URL in response. Body: ${body}`);
           setLoading(false);
         }
-      } catch (e) {
-        setError(`Network error: ${e instanceof Error ? e.message : String(e)}`);
+      } catch {
+        setError(`Checkout failed: bad JSON. Body: ${body}`);
         setLoading(false);
       }
+    } catch (e) {
+      setError(`Network error: ${e instanceof Error ? e.message : String(e)}`);
+      setLoading(false);
     }
-
-    createCheckoutSession();
-  }, [session, planKey]);
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4 py-12 dark:bg-gray-950">
@@ -107,42 +100,25 @@ export function Checkout() {
               {error}
             </div>
           ) : (
-            <>
-              {/* Coming Soon state */}
-              <div className="text-center py-4">
-                <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-4 dark:bg-blue-500/10 dark:border dark:border-blue-500/20">
-                  <Smartphone className="w-7 h-7 text-blue-600 dark:text-blue-300" />
-                </div>
-                <h2 className="text-lg font-semibold text-gray-900 mb-2 dark:text-white">
-                  Web Payments Coming Soon
-                </h2>
-                <p className="text-sm text-gray-500 leading-relaxed mb-6 dark:text-gray-400">
-                  We're finalizing web payments. In the meantime, download the app to start
-                  your free trial today.
-                </p>
-
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <a
-                    href="https://apps.apple.com/app/id6761025816"
-                    className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors"
-                  >
-                    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z" />
-                    </svg>
-                    App Store
-                  </a>
-                  <a
-                    href="https://play.google.com/store/apps/details?id=io.flowboss.app"
-                    className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors"
-                  >
-                    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M3 20.5v-17c0-.59.34-1.11.84-1.35L13.69 12l-9.85 9.85c-.5-.24-.84-.76-.84-1.35zm13.81-5.38L6.05 21.34l8.49-8.49 2.27 2.27zm.91-.91L19.59 12l-1.87-2.21-2.27 2.27 2.27 2.15zM6.05 2.66l10.76 6.22-2.27 2.27-8.49-8.49z" />
-                    </svg>
-                    Google Play
-                  </a>
-                </div>
+            <div className="text-center py-4">
+              <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-4 dark:bg-blue-500/10 dark:border dark:border-blue-500/20">
+                <Smartphone className="w-7 h-7 text-blue-600 dark:text-blue-300" />
               </div>
-            </>
+              <h2 className="text-lg font-semibold text-gray-900 mb-2 dark:text-white">
+                Start your 14-day free trial
+              </h2>
+              <p className="text-sm text-gray-500 leading-relaxed mb-6 dark:text-gray-400">
+                You won't be charged during the trial. Cancel anytime from Settings.
+              </p>
+              <button
+                type="button"
+                onClick={createCheckoutSession}
+                className="w-full px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-colors shadow-lg shadow-blue-600/20"
+              >
+                Continue to Secure Checkout
+              </button>
+              <p className="text-[11px] text-gray-400 mt-3 dark:text-gray-500">Powered by Stripe · SSL secured</p>
+            </div>
           )}
         </div>
 

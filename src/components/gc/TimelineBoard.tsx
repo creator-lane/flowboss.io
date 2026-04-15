@@ -13,6 +13,7 @@ import {
   Circle,
   AlertCircle,
   Clock,
+  GripVertical,
 } from 'lucide-react';
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -87,12 +88,13 @@ export function TimelineBoard({ project, trades, projectId }: TimelineBoardProps
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [dragState, setDragState] = useState<{
     tradeId: string;
-    edge: 'left' | 'right';
+    edge: 'left' | 'right' | 'move';
     startX: number;
     origStartDate: Date;
     origEndDate: Date;
   } | null>(null);
   const [dragOffset, setDragOffset] = useState(0);
+  const [hoveredTrade, setHoveredTrade] = useState<string | null>(null);
 
   const hasProjectDates = !!(project.startDate && project.targetEndDate);
 
@@ -189,7 +191,7 @@ export function TimelineBoard({ project, trades, projectId }: TimelineBoardProps
 
   // Drag handlers
   const handleDragStart = useCallback(
-    (e: React.MouseEvent, tradeId: string, edge: 'left' | 'right', startDate: Date, endDate: Date) => {
+    (e: React.MouseEvent, tradeId: string, edge: 'left' | 'right' | 'move', startDate: Date, endDate: Date) => {
       e.preventDefault();
       e.stopPropagation();
       setDragState({ tradeId, edge, startX: e.clientX, origStartDate: startDate, origEndDate: endDate });
@@ -212,7 +214,11 @@ export function TimelineBoard({ project, trades, projectId }: TimelineBoardProps
           let newStart = dragState.origStartDate;
           let newEnd = dragState.origEndDate;
 
-          if (dragState.edge === 'left') {
+          if (dragState.edge === 'move') {
+            // Move both dates by the same delta
+            newStart = new Date(dragState.origStartDate.getTime() + daysDelta * DAY_MS);
+            newEnd = new Date(dragState.origEndDate.getTime() + daysDelta * DAY_MS);
+          } else if (dragState.edge === 'left') {
             newStart = new Date(dragState.origStartDate.getTime() + daysDelta * DAY_MS);
             if (newStart >= newEnd) newStart = new Date(newEnd.getTime() - DAY_MS);
           } else {
@@ -257,7 +263,10 @@ export function TimelineBoard({ project, trades, projectId }: TimelineBoardProps
       // Apply drag offsets
       if (dragState && dragState.tradeId === trade.id && dragOffset !== 0) {
         const daysDelta = Math.round(dragOffset / dayWidth);
-        if (dragState.edge === 'left') {
+        if (dragState.edge === 'move') {
+          effectiveStart = new Date(tradeStart.getTime() + daysDelta * DAY_MS);
+          effectiveEnd = new Date(tradeEnd.getTime() + daysDelta * DAY_MS);
+        } else if (dragState.edge === 'left') {
           effectiveStart = new Date(tradeStart.getTime() + daysDelta * DAY_MS);
           if (effectiveStart >= effectiveEnd) effectiveStart = new Date(effectiveEnd.getTime() - DAY_MS);
         } else {
@@ -281,6 +290,8 @@ export function TimelineBoard({ project, trades, projectId }: TimelineBoardProps
         trade,
         offsetPx,
         widthPx,
+        effectiveStart,
+        effectiveEnd,
         hasDates: !!(trade.startDate && trade.endDate),
         tasksDone,
         tasksTotal,
@@ -441,10 +452,11 @@ export function TimelineBoard({ project, trades, projectId }: TimelineBoardProps
               </div>
 
               {/* Trade rows */}
-              {tradeBars.map(({ trade, offsetPx, widthPx, hasDates }) => {
+              {tradeBars.map(({ trade, offsetPx, widthPx, effectiveStart, effectiveEnd, hasDates }) => {
                 const status = trade.status || 'not_started';
                 const colors = STATUS_COLORS[status] || STATUS_COLORS.not_started;
                 const isDragging = dragState?.tradeId === trade.id;
+                const isHovered = hoveredTrade === trade.id;
                 const tradeStartDate = trade.startDate ? startOfDay(new Date(trade.startDate)) : timelineStart;
                 const tradeEndDate = trade.endDate
                   ? startOfDay(new Date(trade.endDate))
@@ -467,23 +479,36 @@ export function TimelineBoard({ project, trades, projectId }: TimelineBoardProps
 
                     {/* Trade bar */}
                     <div
-                      className={`absolute top-3 rounded-md shadow-sm transition-shadow ${
-                        isDragging ? 'shadow-md ring-2 ring-brand-300' : ''
+                      className={`absolute top-3 rounded-lg transition-all duration-100 ${
+                        isDragging
+                          ? 'shadow-lg ring-2 ring-brand-400 z-20 scale-[1.02]'
+                          : isHovered
+                          ? 'shadow-md ring-1 ring-gray-300 z-10'
+                          : 'shadow-sm'
                       } ${hasDates ? '' : 'opacity-40 border border-dashed border-gray-400'}`}
                       style={{
                         left: offsetPx,
                         width: widthPx,
                         height: ROW_HEIGHT - 24,
                       }}
+                      onMouseEnter={() => setHoveredTrade(trade.id)}
+                      onMouseLeave={() => setHoveredTrade(null)}
                     >
                       {/* Bar fill */}
                       <div
-                        className={`absolute inset-0 rounded-md ${colors.bar} ${colors.barHover} transition-colors`}
-                        style={{ opacity: hasDates ? 0.85 : 0.3 }}
+                        className={`absolute inset-0 rounded-lg ${colors.bar} ${colors.barHover} transition-colors`}
+                        style={{ opacity: hasDates ? 0.9 : 0.3 }}
                       />
 
-                      {/* Bar content */}
-                      <div className="relative z-10 h-full flex items-center px-2 text-white">
+                      {/* Bar content — draggable (move) */}
+                      <div
+                        className="relative z-10 h-full flex items-center px-3 text-white cursor-grab active:cursor-grabbing select-none"
+                        onMouseDown={(e) => handleDragStart(e, trade.id, 'move', tradeStartDate, tradeEndDate)}
+                      >
+                        {/* Grip indicator */}
+                        {(isHovered || isDragging) && widthPx > 50 && (
+                          <GripVertical className="w-3 h-3 text-white/50 flex-shrink-0 mr-1" />
+                        )}
                         {widthPx > 100 && (
                           <span className="text-xs font-medium truncate drop-shadow-sm">
                             {trade.trade}
@@ -497,20 +522,44 @@ export function TimelineBoard({ project, trades, projectId }: TimelineBoardProps
                         )}
                       </div>
 
+                      {/* Date tooltip on hover */}
+                      {(isHovered || isDragging) && hasDates && (
+                        <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] font-medium px-2 py-1 rounded-md whitespace-nowrap z-30 pointer-events-none shadow-lg">
+                          {formatShortDate(effectiveStart)} — {formatShortDate(effectiveEnd)}
+                          {isDragging && dragState?.edge === 'move' && (
+                            <span className="text-brand-300 ml-1">
+                              ({Math.round(dragOffset / dayWidth) > 0 ? '+' : ''}{Math.round(dragOffset / dayWidth)}d)
+                            </span>
+                          )}
+                        </div>
+                      )}
+
                       {/* Left resize handle */}
                       <div
-                        className="absolute left-0 top-0 w-2 h-full cursor-col-resize z-20 group"
+                        className="absolute -left-1 top-0 w-3 h-full cursor-col-resize z-20 group"
                         onMouseDown={(e) => handleDragStart(e, trade.id, 'left', tradeStartDate, tradeEndDate)}
                       >
-                        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-4 bg-white/60 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <div className={`absolute left-1 top-1/2 -translate-y-1/2 w-1.5 h-5 rounded-full transition-all ${
+                          isDragging && dragState?.edge === 'left'
+                            ? 'bg-white scale-110'
+                            : isHovered
+                            ? 'bg-white/70'
+                            : 'bg-white/0 group-hover:bg-white/70'
+                        }`} />
                       </div>
 
                       {/* Right resize handle */}
                       <div
-                        className="absolute right-0 top-0 w-2 h-full cursor-col-resize z-20 group"
+                        className="absolute -right-1 top-0 w-3 h-full cursor-col-resize z-20 group"
                         onMouseDown={(e) => handleDragStart(e, trade.id, 'right', tradeStartDate, tradeEndDate)}
                       >
-                        <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-4 bg-white/60 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <div className={`absolute right-1 top-1/2 -translate-y-1/2 w-1.5 h-5 rounded-full transition-all ${
+                          isDragging && dragState?.edge === 'right'
+                            ? 'bg-white scale-110'
+                            : isHovered
+                            ? 'bg-white/70'
+                            : 'bg-white/0 group-hover:bg-white/70'
+                        }`} />
                       </div>
                     </div>
 
@@ -558,7 +607,7 @@ export function TimelineBoard({ project, trades, projectId }: TimelineBoardProps
           Today
         </div>
         <div className="flex items-center gap-1.5 ml-auto text-gray-400">
-          Drag bar edges to adjust dates
+          Drag edges to resize &middot; Grab bar to move
         </div>
       </div>
     </div>

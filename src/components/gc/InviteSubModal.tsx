@@ -52,7 +52,7 @@ export function InviteSubModal({
       queryClient.invalidateQueries({ queryKey: ['gc-project', projectId] });
       queryClient.invalidateQueries({ queryKey: ['gc-projects'] });
     },
-    onError: (err: any) => addToast(err.message || 'Failed to update trade', 'error'),
+    onError: (err: any) => addToast(err.message || 'Failed to update scope', 'error'),
   });
 
   function handleSetPlaceholder() {

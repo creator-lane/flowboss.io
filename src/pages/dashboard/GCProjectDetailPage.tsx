@@ -153,7 +153,7 @@ export function GCProjectDetailPage() {
       setShowAddTradeVisual(false);
       setAddTradeValue('');
     },
-    onError: (err: any) => addToast(err.message || 'Failed to add trade', 'error'),
+    onError: (err: any) => addToast(err.message || 'Failed to add scope', 'error'),
   });
 
   const projectQuery = useQuery({
@@ -358,13 +358,13 @@ export function GCProjectDetailPage() {
           {/* Quick Add Trade Popup (Visual View) */}
           {showAddTradeVisual && (
             <div className="absolute top-4 right-4 z-30 bg-white rounded-xl border border-gray-200 shadow-lg p-4 w-64">
-              <h3 className="font-medium text-sm text-gray-900 mb-3">Add Trade</h3>
+              <h3 className="font-medium text-sm text-gray-900 mb-3">Add Scope</h3>
               <select
                 value={addTradeValue}
                 onChange={(e) => setAddTradeValue(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white mb-3 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
               >
-                <option value="">Select trade...</option>
+                <option value="">Select scope...</option>
                 {TRADE_OPTIONS.map((t) => (
                   <option key={t} value={t}>{t}</option>
                 ))}
@@ -692,29 +692,29 @@ function HubSpokeDiagram({
         />
       ))}
 
-      {/* Empty state + Add Trade button */}
+      {/* Empty state */}
       {trades.length === 0 && (
         <div className="absolute left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-3" style={{ top: centerY + 100 }}>
-          <p className="text-gray-400 text-sm">No trades yet</p>
+          <p className="text-gray-400 text-sm">What scopes of work are on this job?</p>
           <button
             onClick={onAddTrade}
             className="inline-flex items-center gap-2 px-4 py-2 bg-brand-500 text-white text-sm font-medium rounded-lg hover:bg-brand-600 transition-colors shadow-sm"
           >
             <Plus className="w-4 h-4" />
-            Add Trade
+            Add Scope
           </button>
         </div>
       )}
 
-      {/* Add Trade button when trades exist */}
+      {/* Add Trade — small icon-only button, bottom-right corner */}
       {trades.length > 0 && (
         <button
           onClick={onAddTrade}
-          className="absolute z-20 inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 text-gray-600 text-xs font-medium rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-colors shadow-sm"
-          style={{ left: centerX, bottom: 16, transform: 'translateX(-50%)' }}
+          title="Add scope"
+          className="absolute z-20 w-8 h-8 flex items-center justify-center bg-white border border-gray-200 text-gray-400 rounded-full hover:bg-gray-50 hover:border-brand-300 hover:text-brand-500 transition-colors shadow-sm"
+          style={{ right: 16, bottom: 16 }}
         >
-          <Plus className="w-3.5 h-3.5" />
-          Add Trade
+          <Plus className="w-4 h-4" />
         </button>
       )}
     </div>
@@ -963,7 +963,7 @@ function ZoneDetailPanel({
         {/* Trades List */}
         <div className="p-4 pt-2 space-y-3">
           {zoneTrades.length === 0 && (
-            <div className="text-center py-8 text-gray-400 text-sm">No trades in this zone yet</div>
+            <div className="text-center py-8 text-gray-400 text-sm">No scopes in this zone yet</div>
           )}
 
           {zoneTrades.map((trade: any) => {
@@ -2392,7 +2392,7 @@ function AddTradeColumn({ projectId }: { projectId: string }) {
       setOpen(false);
       setSelectedTrade('');
     },
-    onError: (err: any) => addToast(err.message || 'Failed to add trade', 'error'),
+    onError: (err: any) => addToast(err.message || 'Failed to add scope', 'error'),
   });
 
   if (!open) {
@@ -2402,20 +2402,20 @@ function AddTradeColumn({ projectId }: { projectId: string }) {
         className="w-72 flex-shrink-0 rounded-xl border-2 border-dashed border-gray-200 flex items-center justify-center gap-2 text-sm text-gray-400 hover:text-gray-600 hover:border-gray-300 transition-colors min-h-[200px]"
       >
         <Plus className="w-5 h-5" />
-        Add Trade
+        Add Scope
       </button>
     );
   }
 
   return (
     <div className="w-72 flex-shrink-0 bg-white rounded-xl border border-gray-200 p-4">
-      <h3 className="font-medium text-sm text-gray-900 mb-3">Add Trade</h3>
+      <h3 className="font-medium text-sm text-gray-900 mb-3">Add Scope</h3>
       <select
         value={selectedTrade}
         onChange={(e) => setSelectedTrade(e.target.value)}
         className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white mb-3 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
       >
-        <option value="">Select trade...</option>
+        <option value="">Select scope...</option>
         {TRADE_OPTIONS.map((t) => (
           <option key={t} value={t}>{t}</option>
         ))}

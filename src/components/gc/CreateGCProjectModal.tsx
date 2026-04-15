@@ -634,7 +634,7 @@ function ZoneCard({
           }}
           className="w-full px-2 py-1 border border-gray-200 rounded text-xs bg-white focus:ring-1 focus:ring-brand-500 outline-none text-gray-400"
         >
-          <option value="">+ Add trade...</option>
+          <option value="">+ Add scope...</option>
           {availableTrades.map(t => (
             <option key={t} value={t}>{t}</option>
           ))}

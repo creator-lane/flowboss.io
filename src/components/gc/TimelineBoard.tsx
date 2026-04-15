@@ -422,7 +422,7 @@ export function TimelineBoard({ project, trades, projectId }: TimelineBoardProps
             })}
 
             {trades.length === 0 && (
-              <div className="px-4 py-6 text-sm text-gray-400 text-center">No trades added yet</div>
+              <div className="px-4 py-6 text-sm text-gray-400 text-center">No scopes added yet</div>
             )}
           </div>
 
@@ -576,7 +576,7 @@ export function TimelineBoard({ project, trades, projectId }: TimelineBoardProps
 
               {trades.length === 0 && (
                 <div className="flex items-center justify-center h-32 text-sm text-gray-400">
-                  Add trades to see them on the timeline
+                  Add scopes of work to see them on the timeline
                 </div>
               )}
             </div>

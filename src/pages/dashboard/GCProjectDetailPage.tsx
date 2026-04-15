@@ -10,7 +10,9 @@ import {
   DollarSign,
   Calendar,
   Plus,
-  Send,
+  Megaphone,
+  AlertTriangle,
+  AlertCircle,
   CheckSquare,
   Square,
   UserPlus,
@@ -274,7 +276,7 @@ export function GCProjectDetailPage() {
         {/* View toggle + progress row */}
         {/* Project Banner — broadcasts to all subs */}
         <div className="mt-4">
-          <ProjectBanner projectId={id!} messages={messages} />
+          <ProjectBanner projectId={id!} project={project} />
         </div>
 
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -2438,147 +2440,106 @@ function AddTradeColumn({ projectId }: { projectId: string }) {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   Project Banner — GC broadcasts updates to all subs
+   Project Banner — GC broadcasts a single active announcement to all subs
    ═══════════════════════════════════════════════════════════════════════════ */
 
-const BANNER_CATEGORIES: { key: string; label: string; icon: string; bg: string; border: string; text: string; iconBg: string }[] = [
-  { key: 'general', label: 'General Update', icon: '\u{1F4E2}', bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-900', iconBg: 'bg-blue-100' },
-  { key: 'schedule', label: 'Schedule Change', icon: '\u{1F4C5}', bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-900', iconBg: 'bg-amber-100' },
-  { key: 'safety', label: 'Safety Notice', icon: '\u{26A0}\u{FE0F}', bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-900', iconBg: 'bg-red-100' },
-  { key: 'change_order', label: 'Change Order', icon: '\u{1F4DD}', bg: 'bg-purple-50', border: 'border-purple-200', text: 'text-purple-900', iconBg: 'bg-purple-100' },
-  { key: 'milestone', label: 'Milestone', icon: '\u{1F389}', bg: 'bg-green-50', border: 'border-green-200', text: 'text-green-900', iconBg: 'bg-green-100' },
-];
+const BANNER_TYPE_CONFIG: Record<string, { bg: string; borderColor: string; textColor: string; Icon: typeof Megaphone }> = {
+  info:    { bg: 'bg-blue-50',  borderColor: 'border-blue-600',  textColor: 'text-blue-600',  Icon: Megaphone },
+  warning: { bg: 'bg-amber-50', borderColor: 'border-amber-500', textColor: 'text-amber-500', Icon: AlertTriangle },
+  urgent:  { bg: 'bg-red-50',   borderColor: 'border-red-500',   textColor: 'text-red-500',   Icon: AlertCircle },
+};
 
-function getBannerCategory(message: string) {
-  // Messages are stored as "CATEGORY:message" — parse the prefix
-  const colonIdx = message.indexOf(':');
-  if (colonIdx > 0 && colonIdx < 20) {
-    const prefix = message.substring(0, colonIdx).toLowerCase();
-    const cat = BANNER_CATEGORIES.find(c => c.key === prefix);
-    if (cat) return { category: cat, text: message.substring(colonIdx + 1).trim() };
-  }
-  return { category: BANNER_CATEGORIES[0], text: message };
-}
-
-function ProjectBanner({ projectId, messages }: { projectId: string; messages: any[] }) {
+function ProjectBanner({ projectId, project }: { projectId: string; project: any }) {
   const queryClient = useQueryClient();
   const { addToast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
   const [bannerText, setBannerText] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('general');
-  const [showHistory, setShowHistory] = useState(false);
+  const [bannerType, setBannerType] = useState<string>('info');
 
-  // Project-level messages (no trade_id) = banners, sorted newest first
-  const banners = messages
-    .filter((m: any) => !m.tradeId)
-    .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  const bannerMessage: string | null = project?.bannerMessage ?? null;
+  const currentType: string = project?.bannerType ?? 'info';
+  const bannerUpdatedAt: string | null = project?.bannerUpdatedAt ?? null;
 
-  const activeBanner = banners[0] || null;
-  const pastBanners = banners.slice(1);
+  const cfg = BANNER_TYPE_CONFIG[currentType] || BANNER_TYPE_CONFIG.info;
 
-  const postBanner = useMutation({
-    mutationFn: (message: string) => api.sendGCMessage(projectId, message),
+  const saveBanner = useMutation({
+    mutationFn: (payload: { bannerMessage: string | null; bannerType: string; bannerUpdatedAt: string }) =>
+      api.updateGCProject(projectId, payload),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['gc-messages', projectId] });
-      setBannerText('');
+      queryClient.invalidateQueries({ queryKey: ['gc-project', projectId] });
       setIsEditing(false);
-      setSelectedCategory('general');
-      addToast('Banner posted — all subs will see this', 'success');
+      setBannerText('');
+      addToast('Banner updated — all subs will see this', 'success');
     },
-    onError: (err: any) => addToast(err.message || 'Failed to post banner', 'error'),
+    onError: (err: any) => addToast(err.message || 'Failed to update banner', 'error'),
   });
 
-  const handlePost = () => {
+  const handleSave = () => {
     if (!bannerText.trim()) return;
-    const fullMessage = `${selectedCategory}:${bannerText.trim()}`;
-    postBanner.mutate(fullMessage);
+    saveBanner.mutate({ bannerMessage: bannerText.trim(), bannerType, bannerUpdatedAt: new Date().toISOString() });
   };
 
-  // Active banner display
-  if (!isEditing && activeBanner) {
-    const { category, text } = getBannerCategory(activeBanner.message);
+  const handleClear = () => {
+    saveBanner.mutate({ bannerMessage: null, bannerType: 'info', bannerUpdatedAt: new Date().toISOString() });
+  };
+
+  // --- Active banner display ---
+  if (!isEditing && bannerMessage) {
+    const TypeIcon = cfg.Icon;
     return (
       <div className="mb-5">
-        <div className={`${category.bg} ${category.border} border rounded-xl px-4 py-3`}>
+        <div className={`${cfg.bg} border-l-4 ${cfg.borderColor} rounded-r-xl px-4 py-3`}>
           <div className="flex items-start gap-3">
-            <div className={`${category.iconBg} w-8 h-8 rounded-lg flex items-center justify-center text-base flex-shrink-0`}>
-              {category.icon}
-            </div>
+            <TypeIcon className={`w-5 h-5 ${cfg.textColor} flex-shrink-0 mt-0.5`} />
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-0.5">
-                <span className={`text-xs font-semibold uppercase tracking-wide ${category.text} opacity-70`}>
-                  {category.label}
-                </span>
-                <span className="text-xs text-gray-400">{formatTime(activeBanner.createdAt)}</span>
-              </div>
-              <p className={`text-sm font-medium ${category.text}`}>{text}</p>
+              <p className={`text-sm font-medium ${cfg.textColor}`}>{bannerMessage}</p>
+              {bannerUpdatedAt && (
+                <p className="text-xs text-gray-400 mt-1">{formatTime(bannerUpdatedAt)}</p>
+              )}
             </div>
             <button
-              onClick={() => { setIsEditing(true); setBannerText(''); }}
+              onClick={() => { setIsEditing(true); setBannerText(bannerMessage); setBannerType(currentType); }}
               className="text-xs text-gray-500 hover:text-gray-700 font-medium flex-shrink-0 px-2 py-1 rounded hover:bg-white/50 transition-colors"
             >
-              Update
+              Edit
             </button>
           </div>
         </div>
-
-        {/* Past banners toggle */}
-        {pastBanners.length > 0 && (
-          <div className="mt-2">
-            <button
-              onClick={() => setShowHistory(!showHistory)}
-              className="text-xs text-gray-400 hover:text-gray-600 flex items-center gap-1 transition-colors"
-            >
-              {showHistory ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-              {pastBanners.length} past update{pastBanners.length !== 1 ? 's' : ''}
-            </button>
-            {showHistory && (
-              <div className="mt-2 space-y-1.5">
-                {pastBanners.map((b: any) => {
-                  const { category: cat, text: t } = getBannerCategory(b.message);
-                  return (
-                    <div key={b.id} className="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg">
-                      <span className="text-sm">{cat.icon}</span>
-                      <p className="text-xs text-gray-600 flex-1 truncate">{t}</p>
-                      <span className="text-[10px] text-gray-400 flex-shrink-0">{formatTime(b.createdAt)}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        )}
       </div>
     );
   }
 
-  // Editor / empty state
-  return (
-    <div className="mb-5">
-      {isEditing ? (
+  // --- Inline editor ---
+  if (isEditing) {
+    return (
+      <div className="mb-5">
         <div className="bg-white rounded-xl border border-gray-200 p-4">
           <div className="flex items-center gap-2 mb-3">
-            <MessageSquare className="w-4 h-4 text-gray-400" />
-            <h3 className="text-sm font-semibold text-gray-900">Post Project Update</h3>
+            <Megaphone className="w-4 h-4 text-gray-400" />
+            <h3 className="text-sm font-semibold text-gray-900">Set Project Banner</h3>
             <span className="text-xs text-gray-400">All subs will see this</span>
           </div>
 
-          {/* Category selector */}
+          {/* Type selector */}
           <div className="flex flex-wrap gap-1.5 mb-3">
-            {BANNER_CATEGORIES.map((cat) => (
-              <button
-                key={cat.key}
-                onClick={() => setSelectedCategory(cat.key)}
-                className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                  selectedCategory === cat.key
-                    ? `${cat.bg} ${cat.border} border ${cat.text}`
-                    : 'bg-gray-50 text-gray-500 hover:bg-gray-100 border border-transparent'
-                }`}
-              >
-                <span>{cat.icon}</span>
-                {cat.label}
-              </button>
-            ))}
+            {(Object.keys(BANNER_TYPE_CONFIG) as string[]).map((key) => {
+              const t = BANNER_TYPE_CONFIG[key];
+              const TypeIcon = t.Icon;
+              return (
+                <button
+                  key={key}
+                  onClick={() => setBannerType(key)}
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all capitalize ${
+                    bannerType === key
+                      ? `${t.bg} border ${t.borderColor} ${t.textColor}`
+                      : 'bg-gray-50 text-gray-500 hover:bg-gray-100 border border-transparent'
+                  }`}
+                >
+                  <TypeIcon className="w-3.5 h-3.5" />
+                  {key}
+                </button>
+              );
+            })}
           </div>
 
           {/* Message input */}
@@ -2592,6 +2553,15 @@ function ProjectBanner({ projectId, messages }: { projectId: string; messages: a
           />
 
           <div className="flex items-center justify-end gap-2">
+            {bannerMessage && (
+              <button
+                onClick={handleClear}
+                disabled={saveBanner.isPending}
+                className="px-3 py-1.5 text-sm text-red-500 hover:text-red-700 transition-colors"
+              >
+                Clear Banner
+              </button>
+            )}
             <button
               onClick={() => { setIsEditing(false); setBannerText(''); }}
               className="px-3 py-1.5 text-sm text-gray-500 hover:text-gray-700 transition-colors"
@@ -2599,24 +2569,28 @@ function ProjectBanner({ projectId, messages }: { projectId: string; messages: a
               Cancel
             </button>
             <button
-              onClick={handlePost}
-              disabled={!bannerText.trim() || postBanner.isPending}
+              onClick={handleSave}
+              disabled={!bannerText.trim() || saveBanner.isPending}
               className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-brand-500 text-white text-sm font-medium rounded-lg hover:bg-brand-600 transition-colors disabled:opacity-60"
             >
-              <Send className="w-3.5 h-3.5" />
-              Post Update
+              Save
             </button>
           </div>
         </div>
-      ) : (
-        <button
-          onClick={() => setIsEditing(true)}
-          className="w-full flex items-center gap-3 px-4 py-3 bg-gray-50 hover:bg-gray-100 border border-dashed border-gray-300 rounded-xl text-sm text-gray-500 hover:text-gray-700 transition-colors"
-        >
-          <MessageSquare className="w-4 h-4" />
-          Post a project-wide update for all subs...
-        </button>
-      )}
+      </div>
+    );
+  }
+
+  // --- No banner set — subtle "+ Set Project Banner" button ---
+  return (
+    <div className="mb-5">
+      <button
+        onClick={() => setIsEditing(true)}
+        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+      >
+        <Plus className="w-3.5 h-3.5" />
+        Set Project Banner
+      </button>
     </div>
   );
 }

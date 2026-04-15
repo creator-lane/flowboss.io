@@ -14,6 +14,9 @@ import {
   CheckCircle2,
   ChevronRight,
   Clock,
+  HardHat,
+  MapPin,
+  X,
 } from 'lucide-react';
 import { CreateGCProjectModal } from '../../components/gc/CreateGCProjectModal';
 import { CreateInvoiceModal } from '../../components/invoices/CreateInvoiceModal';
@@ -83,6 +86,7 @@ export function CommandCenterPage() {
   const [showNewProject, setShowNewProject] = useState(false);
   const [showNewInvoice, setShowNewInvoice] = useState(false);
   const [showNewJob, setShowNewJob] = useState(false);
+  const [dismissedBanners, setDismissedBanners] = useState<Set<string>>(new Set());
 
   // Data queries
   const { data: projectsData, isLoading: loadingProjects } = useQuery({
@@ -105,12 +109,18 @@ export function CommandCenterPage() {
     queryFn: () => api.getSettings(),
   });
 
+  const { data: invitedData, isLoading: loadingInvited } = useQuery({
+    queryKey: ['invited-projects'],
+    queryFn: () => api.getInvitedProjects(),
+  });
+
   const projects = projectsData?.data || [];
   const todaysJobs = jobsData?.data || [];
   const invoices = invoicesData?.data || [];
   const settings = settingsData?.data;
+  const invitedProjects: any[] = invitedData?.data || [];
 
-  const isLoading = loadingProjects || loadingJobs || loadingInvoices || loadingSettings;
+  const isLoading = loadingProjects || loadingJobs || loadingInvoices || loadingSettings || loadingInvited;
 
   // ── Computed values ──────────────────────────────────────────────
 
@@ -188,6 +198,34 @@ export function CommandCenterPage() {
     return { outstandingTotal, outstandingCount: unpaid.length, monthRevenue, monthPaidCount: paidThisMonth.length };
   }, [invoices]);
 
+  // Urgent GC project banners (safety, schedule categories)
+  const urgentBanners = useMemo(() => {
+    const items: { id: string; projectName: string; text: string }[] = [];
+    for (const proj of invitedProjects) {
+      const messages = (proj.messages || [])
+        .filter((m: any) => !m.tradeId)
+        .sort((a: any, b: any) => new Date(b.createdAt || b.created_at || 0).getTime() - new Date(a.createdAt || a.created_at || 0).getTime());
+      const latest = messages[0];
+      if (!latest) continue;
+      const msg: string = latest.message || '';
+      const colonIdx = msg.indexOf(':');
+      let category = '';
+      let text = msg;
+      if (colonIdx > 0 && colonIdx < 20) {
+        category = msg.substring(0, colonIdx).toLowerCase();
+        text = msg.substring(colonIdx + 1).trim();
+      }
+      if (category === 'safety' || category === 'schedule') {
+        items.push({
+          id: latest.id,
+          projectName: proj.name || proj.projectName || 'Project',
+          text,
+        });
+      }
+    }
+    return items;
+  }, [invitedProjects]);
+
   const greeting = getGreeting();
   const formattedDate = format(new Date(), 'EEEE, MMMM d, yyyy');
 
@@ -214,6 +252,32 @@ export function CommandCenterPage() {
 
   return (
     <div className="p-4 lg:p-6 max-w-5xl mx-auto space-y-6">
+      {/* 0. Urgent GC Project Banners */}
+      {urgentBanners.filter((b) => !dismissedBanners.has(b.id)).length > 0 && (
+        <div className="space-y-2">
+          {urgentBanners
+            .filter((b) => !dismissedBanners.has(b.id))
+            .map((b) => (
+              <div
+                key={b.id}
+                className="flex items-center gap-3 px-4 py-2.5 bg-amber-50 border border-amber-200 rounded-lg"
+              >
+                <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                <span className="text-sm text-amber-800 flex-1">
+                  <span className="font-semibold">{b.projectName}:</span> {b.text}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setDismissedBanners((prev) => new Set([...prev, b.id]))}
+                  className="text-amber-400 hover:text-amber-600 transition-colors shrink-0"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            ))}
+        </div>
+      )}
+
       {/* 1. Welcome Header */}
       <div className="bg-gradient-to-r from-brand-500/5 via-brand-500/[0.02] to-transparent rounded-2xl p-6 mb-0">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -329,6 +393,145 @@ export function CommandCenterPage() {
           </div>
         )}
       </section>
+
+      {/* 3b. Your GC Projects (sub view) */}
+      {invitedProjects.length > 0 && (
+        <section>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Your GC Projects</h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {invitedProjects.map((proj: any) => {
+              const projName = proj.name || proj.projectName || 'Untitled Project';
+              const projAddress = proj.address || proj.siteAddress || '';
+              const gcName = proj.gcCompanyName || null;
+              const trades = (proj.trades || []) as any[];
+              // Compute task progress across all trades assigned to this user
+              const allTasks = trades.flatMap((t: any) => t.tasks || []);
+              const totalTasks = allTasks.length;
+              const completeTasks = allTasks.filter(
+                (tk: any) => tk.status === 'COMPLETED' || tk.status === 'completed' || tk.done
+              ).length;
+              // Latest banner message (project-level, no tradeId)
+              const messages = (proj.messages || [])
+                .filter((m: any) => !m.tradeId)
+                .sort(
+                  (a: any, b: any) =>
+                    new Date(b.createdAt || b.created_at || 0).getTime() -
+                    new Date(a.createdAt || a.created_at || 0).getTime()
+                );
+              const latestBanner = messages[0] || null;
+              let bannerCategory = '';
+              let bannerText = '';
+              if (latestBanner) {
+                const msg: string = latestBanner.message || '';
+                const ci = msg.indexOf(':');
+                if (ci > 0 && ci < 20) {
+                  bannerCategory = msg.substring(0, ci).toLowerCase();
+                  bannerText = msg.substring(ci + 1).trim();
+                } else {
+                  bannerText = msg;
+                }
+              }
+              const BANNER_COLORS: Record<string, string> = {
+                safety: 'bg-red-50 text-red-700 border-red-200',
+                schedule: 'bg-amber-50 text-amber-700 border-amber-200',
+                change_order: 'bg-purple-50 text-purple-700 border-purple-200',
+                milestone: 'bg-green-50 text-green-700 border-green-200',
+              };
+              const bannerStyle = BANNER_COLORS[bannerCategory] || 'bg-blue-50 text-blue-700 border-blue-200';
+
+              // Trade status badges
+              const TRADE_STATUS: Record<string, { bg: string; text: string; label: string }> = {
+                NOT_STARTED: { bg: 'bg-gray-100', text: 'text-gray-600', label: 'Not Started' },
+                IN_PROGRESS: { bg: 'bg-cyan-50', text: 'text-cyan-700', label: 'In Progress' },
+                COMPLETED: { bg: 'bg-green-50', text: 'text-green-700', label: 'Complete' },
+                BLOCKED: { bg: 'bg-red-50', text: 'text-red-700', label: 'Blocked' },
+              };
+
+              return (
+                <Link
+                  key={proj.id}
+                  to={`/dashboard/projects/assigned/${proj.id}`}
+                  className="bg-white rounded-xl border border-gray-200 hover:border-brand-300 hover:shadow-lg hover:shadow-brand-100/50 hover:-translate-y-0.5 transition-all duration-200 overflow-hidden"
+                >
+                  {/* Banner strip */}
+                  {latestBanner && (
+                    <div className={`px-4 py-2 text-xs font-medium border-b truncate ${bannerStyle}`}>
+                      {bannerText}
+                    </div>
+                  )}
+
+                  <div className="p-4">
+                    {/* Project name + GC */}
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 rounded-lg bg-brand-50 flex items-center justify-center shrink-0">
+                            <HardHat className="w-4 h-4 text-brand-600" />
+                          </div>
+                          <div className="min-w-0">
+                            <h3 className="text-sm font-semibold text-gray-900 truncate">{projName}</h3>
+                            {gcName && (
+                              <p className="text-xs text-gray-500 truncate">{gcName}</p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-gray-300 shrink-0 mt-2" />
+                    </div>
+
+                    {/* Address */}
+                    {projAddress && (
+                      <div className="flex items-center gap-1.5 mb-3">
+                        <MapPin className="w-3 h-3 text-gray-400 shrink-0" />
+                        <span className="text-xs text-gray-500 truncate">{projAddress}</span>
+                      </div>
+                    )}
+
+                    {/* Trades */}
+                    {trades.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 mb-3">
+                        {trades.map((t: any) => {
+                          const st = TRADE_STATUS[t.status] || TRADE_STATUS.NOT_STARTED;
+                          return (
+                            <span
+                              key={t.id}
+                              className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium ${st.bg} ${st.text}`}
+                            >
+                              {t.trade || t.name || 'Trade'} -- {st.label}
+                            </span>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {/* Task progress */}
+                    {totalTasks > 0 && (
+                      <div>
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-xs text-gray-500">
+                            {completeTasks} of {totalTasks} task{totalTasks !== 1 ? 's' : ''} complete
+                          </span>
+                          <span className="text-xs font-medium text-gray-600">
+                            {Math.round((completeTasks / totalTasks) * 100)}%
+                          </span>
+                        </div>
+                        <div className="w-full bg-gray-100 rounded-full h-1.5">
+                          <div
+                            className="bg-brand-500 h-1.5 rounded-full transition-all"
+                            style={{ width: `${(completeTasks / totalTasks) * 100}%` }}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
       {/* 4. Today's Schedule + 5. Financial Snapshot */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">

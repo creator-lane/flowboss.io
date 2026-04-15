@@ -2011,10 +2011,28 @@ export const api = {
       const projectIds = [...new Set(assignments.map((a: any) => a.gc_project_id))];
       const { data, error } = await supabase
         .from('gc_projects')
-        .select('*, trades:gc_project_trades(*, tasks:gc_project_tasks(*))')
+        .select('*, trades:gc_project_trades(*, tasks:gc_project_tasks(*)), messages:gc_project_messages(*)')
         .in('id', projectIds);
       if (error) return { data: [] };
-      return { data: camelify(data || []) };
+
+      // Attach org name to each project
+      const orgIds = [...new Set((data || []).map((p: any) => p.org_id).filter(Boolean))];
+      let orgMap: Record<string, string> = {};
+      if (orgIds.length > 0) {
+        const { data: orgs } = await supabase
+          .from('organizations')
+          .select('id, name')
+          .in('id', orgIds);
+        if (orgs) {
+          orgMap = Object.fromEntries(orgs.map((o: any) => [o.id, o.name]));
+        }
+      }
+      const enriched = (data || []).map((p: any) => ({
+        ...p,
+        gc_company_name: orgMap[p.org_id] || null,
+      }));
+
+      return { data: camelify(enriched) };
     } catch {
       return { data: [] };
     }

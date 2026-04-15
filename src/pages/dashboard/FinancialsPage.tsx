@@ -36,6 +36,7 @@ import {
   BarChart3,
   Clock,
   Layers,
+  HardHat,
 } from 'lucide-react';
 
 // ── Types ─────────────────────────────────────────────────────────────
@@ -306,6 +307,12 @@ export function FinancialsPage() {
     staleTime: 5 * 60_000,
   });
 
+  const { data: invitedProjectsRes } = useQuery({
+    queryKey: ['invitedProjects'],
+    queryFn: () => api.getInvitedProjects(),
+    staleTime: 5 * 60_000,
+  });
+
   const fin = financialsRes?.data;
   const insights = insightsRes?.data;
   const contractors = contractorsRes?.data || [];
@@ -554,6 +561,51 @@ export function FinancialsPage() {
     return items.slice(0, 10);
   }, [recentPayments, recentExpenses]);
 
+  // ── GC Project Revenue (from invited/assigned trades) ────────────────
+  const gcProjectRevenue = useMemo(() => {
+    const projects = invitedProjectsRes?.data || [];
+    if (projects.length === 0) return null;
+
+    let totalGcRevenue = 0;
+    const byProject: { projectName: string; gcCompany: string | null; trades: { trade: string; hours: number; rate: number; amount: number }[]; total: number }[] = [];
+
+    projects.forEach((project: any) => {
+      const trades = project.trades || [];
+      if (trades.length === 0) return;
+
+      const projectTrades: { trade: string; hours: number; rate: number; amount: number }[] = [];
+      let projectTotal = 0;
+
+      trades.forEach((t: any) => {
+        const hours = Number(t.laborHours || t.labor_hours || 0);
+        const rate = Number(t.laborRate || t.labor_rate || 0);
+        const amount = hours * rate;
+        if (amount > 0) {
+          projectTrades.push({ trade: t.trade || 'Unnamed Trade', hours, rate, amount });
+          projectTotal += amount;
+        }
+      });
+
+      if (projectTotal > 0) {
+        totalGcRevenue += projectTotal;
+        byProject.push({
+          projectName: project.name || project.projectName || 'Unnamed Project',
+          gcCompany: project.gcCompanyName || null,
+          trades: projectTrades,
+          total: projectTotal,
+        });
+      }
+    });
+
+    if (totalGcRevenue === 0) return null;
+
+    // Percentage of total (invoiced revenue + GC contract value)
+    const combinedTotal = revenue + totalGcRevenue;
+    const gcPct = combinedTotal > 0 ? (totalGcRevenue / combinedTotal) * 100 : 0;
+
+    return { totalGcRevenue, byProject, gcPct };
+  }, [invitedProjectsRes, revenue]);
+
   // ══════════════════════════════════════════════════════════════════════
   // RENDER
   // ══════════════════════════════════════════════════════════════════════
@@ -663,6 +715,22 @@ export function FinancialsPage() {
             </div>
             <p className="text-xl font-extrabold text-purple-600">{fmtCurrency(avgJobValue)}</p>
           </div>
+
+          {/* GC Contract Value (only shown when user has invited projects) */}
+          {gcProjectRevenue && (
+            <div className="bg-white rounded-xl border border-neutral-200 p-4 border-l-4 border-l-violet-500">
+              <div className="flex items-center gap-1.5 mb-1">
+                <HardHat className="w-3.5 h-3.5 text-violet-500" />
+                <span className="text-xs font-semibold text-neutral-500 uppercase tracking-wide">GC Contract Value</span>
+              </div>
+              <p className="text-xl font-extrabold text-violet-600">{fmtCurrency(gcProjectRevenue.totalGcRevenue)}</p>
+              {revenue > 0 && (
+                <p className="text-[10px] text-neutral-400 mt-0.5">
+                  {gcProjectRevenue.gcPct.toFixed(0)}% of combined revenue
+                </p>
+              )}
+            </div>
+          )}
         </div>
       )}
 
@@ -833,6 +901,52 @@ export function FinancialsPage() {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Section 6b: GC Project Revenue Breakdown ─────────────────── */}
+      {gcProjectRevenue && (
+        <div className="bg-white rounded-xl border border-neutral-200 p-5">
+          <h2 className="text-xs font-bold text-neutral-500 uppercase tracking-wide flex items-center gap-1.5 mb-4">
+            <HardHat className="w-3.5 h-3.5 text-violet-500" />
+            GC Project Revenue
+            <span className="text-[10px] font-normal text-neutral-400 normal-case tracking-normal ml-1">
+              (Budgeted contract value from assigned trades)
+            </span>
+          </h2>
+          <div className="space-y-4">
+            {gcProjectRevenue.byProject.map((proj, pi) => (
+              <div key={pi} className="border border-neutral-100 rounded-lg overflow-hidden">
+                {/* Project header */}
+                <div className="flex items-center justify-between bg-neutral-50 px-4 py-2.5">
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-neutral-900 truncate">{proj.projectName}</p>
+                    {proj.gcCompany && (
+                      <p className="text-xs text-neutral-400">{proj.gcCompany}</p>
+                    )}
+                  </div>
+                  <p className="text-sm font-extrabold text-violet-600 shrink-0 ml-4">{fmtCurrency(proj.total)}</p>
+                </div>
+                {/* Trade rows */}
+                <div className="divide-y divide-neutral-100">
+                  {proj.trades.map((trade, ti) => (
+                    <div key={ti} className="flex items-center justify-between px-4 py-2 text-sm">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="w-1.5 h-1.5 rounded-full bg-violet-400 shrink-0" />
+                        <span className="text-neutral-700 font-medium truncate">{trade.trade}</span>
+                      </div>
+                      <div className="flex items-center gap-4 shrink-0 ml-4">
+                        <span className="text-xs text-neutral-400">
+                          {trade.hours} hrs &times; {fmtCurrency(trade.rate)}/hr
+                        </span>
+                        <span className="font-semibold text-neutral-900 w-24 text-right">{fmtCurrency(trade.amount)}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}

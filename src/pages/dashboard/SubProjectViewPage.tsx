@@ -16,6 +16,9 @@ import {
   Mail,
   Camera,
   StickyNote,
+  Megaphone,
+  AlertTriangle,
+  AlertCircle,
 } from 'lucide-react';
 
 /* ─── Zone color / emoji maps (mirrored from ZoneClusterDiagram) ─── */
@@ -119,15 +122,7 @@ export function SubProjectViewPage() {
     enabled: !!id,
   });
 
-  const messagesQuery = useQuery({
-    queryKey: ['gc-messages', id],
-    queryFn: () => api.getGCMessages(id!),
-    enabled: !!id,
-    refetchInterval: 15000,
-  });
-
   const project = projectQuery.data?.data;
-  const allMessages: any[] = messagesQuery.data?.data || [];
   const trades: any[] = project?.trades || [];
   const zones: any[] = project?.zones || [];
 
@@ -240,8 +235,8 @@ export function SubProjectViewPage() {
       {/* ── 3. My Budget ── */}
       <BudgetCard trades={visibleTrades} accent={accent} />
 
-      {/* ── 4. Project Updates from GC ── */}
-      <SubBannerSection messages={allMessages} />
+      {/* ── 4. Project Banner from GC ── */}
+      <SubProjectBanner project={project} />
 
       {/* ── 5. Project Timeline ── */}
       <ProjectTimeline
@@ -487,89 +482,36 @@ function BudgetCard({ trades, accent }: { trades: any[]; accent: ReturnType<type
 }
 
 /* ========================================================================= */
-/*  4. Project Updates Banner (read-only for subs)                            */
+/*  4. Project Banner (read-only for subs)                                    */
 /* ========================================================================= */
 
-const SUB_BANNER_CATEGORIES: Record<string, { icon: string; bg: string; border: string; text: string; iconBg: string; label: string }> = {
-  general: { icon: '\u{1F4E2}', bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-900', iconBg: 'bg-blue-100', label: 'General Update' },
-  schedule: { icon: '\u{1F4C5}', bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-900', iconBg: 'bg-amber-100', label: 'Schedule Change' },
-  safety: { icon: '\u{26A0}\u{FE0F}', bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-900', iconBg: 'bg-red-100', label: 'Safety Notice' },
-  change_order: { icon: '\u{1F4DD}', bg: 'bg-purple-50', border: 'border-purple-200', text: 'text-purple-900', iconBg: 'bg-purple-100', label: 'Change Order' },
-  milestone: { icon: '\u{1F389}', bg: 'bg-green-50', border: 'border-green-200', text: 'text-green-900', iconBg: 'bg-green-100', label: 'Milestone' },
+const SUB_BANNER_TYPE_CONFIG: Record<string, { bg: string; borderColor: string; textColor: string; Icon: typeof Megaphone }> = {
+  info:    { bg: 'bg-blue-50',  borderColor: 'border-blue-600',  textColor: 'text-blue-600',  Icon: Megaphone },
+  warning: { bg: 'bg-amber-50', borderColor: 'border-amber-500', textColor: 'text-amber-500', Icon: AlertTriangle },
+  urgent:  { bg: 'bg-red-50',   borderColor: 'border-red-500',   textColor: 'text-red-500',   Icon: AlertCircle },
 };
 
-function parseSubBanner(message: string) {
-  const colonIdx = message.indexOf(':');
-  if (colonIdx > 0 && colonIdx < 20) {
-    const prefix = message.substring(0, colonIdx).toLowerCase();
-    const cat = SUB_BANNER_CATEGORIES[prefix];
-    if (cat) return { category: cat, text: message.substring(colonIdx + 1).trim() };
-  }
-  return { category: SUB_BANNER_CATEGORIES.general, text: message };
-}
+function SubProjectBanner({ project }: { project: any }) {
+  const bannerMessage: string | null = project?.bannerMessage ?? null;
+  const bannerType: string = project?.bannerType ?? 'info';
+  const bannerUpdatedAt: string | null = project?.bannerUpdatedAt ?? null;
 
-function SubBannerSection({ messages }: { messages: any[] }) {
-  const [showAll, setShowAll] = useState(false);
+  if (!bannerMessage) return null;
 
-  // Project-level messages (no trade_id) = banners
-  const banners = messages
-    .filter((m: any) => !m.tradeId)
-    .sort((a: any, b: any) => new Date(b.createdAt || b.created_at).getTime() - new Date(a.createdAt || a.created_at).getTime());
-
-  if (banners.length === 0) return null;
-
-  const latest = banners[0];
-  const { category, text } = parseSubBanner(latest.message);
-  const older = banners.slice(1);
+  const cfg = SUB_BANNER_TYPE_CONFIG[bannerType] || SUB_BANNER_TYPE_CONFIG.info;
+  const TypeIcon = cfg.Icon;
 
   return (
-    <div>
-      {/* Active banner */}
-      <div className={`${category.bg} ${category.border} border rounded-xl px-4 py-3 shadow-sm`}>
-        <div className="flex items-start gap-3">
-          <div className={`${category.iconBg} w-8 h-8 rounded-lg flex items-center justify-center text-base flex-shrink-0`}>
-            {category.icon}
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-0.5">
-              <span className={`text-xs font-semibold uppercase tracking-wide ${category.text} opacity-70`}>
-                {category.label}
-              </span>
-              <span className="text-xs text-gray-400">{formatTime(latest.createdAt || latest.created_at)}</span>
-            </div>
-            <p className={`text-sm font-medium ${category.text}`}>{text}</p>
-            {latest.sender?.businessName && (
-              <p className="text-xs text-gray-500 mt-1">— {latest.sender.businessName}</p>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Older banners */}
-      {older.length > 0 && (
-        <div className="mt-2">
-          <button
-            onClick={() => setShowAll(!showAll)}
-            className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
-          >
-            {showAll ? 'Hide' : `${older.length} older update${older.length !== 1 ? 's' : ''}`}
-          </button>
-          {showAll && (
-            <div className="mt-2 space-y-1.5">
-              {older.map((b: any) => {
-                const { category: cat, text: t } = parseSubBanner(b.message);
-                return (
-                  <div key={b.id} className="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg">
-                    <span className="text-sm">{cat.icon}</span>
-                    <p className="text-xs text-gray-600 flex-1 truncate">{t}</p>
-                    <span className="text-[10px] text-gray-400 flex-shrink-0">{formatTime(b.createdAt || b.created_at)}</span>
-                  </div>
-                );
-              })}
-            </div>
+    <div className={`${cfg.bg} border-l-4 ${cfg.borderColor} rounded-r-xl px-4 py-3 shadow-sm`}>
+      <div className="flex items-start gap-3">
+        <TypeIcon className={`w-5 h-5 ${cfg.textColor} flex-shrink-0 mt-0.5`} />
+        <div className="flex-1 min-w-0">
+          <p className={`text-sm font-medium ${cfg.textColor}`}>{bannerMessage}</p>
+          {bannerUpdatedAt && (
+            <p className="text-xs text-gray-400 mt-1">{formatTime(bannerUpdatedAt)}</p>
           )}
         </div>
-      )}
+      </div>
     </div>
   );
 }

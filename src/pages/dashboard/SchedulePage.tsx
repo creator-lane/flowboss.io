@@ -20,6 +20,8 @@ import {
   isSameMonth,
   isToday,
   getDay,
+  parseISO,
+  isWithinInterval,
 } from 'date-fns';
 import {
   ChevronLeft,
@@ -29,6 +31,7 @@ import {
   Clock,
   MapPin,
   DollarSign,
+  HardHat,
 } from 'lucide-react';
 import { CreateJobModal } from '../../components/jobs/CreateJobModal';
 
@@ -48,6 +51,31 @@ const fmtCurrency = new Intl.NumberFormat('en-US', {
   minimumFractionDigits: 0,
   maximumFractionDigits: 0,
 });
+
+const TRADE_ACCENT: Record<string, string> = {
+  Plumbing: '#3b82f6',
+  Electrical: '#eab308',
+  HVAC: '#06b6d4',
+  Framing: '#f97316',
+  Drywall: '#a8a29e',
+  Painting: '#a855f7',
+  Roofing: '#ef4444',
+  Concrete: '#6b7280',
+  Flooring: '#f59e0b',
+  Landscaping: '#22c55e',
+};
+
+interface GcTradeEvent {
+  tradeId: string;
+  tradeName: string;
+  projectName: string;
+  projectId: string;
+  startDate: Date;
+  endDate: Date;
+  totalTasks: number;
+  doneTasks: number;
+  accentColor: string;
+}
 
 // ── Shared subcomponents ────────────────────────────────────────────
 function StatusBadge({ status }: { status: string }) {
@@ -136,6 +164,36 @@ export function SchedulePage() {
 
   const jobs = rawJobs?.data || rawJobs || [];
   const jobList: any[] = Array.isArray(jobs) ? jobs : [];
+
+  // ── GC invited projects (single query, view-independent) ──────
+  const { data: invitedRaw } = useQuery({
+    queryKey: ['invited-projects'],
+    queryFn: () => api.getInvitedProjects(),
+  });
+
+  const gcTradeEvents: GcTradeEvent[] = useMemo(() => {
+    const projects: any[] = invitedRaw?.data || [];
+    const events: GcTradeEvent[] = [];
+    for (const project of projects) {
+      for (const trade of project.trades || []) {
+        if (!trade.startDate && !trade.endDate) continue;
+        const totalTasks = (trade.tasks || []).length;
+        const doneTasks = (trade.tasks || []).filter((t: any) => t.done).length;
+        events.push({
+          tradeId: trade.id,
+          tradeName: trade.trade || 'Unknown Trade',
+          projectName: project.name || 'Untitled Project',
+          projectId: project.id,
+          startDate: trade.startDate ? parseISO(trade.startDate) : parseISO(trade.endDate),
+          endDate: trade.endDate ? parseISO(trade.endDate) : parseISO(trade.startDate),
+          totalTasks,
+          doneTasks,
+          accentColor: TRADE_ACCENT[trade.trade] || '#6b7280',
+        });
+      }
+    }
+    return events;
+  }, [invitedRaw]);
 
   // ── Navigation handlers ────────────────────────────────────────
   const goPrev = () => {
@@ -283,6 +341,8 @@ export function SchedulePage() {
       {view === 'day' && (
         <DayView
           jobs={jobList}
+          gcEvents={gcTradeEvents}
+          selectedDate={selectedDate}
           isLoading={isLoading}
           navigate={navigate}
           formatTime={formatTime}
@@ -293,6 +353,7 @@ export function SchedulePage() {
       {view === 'week' && (
         <WeekView
           jobs={jobList}
+          gcEvents={gcTradeEvents}
           isLoading={isLoading}
           selectedDate={selectedDate}
           onDayClick={switchToDay}
@@ -305,6 +366,7 @@ export function SchedulePage() {
       {view === 'month' && (
         <MonthView
           jobs={jobList}
+          gcEvents={gcTradeEvents}
           isLoading={isLoading}
           selectedDate={selectedDate}
           onDayClick={switchToDay}
@@ -333,15 +395,33 @@ export function SchedulePage() {
 // ── Day View (original) ────────────────────────────────────────────
 function DayView({
   jobs,
+  gcEvents,
+  selectedDate,
   isLoading,
   navigate,
   formatTime,
 }: {
   jobs: any[];
+  gcEvents: GcTradeEvent[];
+  selectedDate: Date;
   isLoading: boolean;
   navigate: (path: string) => void;
   formatTime: (iso: string | undefined) => string;
 }) {
+  const dayGcEvents = useMemo(
+    () =>
+      gcEvents.filter((e) => {
+        try {
+          return isWithinInterval(selectedDate, { start: startOfDay(e.startDate), end: startOfDay(e.endDate) });
+        } catch {
+          return isSameDay(selectedDate, e.startDate) || isSameDay(selectedDate, e.endDate);
+        }
+      }),
+    [gcEvents, selectedDate]
+  );
+
+  const isEmpty = jobs.length === 0 && dayGcEvents.length === 0;
+
   return (
     <div className="space-y-3">
       {isLoading ? (
@@ -350,7 +430,7 @@ function DayView({
           <SkeletonCard />
           <SkeletonCard />
         </>
-      ) : jobs.length === 0 ? (
+      ) : isEmpty ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <CalendarDays className="w-12 h-12 text-neutral-300 mb-4" />
           <p className="text-lg font-medium text-neutral-500">
@@ -361,63 +441,112 @@ function DayView({
           </p>
         </div>
       ) : (
-        jobs.map((job: any) => {
-          const customerName =
-            [job.customer?.firstName, job.customer?.lastName]
-              .filter(Boolean)
-              .join(' ') || 'Unknown Customer';
-          const timeRange =
-            job.scheduledStart || job.scheduled_start
-              ? `${formatTime(job.scheduledStart || job.scheduled_start)}${
-                  job.scheduledEnd || job.scheduled_end
-                    ? ` - ${formatTime(job.scheduledEnd || job.scheduled_end)}`
-                    : ''
-                }`
-              : '';
-          const address =
-            job.property?.street ||
-            job.property?.address ||
-            job.property?.city ||
-            '';
+        <>
+          {jobs.map((job: any) => {
+            const customerName =
+              [job.customer?.firstName, job.customer?.lastName]
+                .filter(Boolean)
+                .join(' ') || 'Unknown Customer';
+            const timeRange =
+              job.scheduledStart || job.scheduled_start
+                ? `${formatTime(job.scheduledStart || job.scheduled_start)}${
+                    job.scheduledEnd || job.scheduled_end
+                      ? ` - ${formatTime(job.scheduledEnd || job.scheduled_end)}`
+                      : ''
+                  }`
+                : '';
+            const address =
+              job.property?.street ||
+              job.property?.address ||
+              job.property?.city ||
+              '';
 
-          return (
-            <button
-              key={job.id}
-              type="button"
-              onClick={() => navigate(`/dashboard/jobs/${job.id}`)}
-              className="w-full text-left bg-white rounded-xl border border-gray-200 p-5 hover:shadow-lg hover:shadow-gray-200/50 hover:-translate-y-0.5 hover:border-brand-200 transition-all duration-200 group"
-            >
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex-1 min-w-0">
-                  <p className="text-base font-semibold text-neutral-900 group-hover:text-brand-600 transition-colors">
-                    {customerName}
-                  </p>
-                  {job.description && (
-                    <p className="text-sm text-neutral-500 mt-1 line-clamp-1">
-                      {job.description}
+            return (
+              <button
+                key={job.id}
+                type="button"
+                onClick={() => navigate(`/dashboard/jobs/${job.id}`)}
+                className="w-full text-left bg-white rounded-xl border border-gray-200 p-5 hover:shadow-lg hover:shadow-gray-200/50 hover:-translate-y-0.5 hover:border-brand-200 transition-all duration-200 group"
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-base font-semibold text-neutral-900 group-hover:text-brand-600 transition-colors">
+                      {customerName}
                     </p>
+                    {job.description && (
+                      <p className="text-sm text-neutral-500 mt-1 line-clamp-1">
+                        {job.description}
+                      </p>
+                    )}
+                  </div>
+                  <StatusBadge status={job.status} />
+                </div>
+
+                <div className="flex items-center gap-4 mt-3 text-xs text-neutral-400">
+                  {timeRange && (
+                    <span className="flex items-center gap-1">
+                      <Clock className="w-3.5 h-3.5" />
+                      {timeRange}
+                    </span>
+                  )}
+                  {address && (
+                    <span className="flex items-center gap-1">
+                      <MapPin className="w-3.5 h-3.5" />
+                      <span className="truncate max-w-[200px]">{address}</span>
+                    </span>
                   )}
                 </div>
-                <StatusBadge status={job.status} />
-              </div>
+              </button>
+            );
+          })}
 
-              <div className="flex items-center gap-4 mt-3 text-xs text-neutral-400">
-                {timeRange && (
-                  <span className="flex items-center gap-1">
-                    <Clock className="w-3.5 h-3.5" />
-                    {timeRange}
-                  </span>
-                )}
-                {address && (
-                  <span className="flex items-center gap-1">
-                    <MapPin className="w-3.5 h-3.5" />
-                    <span className="truncate max-w-[200px]">{address}</span>
-                  </span>
-                )}
+          {/* GC Projects section */}
+          {dayGcEvents.length > 0 && (
+            <>
+              <div className="flex items-center gap-3 pt-4 pb-1">
+                <div className="h-px flex-1 bg-gray-200" />
+                <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
+                  <HardHat className="w-3.5 h-3.5" />
+                  GC Projects
+                </span>
+                <div className="h-px flex-1 bg-gray-200" />
               </div>
-            </button>
-          );
-        })
+              {dayGcEvents.map((evt) => (
+                <button
+                  key={evt.tradeId}
+                  type="button"
+                  onClick={() => navigate(`/dashboard/projects/${evt.projectId}`)}
+                  className="w-full text-left bg-brand-50 rounded-xl border border-gray-200 border-l-4 border-l-brand-400 p-5 hover:shadow-lg hover:shadow-gray-200/50 hover:-translate-y-0.5 transition-all duration-200 group"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <HardHat className="w-4 h-4 text-brand-500 flex-shrink-0" />
+                        <p className="text-base font-semibold text-neutral-900 group-hover:text-brand-600 transition-colors">
+                          {evt.tradeName}
+                        </p>
+                      </div>
+                      <p className="text-sm text-neutral-500 mt-1">{evt.projectName}</p>
+                    </div>
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-brand-100 text-brand-700 ring-1 ring-inset ring-brand-500/20">
+                      {evt.doneTasks}/{evt.totalTasks} tasks
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-4 mt-3 text-xs text-neutral-400">
+                    <span className="flex items-center gap-1">
+                      <CalendarDays className="w-3.5 h-3.5" />
+                      {format(evt.startDate, 'MMM d')} - {format(evt.endDate, 'MMM d')}
+                    </span>
+                    <span
+                      className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                      style={{ backgroundColor: evt.accentColor }}
+                    />
+                  </div>
+                </button>
+              ))}
+            </>
+          )}
+        </>
       )}
     </div>
   );
@@ -426,6 +555,7 @@ function DayView({
 // ── Week View ──────────────────────────────────────────────────────
 function WeekView({
   jobs,
+  gcEvents,
   isLoading,
   selectedDate,
   onDayClick,
@@ -433,6 +563,7 @@ function WeekView({
   formatTime,
 }: {
   jobs: any[];
+  gcEvents: GcTradeEvent[];
   isLoading: boolean;
   selectedDate: Date;
   onDayClick: (d: Date) => void;
@@ -460,6 +591,23 @@ function WeekView({
     }
     return map;
   }, [jobs, days]);
+
+  const gcEventsByDay = useMemo(() => {
+    const map = new Map<string, GcTradeEvent[]>();
+    for (const day of days) {
+      const key = format(day, 'yyyy-MM-dd');
+      const dayStart = startOfDay(day);
+      const matching = gcEvents.filter((e) => {
+        try {
+          return isWithinInterval(dayStart, { start: startOfDay(e.startDate), end: startOfDay(e.endDate) });
+        } catch {
+          return isSameDay(day, e.startDate) || isSameDay(day, e.endDate);
+        }
+      });
+      map.set(key, matching);
+    }
+    return map;
+  }, [gcEvents, days]);
 
   if (isLoading) {
     return (
@@ -500,38 +648,56 @@ function WeekView({
 
             {/* Job cards */}
             <div className="space-y-1.5">
-              {dayJobs.length === 0 ? (
+              {dayJobs.length === 0 && (gcEventsByDay.get(key) || []).length === 0 ? (
                 <div className="text-[10px] text-neutral-300 text-center py-3">
                   No jobs
                 </div>
               ) : (
-                dayJobs.map((job: any) => {
-                  const customerName =
-                    [job.customer?.firstName, job.customer?.lastName]
-                      .filter(Boolean)
-                      .join(' ') || 'Unknown';
-                  const time = formatTime(job.scheduledStart || job.scheduled_start);
-                  const statusCfg = STATUS_BADGE[job.status] || STATUS_BADGE.SCHEDULED;
+                <>
+                  {dayJobs.map((job: any) => {
+                    const customerName =
+                      [job.customer?.firstName, job.customer?.lastName]
+                        .filter(Boolean)
+                        .join(' ') || 'Unknown';
+                    const time = formatTime(job.scheduledStart || job.scheduled_start);
+                    const statusCfg = STATUS_BADGE[job.status] || STATUS_BADGE.SCHEDULED;
 
-                  return (
-                    <button
-                      key={job.id}
-                      type="button"
-                      onClick={() => navigate(`/dashboard/jobs/${job.id}`)}
-                      className={`w-full text-left rounded-lg border p-2 text-xs hover:shadow-sm transition-all ${statusCfg.bg} border-gray-200`}
-                    >
-                      <p className="font-medium text-neutral-800 truncate">
-                        {customerName}
-                      </p>
-                      {time && (
-                        <p className="text-neutral-500 mt-0.5 flex items-center gap-0.5">
-                          <Clock className="w-2.5 h-2.5" />
-                          {time}
+                    return (
+                      <button
+                        key={job.id}
+                        type="button"
+                        onClick={() => navigate(`/dashboard/jobs/${job.id}`)}
+                        className={`w-full text-left rounded-lg border p-2 text-xs hover:shadow-sm transition-all ${statusCfg.bg} border-gray-200`}
+                      >
+                        <p className="font-medium text-neutral-800 truncate">
+                          {customerName}
                         </p>
-                      )}
+                        {time && (
+                          <p className="text-neutral-500 mt-0.5 flex items-center gap-0.5">
+                            <Clock className="w-2.5 h-2.5" />
+                            {time}
+                          </p>
+                        )}
+                      </button>
+                    );
+                  })}
+                  {/* GC trade blocks */}
+                  {(gcEventsByDay.get(key) || []).map((evt) => (
+                    <button
+                      key={`gc-${evt.tradeId}`}
+                      type="button"
+                      onClick={() => navigate(`/dashboard/projects/${evt.projectId}`)}
+                      className="w-full text-left rounded-lg border border-gray-200 border-l-4 border-l-brand-400 bg-brand-50 p-2 text-xs hover:shadow-sm transition-all"
+                    >
+                      <p className="font-medium text-neutral-800 truncate flex items-center gap-1">
+                        <HardHat className="w-2.5 h-2.5 text-brand-500 flex-shrink-0" />
+                        {evt.tradeName}
+                      </p>
+                      <p className="text-neutral-500 mt-0.5 truncate">{evt.projectName}</p>
+                      <p className="text-brand-600 mt-0.5 font-medium">{evt.doneTasks}/{evt.totalTasks} tasks</p>
                     </button>
-                  );
-                })
+                  ))}
+                </>
               )}
             </div>
           </div>
@@ -544,11 +710,13 @@ function WeekView({
 // ── Month View ─────────────────────────────────────────────────────
 function MonthView({
   jobs,
+  gcEvents,
   isLoading,
   selectedDate,
   onDayClick,
 }: {
   jobs: any[];
+  gcEvents: GcTradeEvent[];
   isLoading: boolean;
   selectedDate: Date;
   onDayClick: (d: Date) => void;
@@ -571,6 +739,23 @@ function MonthView({
     }
     return map;
   }, [jobs]);
+
+  const gcEventsByDay = useMemo(() => {
+    const map = new Map<string, GcTradeEvent[]>();
+    for (const day of allDays) {
+      const key = format(day, 'yyyy-MM-dd');
+      const dayStart = startOfDay(day);
+      const matching = gcEvents.filter((e) => {
+        try {
+          return isWithinInterval(dayStart, { start: startOfDay(e.startDate), end: startOfDay(e.endDate) });
+        } catch {
+          return isSameDay(day, e.startDate) || isSameDay(day, e.endDate);
+        }
+      });
+      if (matching.length > 0) map.set(key, matching);
+    }
+    return map;
+  }, [gcEvents, allDays]);
 
   if (isLoading) {
     return (
@@ -607,6 +792,7 @@ function MonthView({
         {allDays.map((day) => {
           const key = format(day, 'yyyy-MM-dd');
           const count = jobCountByDay.get(key) || 0;
+          const dayGcEvents = gcEventsByDay.get(key) || [];
           const today = isToday(day);
           const inMonth = isSameMonth(day, selectedDate);
 
@@ -634,17 +820,34 @@ function MonthView({
               >
                 {format(day, 'd')}
               </span>
-              {count > 0 && (
-                <span
-                  className={`mt-0.5 inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full text-[10px] font-bold ${
-                    today
-                      ? 'bg-brand-500 text-white'
-                      : 'bg-blue-100 text-blue-700'
-                  }`}
-                >
-                  {count}
-                </span>
-              )}
+              <div className="flex items-center gap-0.5 mt-0.5">
+                {count > 0 && (
+                  <span
+                    className={`inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full text-[10px] font-bold ${
+                      today
+                        ? 'bg-brand-500 text-white'
+                        : 'bg-blue-100 text-blue-700'
+                    }`}
+                  >
+                    {count}
+                  </span>
+                )}
+                {dayGcEvents.length > 0 && (
+                  <span className="flex items-center gap-px">
+                    {dayGcEvents.slice(0, 3).map((evt) => (
+                      <span
+                        key={evt.tradeId}
+                        className="w-2 h-2 rounded-full flex-shrink-0"
+                        style={{ backgroundColor: evt.accentColor }}
+                        title={`${evt.tradeName} - ${evt.projectName}`}
+                      />
+                    ))}
+                    {dayGcEvents.length > 3 && (
+                      <span className="text-[8px] text-gray-400 font-bold ml-px">+{dayGcEvents.length - 3}</span>
+                    )}
+                  </span>
+                )}
+              </div>
             </button>
           );
         })}

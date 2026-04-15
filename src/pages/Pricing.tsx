@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { CheckCircle2, ChevronDown, ChevronUp, Wrench } from 'lucide-react';
 import { useState } from 'react';
+import { useAuth } from '../lib/auth';
 
 const FEATURES = [
   'Unlimited jobs & invoices',
@@ -56,6 +57,9 @@ function FAQItem({ q, a }: { q: string; a: string }) {
 }
 
 export function Pricing() {
+  const { session } = useAuth();
+  const monthlyHref = session ? '/checkout?plan=monthly' : '/signup?plan=monthly';
+  const annualHref = session ? '/checkout?plan=annual' : '/signup?plan=annual';
   return (
     <div className="min-h-screen bg-white">
       {/* Nav */}
@@ -116,7 +120,7 @@ export function Pricing() {
             </ul>
 
             <Link
-              to="/signup?plan=monthly"
+              to={monthlyHref}
               className="mt-8 block text-center py-3 px-6 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors"
             >
               Start Free Trial
@@ -147,7 +151,7 @@ export function Pricing() {
             </ul>
 
             <Link
-              to="/signup?plan=annual"
+              to={annualHref}
               className="mt-8 block text-center py-3 px-6 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
             >
               Start Free Trial

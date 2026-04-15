@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams, Navigate } from 'react-router-dom';
 import { Wrench, Smartphone } from 'lucide-react';
 import { useAuth } from '../lib/auth';
 
@@ -9,10 +9,15 @@ const PLANS: Record<string, { name: string; price: string; interval: string }> =
 };
 
 export function Checkout() {
-  const { session } = useAuth();
+  const { session, loading: authLoading } = useAuth();
   const [searchParams] = useSearchParams();
   const planKey = searchParams.get('plan') || 'monthly';
   const plan = PLANS[planKey] || PLANS.monthly;
+
+  // Not signed in → bounce to signup, preserving the plan
+  if (!authLoading && !session) {
+    return <Navigate to={`/signup?plan=${planKey}`} replace />;
+  }
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');

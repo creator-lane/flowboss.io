@@ -5,13 +5,6 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../lib/auth';
 import { useToast } from '../components/ui/Toast';
 
-const TRADES = [
-  'Plumbing',
-  'HVAC',
-  'Electrical',
-  'General Contractor',
-] as const;
-
 export function Signup() {
   const { session, loading } = useAuth();
   const { addToast } = useToast();
@@ -27,7 +20,6 @@ export function Signup() {
   const [businessName, setBusinessName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [trade, setTrade] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const justSignedUp = useRef(false);
@@ -87,7 +79,7 @@ export function Signup() {
         addToast('Check your email to confirm your account, then log in.', 'success');
         // Stash signup data for after confirmation
         try {
-          localStorage.setItem('flowboss-signup', JSON.stringify({ businessName, trade }));
+          localStorage.setItem('flowboss-signup', JSON.stringify({ businessName }));
         } catch { /* ignore */ }
         return;
       }
@@ -97,7 +89,6 @@ export function Signup() {
       try {
         localStorage.setItem('flowboss-signup', JSON.stringify({
           businessName,
-          trade,
         }));
       } catch {
         // localStorage write failed — onboarding will just start blank
@@ -245,24 +236,6 @@ export function Signup() {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
                 placeholder="Min 8 characters"
               />
-            </div>
-
-            <div>
-              <label htmlFor="trade" className="block text-sm font-medium text-gray-700 mb-1">
-                Trade
-              </label>
-              <select
-                id="trade"
-                required
-                value={trade}
-                onChange={(e) => setTrade(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 bg-white"
-              >
-                <option value="" disabled>Select your trade</option>
-                {TRADES.map((t) => (
-                  <option key={t} value={t}>{t}</option>
-                ))}
-              </select>
             </div>
 
             <button

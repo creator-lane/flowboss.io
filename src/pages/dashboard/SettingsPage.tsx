@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../lib/api';
 import { useAuth } from '../../lib/auth';
@@ -21,6 +22,11 @@ import {
   Users,
   Bell,
   Shield,
+  Clock,
+  Calendar,
+  Star,
+  MapPin,
+  DollarSign,
 } from 'lucide-react';
 import { PricebookManager } from '../../components/settings/PricebookManager';
 import { TeamManager } from '../../components/settings/TeamManager';
@@ -315,6 +321,211 @@ function FlowBossScoreCard() {
       <p className="text-xs text-neutral-400 mt-4">
         Based on {totalRatings} rating{totalRatings !== 1 ? 's' : ''} from GC projects
       </p>
+    </div>
+  );
+}
+
+const TRADE_COLORS: Record<string, string> = {
+  Plumbing: 'bg-blue-100 text-blue-700',
+  Electrical: 'bg-yellow-100 text-yellow-700',
+  HVAC: 'bg-cyan-100 text-cyan-700',
+  Framing: 'bg-orange-100 text-orange-700',
+  Drywall: 'bg-stone-100 text-stone-700',
+  Painting: 'bg-purple-100 text-purple-700',
+  Roofing: 'bg-red-100 text-red-700',
+  Concrete: 'bg-gray-200 text-gray-700',
+  Flooring: 'bg-amber-100 text-amber-700',
+  Landscaping: 'bg-green-100 text-green-700',
+  Tiling: 'bg-teal-100 text-teal-700',
+  Insulation: 'bg-pink-100 text-pink-700',
+};
+
+const STATUS_DOT: Record<string, string> = {
+  not_started: 'bg-gray-400',
+  in_progress: 'bg-blue-500',
+  completed: 'bg-green-500',
+  blocked: 'bg-red-500',
+};
+
+const STATUS_LABEL: Record<string, string> = {
+  not_started: 'Not Started',
+  in_progress: 'In Progress',
+  completed: 'Completed',
+  blocked: 'Blocked',
+};
+
+const formatCurrency = (n: number) =>
+  new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 }).format(n);
+
+function ProjectHistoryCard() {
+  const { user } = useAuth();
+
+  const { data: projectsData, isLoading } = useQuery({
+    queryKey: ['invited-projects'],
+    queryFn: () => api.getInvitedProjects(),
+    enabled: !!user?.id,
+  });
+
+  const projects: any[] = projectsData?.data || [];
+
+  // Build history entries: for each project, find trades assigned to current user
+  const history = useMemo(() => {
+    if (!user?.id) return [];
+
+    return projects
+      .map((project) => {
+        const myTrades = (project.trades || []).filter(
+          (t: any) => t.assignedUserId === user.id
+        );
+        if (myTrades.length === 0) return null;
+
+        return { project, trades: myTrades };
+      })
+      .filter(Boolean)
+      .sort((a: any, b: any) => {
+        const dateA = a.project.createdAt || '';
+        const dateB = b.project.createdAt || '';
+        return dateB.localeCompare(dateA);
+      }) as { project: any; trades: any[] }[];
+  }, [projects, user?.id]);
+
+  // Stats
+  const stats = useMemo(() => {
+    let totalEarnings = 0;
+    let completedTrades = 0;
+
+    for (const entry of history) {
+      for (const trade of entry.trades) {
+        const hours = trade.laborHours || 0;
+        const rate = trade.laborRate || 0;
+        totalEarnings += hours * rate;
+        if (trade.status === 'completed') completedTrades++;
+      }
+    }
+
+    return { totalEarnings, completedTrades, projectCount: history.length };
+  }, [history]);
+
+  if (isLoading) {
+    return (
+      <div className="bg-white rounded-xl border border-neutral-200 p-6 mb-6">
+        <div className="flex items-center gap-2 mb-5">
+          <Clock className="w-5 h-5 text-brand-500" />
+          <h2 className="text-lg font-bold text-neutral-900">Your Project History</h2>
+        </div>
+        <div className="animate-pulse space-y-4">
+          <div className="h-3 bg-neutral-100 rounded w-3/4" />
+          <div className="h-3 bg-neutral-100 rounded w-1/2" />
+          <div className="h-3 bg-neutral-100 rounded w-2/3" />
+        </div>
+      </div>
+    );
+  }
+
+  if (history.length === 0) {
+    return (
+      <div className="bg-white rounded-xl border border-neutral-200 p-6 mb-6">
+        <div className="flex items-center gap-2 mb-4">
+          <Clock className="w-5 h-5 text-brand-500" />
+          <h2 className="text-lg font-bold text-neutral-900">Your Project History</h2>
+        </div>
+        <div className="flex flex-col items-center text-center py-6">
+          <div className="w-16 h-16 rounded-full bg-brand-50 flex items-center justify-center mb-4">
+            <Clock className="w-8 h-8 text-brand-300" />
+          </div>
+          <p className="text-sm text-neutral-500 max-w-sm">
+            Your project history will appear here as GCs assign you trades on their projects.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-white rounded-xl border border-neutral-200 p-6 mb-6">
+      <div className="flex items-center gap-2 mb-1">
+        <Clock className="w-5 h-5 text-brand-500" />
+        <h2 className="text-lg font-bold text-neutral-900">Your Project History</h2>
+      </div>
+
+      {/* Summary stats */}
+      <div className="flex items-center gap-5 text-xs text-neutral-400 mb-5">
+        <span>{stats.projectCount} project{stats.projectCount !== 1 ? 's' : ''}</span>
+        <span>{stats.completedTrades} trade{stats.completedTrades !== 1 ? 's' : ''} completed</span>
+        {stats.totalEarnings > 0 && (
+          <span className="flex items-center gap-1">
+            <DollarSign className="w-3 h-3" />
+            {formatCurrency(stats.totalEarnings)} earned
+          </span>
+        )}
+      </div>
+
+      {/* Timeline */}
+      <div className="relative">
+        {/* Vertical line */}
+        <div className="absolute left-[15px] top-2 bottom-2 w-px bg-neutral-200" />
+
+        <div className="space-y-0">
+          {history.map((entry) => {
+            const { project, trades: myTrades } = entry;
+            const createdAt = project.createdAt || project.created_at;
+            const startDate = createdAt
+              ? new Date(createdAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+              : '';
+            const allCompleted = myTrades.every((t: any) => t.status === 'completed');
+            const anyInProgress = myTrades.some((t: any) => t.status === 'in_progress');
+
+            return (
+              <div key={project.id} className="relative pl-10 pb-5 last:pb-0">
+                {/* Timeline dot */}
+                <div className={`absolute left-[10px] top-1.5 w-[11px] h-[11px] rounded-full border-2 ${
+                  allCompleted
+                    ? 'bg-green-500 border-green-500'
+                    : anyInProgress
+                      ? 'bg-blue-500 border-blue-500'
+                      : 'bg-white border-neutral-300'
+                }`} />
+
+                <Link
+                  to={`/dashboard/projects/assigned/${project.id}`}
+                  className="block p-3 rounded-xl border border-neutral-100 hover:border-neutral-300 hover:shadow-sm transition-all group"
+                >
+                  <div className="flex items-start justify-between gap-3 mb-1.5">
+                    <p className="text-sm font-semibold text-neutral-900 group-hover:text-brand-600 transition-colors truncate">
+                      {project.name}
+                    </p>
+                    {startDate && (
+                      <span className="text-[11px] text-neutral-400 whitespace-nowrap flex items-center gap-1">
+                        <Calendar className="w-3 h-3" />
+                        {startDate}
+                      </span>
+                    )}
+                  </div>
+
+                  {project.gcCompanyName && (
+                    <p className="text-xs text-neutral-400 mb-1.5">{project.gcCompanyName}</p>
+                  )}
+
+                  {/* Trades */}
+                  <div className="flex flex-wrap gap-2">
+                    {myTrades.map((trade: any) => (
+                      <div key={trade.id} className="flex items-center gap-1.5">
+                        <span className={`px-2 py-0.5 rounded text-[11px] font-semibold ${TRADE_COLORS[trade.trade] || 'bg-neutral-100 text-neutral-600'}`}>
+                          {trade.trade}
+                        </span>
+                        <span className="flex items-center gap-0.5 text-[11px] text-neutral-400">
+                          <span className={`w-1.5 h-1.5 rounded-full ${STATUS_DOT[trade.status] || 'bg-neutral-400'}`} />
+                          {STATUS_LABEL[trade.status] || 'Not Started'}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </Link>
+              </div>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }
@@ -641,6 +852,9 @@ export function SettingsPage() {
 
           {/* FlowBoss Score */}
           <FlowBossScoreCard />
+
+          {/* Project History */}
+          <ProjectHistoryCard />
 
           {/* Account */}
           <div className="bg-white rounded-xl border border-neutral-200 p-6 mb-6">

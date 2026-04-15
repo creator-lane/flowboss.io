@@ -12,6 +12,9 @@ import {
   ChevronRight,
   Building2,
   UserPlus,
+  Calendar,
+  Clock,
+  TrendingUp,
 } from 'lucide-react';
 
 const TRADE_COLORS: Record<string, string> = {
@@ -157,6 +160,67 @@ export function SubProfilePage() {
       totalBudget,
     };
   }, [projects, subId, isPlaceholder, placeholderName]);
+
+  // Fetch individual trade ratings for this sub
+  const ratingsQuery = useQuery({
+    queryKey: ['trade-ratings-list', subId],
+    queryFn: () => api.getSubPerformance(subId!),
+    enabled: !isPlaceholder && !!subId,
+  });
+
+  const tradeRatings: any[] = ratingsQuery.data?.data?.ratings || [];
+  // Map from trade_id to rating for quick lookup
+  const ratingByTradeId = useMemo(() => {
+    const map: Record<string, any> = {};
+    for (const r of tradeRatings) {
+      if (r.trade_id) map[r.trade_id] = r;
+    }
+    return map;
+  }, [tradeRatings]);
+
+  // Build project history: group trades by project, sorted by most recent
+  const projectHistory = useMemo(() => {
+    const projectMap = new Map<string, { project: any; trades: { trade: any; rating: any }[] }>();
+
+    for (const { trade, project } of subProfile.trades) {
+      if (!projectMap.has(project.id)) {
+        projectMap.set(project.id, { project, trades: [] });
+      }
+      const rating = ratingByTradeId[trade.id] || null;
+      projectMap.get(project.id)!.trades.push({ trade, rating });
+    }
+
+    // Sort by project created_at descending (most recent first)
+    return Array.from(projectMap.values()).sort((a, b) => {
+      const dateA = a.project.createdAt || a.project.created_at || '';
+      const dateB = b.project.createdAt || b.project.created_at || '';
+      return dateB.localeCompare(dateA);
+    });
+  }, [subProfile.trades, ratingByTradeId]);
+
+  // Aggregate history stats
+  const historyStats = useMemo(() => {
+    let completedTrades = 0;
+    let totalRatedScore = 0;
+    let ratedCount = 0;
+
+    for (const entry of projectHistory) {
+      for (const { trade, rating } of entry.trades) {
+        if (trade.status === 'completed') completedTrades++;
+        if (rating && rating.overall) {
+          totalRatedScore += rating.overall;
+          ratedCount++;
+        }
+      }
+    }
+
+    return {
+      projectCount: projectHistory.length,
+      completedTrades,
+      averageRating: ratedCount > 0 ? Math.round((totalRatedScore / ratedCount) * 10) / 10 : null,
+      ratedCount,
+    };
+  }, [projectHistory]);
 
   const score = ratingQuery.data?.data?.score;
   const totalRatings = ratingQuery.data?.data?.totalRatings || 0;
@@ -376,6 +440,102 @@ export function SubProfilePage() {
           )}
         </div>
       </div>
+
+      {/* Project History */}
+      {projectHistory.length > 0 && (
+        <div className="bg-white rounded-2xl border border-gray-200 p-6 mt-6">
+          <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center gap-2">
+              <Clock className="w-5 h-5 text-brand-500" />
+              <h2 className="text-sm font-bold text-gray-900">Project History</h2>
+            </div>
+            <div className="flex items-center gap-4 text-xs text-gray-400">
+              <span>{historyStats.projectCount} project{historyStats.projectCount !== 1 ? 's' : ''}</span>
+              <span>{historyStats.completedTrades} trade{historyStats.completedTrades !== 1 ? 's' : ''} completed</span>
+              {historyStats.averageRating !== null && (
+                <span className="flex items-center gap-1">
+                  <Star className="w-3 h-3 fill-current text-amber-400" />
+                  {historyStats.averageRating.toFixed(1)} avg
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Timeline */}
+          <div className="relative">
+            {/* Vertical line */}
+            <div className="absolute left-[15px] top-2 bottom-2 w-px bg-gray-200" />
+
+            <div className="space-y-0">
+              {projectHistory.map((entry, idx) => {
+                const { project, trades: entryTrades } = entry;
+                const createdAt = project.createdAt || project.created_at;
+                const startDate = createdAt ? new Date(createdAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
+                const allCompleted = entryTrades.every(({ trade }) => trade.status === 'completed');
+
+                return (
+                  <div key={project.id} className="relative pl-10 pb-6 last:pb-0">
+                    {/* Timeline dot */}
+                    <div className={`absolute left-[10px] top-1.5 w-[11px] h-[11px] rounded-full border-2 ${
+                      allCompleted
+                        ? 'bg-green-500 border-green-500'
+                        : entryTrades.some(({ trade }) => trade.status === 'in_progress')
+                          ? 'bg-blue-500 border-blue-500'
+                          : 'bg-white border-gray-300'
+                    }`} />
+
+                    <Link
+                      to={`/dashboard/projects/${project.id}`}
+                      className="block p-4 rounded-xl border border-gray-100 hover:border-gray-300 hover:shadow-sm transition-all group"
+                    >
+                      <div className="flex items-start justify-between gap-3 mb-2">
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold text-gray-900 group-hover:text-brand-600 transition-colors truncate">
+                            {project.name}
+                          </p>
+                          {(project.address || project.city) && (
+                            <p className="text-xs text-gray-400 mt-0.5 flex items-center gap-1">
+                              <MapPin className="w-3 h-3" />
+                              {[project.address, project.city, project.state].filter(Boolean).join(', ')}
+                            </p>
+                          )}
+                        </div>
+                        {startDate && (
+                          <span className="text-xs text-gray-400 whitespace-nowrap flex items-center gap-1">
+                            <Calendar className="w-3 h-3" />
+                            {startDate}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Trades for this project */}
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {entryTrades.map(({ trade, rating }) => (
+                          <div key={trade.id} className="flex items-center gap-1.5">
+                            <span className={`px-2 py-0.5 rounded text-[11px] font-semibold ${TRADE_COLORS[trade.trade] || 'bg-gray-100 text-gray-600'}`}>
+                              {trade.trade}
+                            </span>
+                            <span className="flex items-center gap-0.5 text-[11px] text-gray-400">
+                              <span className={`w-1.5 h-1.5 rounded-full ${STATUS_DOT[trade.status] || 'bg-gray-400'}`} />
+                              {STATUS_LABEL[trade.status] || 'Not Started'}
+                            </span>
+                            {rating && rating.overall && (
+                              <span className="flex items-center gap-0.5 text-[11px]">
+                                <Star className="w-3 h-3 fill-current text-amber-400" />
+                                <span className="text-gray-600 font-medium">{rating.overall.toFixed(1)}</span>
+                              </span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </Link>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

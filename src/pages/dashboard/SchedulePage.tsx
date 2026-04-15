@@ -19,6 +19,7 @@ import {
   isSameDay,
   isSameMonth,
   isToday,
+  isBefore,
   getDay,
   parseISO,
   isWithinInterval,
@@ -629,9 +630,11 @@ function WeekView({
         const key = format(day, 'yyyy-MM-dd');
         const dayJobs = jobsByDay.get(key) || [];
         const today = isToday(day);
+        const past = isBefore(startOfDay(day), startOfDay(new Date()));
+        const weekend = isWeekend(day);
 
         return (
-          <div key={key} className="min-w-0">
+          <div key={key} className={`min-w-0 ${past && !today ? 'opacity-75' : ''}`}>
             {/* Day header */}
             <button
               type="button"
@@ -647,11 +650,9 @@ function WeekView({
             </button>
 
             {/* Job cards */}
-            <div className="space-y-1.5">
+            <div className={`space-y-1.5 ${weekend ? 'rounded-lg bg-gray-50/50 p-0.5' : ''}`}>
               {dayJobs.length === 0 && (gcEventsByDay.get(key) || []).length === 0 ? (
-                <div className="text-[10px] text-neutral-300 text-center py-3">
-                  No jobs
-                </div>
+                <div className="py-3" />
               ) : (
                 <>
                   {dayJobs.map((job: any) => {
@@ -707,6 +708,44 @@ function WeekView({
   );
 }
 
+// ── Helper: status → dot color ─────────────────────────────────────
+function jobDotColor(status: string): string {
+  switch (status) {
+    case 'SCHEDULED':
+    case 'scheduled':
+      return 'bg-blue-500';
+    case 'IN_PROGRESS':
+    case 'in_progress':
+    case 'EN_ROUTE':
+    case 'en_route':
+      return 'bg-cyan-500';
+    case 'COMPLETED':
+    case 'completed':
+      return 'bg-green-500';
+    case 'BLOCKED':
+    case 'blocked':
+    case 'OVERDUE':
+    case 'overdue':
+      return 'bg-red-500';
+    default:
+      return 'bg-blue-500';
+  }
+}
+
+// ── Helper: heat-map bg class based on total item count ────────────
+function heatBg(totalItems: number): string {
+  if (totalItems >= 5) return 'bg-blue-200';
+  if (totalItems >= 3) return 'bg-blue-100';
+  if (totalItems >= 1) return 'bg-blue-50';
+  return '';
+}
+
+// ── Helper: is weekend (Sat=6, Sun=0) ──────────────────────────────
+function isWeekend(day: Date): boolean {
+  const d = getDay(day);
+  return d === 0 || d === 6;
+}
+
 // ── Month View ─────────────────────────────────────────────────────
 function MonthView({
   jobs,
@@ -729,13 +768,15 @@ function MonthView({
   const calendarEnd = endOfWeek(monthEnd, { weekStartsOn: 1 });
   const allDays = eachDayOfInterval({ start: calendarStart, end: calendarEnd });
 
-  const jobCountByDay = useMemo(() => {
-    const map = new Map<string, number>();
+  const jobsByDay = useMemo(() => {
+    const map = new Map<string, any[]>();
     for (const job of jobs) {
       const start = job.scheduledStart || job.scheduled_start;
       if (!start) continue;
       const key = format(new Date(start), 'yyyy-MM-dd');
-      map.set(key, (map.get(key) || 0) + 1);
+      const arr = map.get(key) || [];
+      arr.push(job);
+      map.set(key, arr);
     }
     return map;
   }, [jobs]);
@@ -769,7 +810,7 @@ function MonthView({
         </div>
         <div className="grid grid-cols-7 gap-2">
           {Array.from({ length: 35 }).map((_, i) => (
-            <div key={i} className="h-16 bg-gray-100 rounded-lg animate-pulse" />
+            <div key={i} className="h-20 bg-gray-100 rounded-lg animate-pulse" />
           ))}
         </div>
       </div>
@@ -780,8 +821,13 @@ function MonthView({
     <div>
       {/* Day headers */}
       <div className="grid grid-cols-7 gap-2 mb-2">
-        {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((d) => (
-          <div key={d} className="text-center text-xs font-medium text-neutral-400 py-1">
+        {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((d, i) => (
+          <div
+            key={d}
+            className={`text-center text-xs font-medium py-1 ${
+              i >= 5 ? 'text-neutral-300' : 'text-neutral-400'
+            }`}
+          >
             {d}
           </div>
         ))}
@@ -791,28 +837,44 @@ function MonthView({
       <div className="grid grid-cols-7 gap-2">
         {allDays.map((day) => {
           const key = format(day, 'yyyy-MM-dd');
-          const count = jobCountByDay.get(key) || 0;
+          const dayJobs = jobsByDay.get(key) || [];
           const dayGcEvents = gcEventsByDay.get(key) || [];
+          const totalItems = dayJobs.length + dayGcEvents.length;
           const today = isToday(day);
           const inMonth = isSameMonth(day, selectedDate);
+          const weekend = isWeekend(day);
+          const MAX_DOTS = 5;
+          const overflow = totalItems > MAX_DOTS ? totalItems - MAX_DOTS : 0;
+
+          // Build base bg: heat map for in-month days, muted for out-of-month
+          let baseBg: string;
+          if (!inMonth) {
+            baseBg = 'bg-gray-50/50';
+          } else if (totalItems > 0) {
+            baseBg = heatBg(totalItems);
+          } else if (weekend) {
+            baseBg = 'bg-gray-50/50';
+          } else {
+            baseBg = 'bg-white';
+          }
 
           return (
             <button
               key={key}
               type="button"
               onClick={() => onDayClick(day)}
-              className={`relative flex flex-col items-center justify-center h-16 rounded-lg border transition-all ${
+              className={`relative flex flex-col items-center justify-start pt-1.5 h-20 rounded-lg border transition-all ${
                 today
-                  ? 'ring-2 ring-brand-500 border-brand-200 bg-brand-50'
+                  ? `ring-2 ring-brand-500 border-brand-200 ${totalItems > 0 ? heatBg(totalItems) : 'bg-brand-50'}`
                   : inMonth
-                  ? 'border-gray-200 bg-white hover:bg-gray-50 hover:border-brand-200'
-                  : 'border-gray-100 bg-gray-50/50'
+                  ? `border-gray-200 ${baseBg} hover:border-brand-200`
+                  : `border-gray-100 ${baseBg}`
               }`}
             >
               <span
                 className={`text-sm font-medium ${
                   today
-                    ? 'text-brand-600'
+                    ? 'text-brand-600 font-bold'
                     : inMonth
                     ? 'text-neutral-700'
                     : 'text-neutral-300'
@@ -820,34 +882,33 @@ function MonthView({
               >
                 {format(day, 'd')}
               </span>
-              <div className="flex items-center gap-0.5 mt-0.5">
-                {count > 0 && (
-                  <span
-                    className={`inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full text-[10px] font-bold ${
-                      today
-                        ? 'bg-brand-500 text-white'
-                        : 'bg-blue-100 text-blue-700'
-                    }`}
-                  >
-                    {count}
-                  </span>
-                )}
-                {dayGcEvents.length > 0 && (
-                  <span className="flex items-center gap-px">
-                    {dayGcEvents.slice(0, 3).map((evt) => (
+
+              {/* Job status dots + GC diamond dots */}
+              {totalItems > 0 && (
+                <div className="flex flex-wrap items-center justify-center gap-[3px] mt-1 px-1 max-w-full">
+                  {dayJobs.slice(0, MAX_DOTS).map((job: any, i: number) => (
+                    <span
+                      key={job.id || i}
+                      className={`w-2 h-2 rounded-full flex-shrink-0 ${jobDotColor(job.status)}`}
+                      title={job.description || job.customer?.firstName || 'Job'}
+                    />
+                  ))}
+                  {dayJobs.length < MAX_DOTS &&
+                    dayGcEvents.slice(0, MAX_DOTS - dayJobs.length).map((evt) => (
                       <span
                         key={evt.tradeId}
-                        className="w-2 h-2 rounded-full flex-shrink-0"
+                        className="w-2 h-2 rotate-45 flex-shrink-0 rounded-[1px]"
                         style={{ backgroundColor: evt.accentColor }}
                         title={`${evt.tradeName} - ${evt.projectName}`}
                       />
                     ))}
-                    {dayGcEvents.length > 3 && (
-                      <span className="text-[8px] text-gray-400 font-bold ml-px">+{dayGcEvents.length - 3}</span>
-                    )}
-                  </span>
-                )}
-              </div>
+                  {overflow > 0 && (
+                    <span className="text-[8px] text-gray-500 font-bold leading-none">
+                      +{overflow}
+                    </span>
+                  )}
+                </div>
+              )}
             </button>
           );
         })}

@@ -43,20 +43,27 @@ export function Checkout() {
           }
         );
 
+        const body = await response.text();
         if (!response.ok) {
-          // Edge function not deployed yet — fall through to "coming soon" UI
+          setError(`Checkout failed (HTTP ${response.status}): ${body}`);
           setLoading(false);
           return;
         }
 
-        const { url } = await response.json();
-        if (url) {
-          window.location.href = url;
-        } else {
+        try {
+          const { url } = JSON.parse(body);
+          if (url) {
+            window.location.href = url;
+          } else {
+            setError(`Checkout failed: no URL in response. Body: ${body}`);
+            setLoading(false);
+          }
+        } catch {
+          setError(`Checkout failed: bad JSON. Body: ${body}`);
           setLoading(false);
         }
-      } catch {
-        // Edge function not available yet — show coming soon state
+      } catch (e) {
+        setError(`Network error: ${e instanceof Error ? e.message : String(e)}`);
         setLoading(false);
       }
     }

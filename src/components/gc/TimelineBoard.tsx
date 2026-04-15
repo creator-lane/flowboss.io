@@ -304,10 +304,10 @@ export function TimelineBoard({ project, trades, projectId }: TimelineBoardProps
   // If no project dates and no trade dates, show setup message
   if (!hasProjectDates && noDatesSet && !showSuggestions) {
     return (
-      <div className="bg-white border border-gray-200 rounded-xl p-8 text-center">
+      <div className="bg-white border border-gray-200 rounded-xl p-8 text-center dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
         <CalendarDays className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-        <h3 className="text-lg font-semibold text-gray-900 mb-1">Set project dates to enable timeline</h3>
-        <p className="text-sm text-gray-500 mb-4">
+        <h3 className="text-lg font-semibold text-gray-900 mb-1 dark:text-white">Set project dates to enable timeline</h3>
+        <p className="text-sm text-gray-500 mb-4 dark:text-gray-400">
           Add a start date and target end date to your project, or use a timeline template to get started quickly.
         </p>
         <button
@@ -340,9 +340,9 @@ export function TimelineBoard({ project, trades, projectId }: TimelineBoardProps
         <div className="flex items-center gap-2">
           <button
             onClick={() => setShowSuggestions(!showSuggestions)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors dark:text-gray-200 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10 dark:hover:bg-white/10"
           >
-            <Sparkles className="w-4 h-4 text-brand-500" />
+            <Sparkles className="w-4 h-4 text-brand-500 dark:text-blue-300" />
             Suggest Timeline
           </button>
         </div>
@@ -350,17 +350,17 @@ export function TimelineBoard({ project, trades, projectId }: TimelineBoardProps
         <div className="flex items-center gap-1">
           <button
             onClick={zoomOut}
-            className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 transition-colors"
+            className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 transition-colors dark:hover:bg-white/10 dark:text-gray-400"
             title="Zoom out"
           >
             <ZoomOut className="w-4 h-4" />
           </button>
-          <span className="text-xs text-gray-400 w-12 text-center">
+          <span className="text-xs text-gray-400 w-12 text-center dark:text-gray-500">
             {dayWidth <= 24 ? 'Month' : dayWidth <= 48 ? 'Week' : 'Day'}
           </span>
           <button
             onClick={zoomIn}
-            className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 transition-colors"
+            className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 transition-colors dark:hover:bg-white/10 dark:text-gray-400"
             title="Zoom in"
           >
             <ZoomIn className="w-4 h-4" />
@@ -369,16 +369,16 @@ export function TimelineBoard({ project, trades, projectId }: TimelineBoardProps
       </div>
 
       {/* Timeline grid */}
-      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
         <div className="flex">
           {/* Left labels column */}
           <div
-            className="flex-shrink-0 border-r border-gray-200 bg-gray-50/50"
+            className="flex-shrink-0 border-r border-gray-200 bg-gray-50/50 dark:border-white/10"
             style={{ width: LABEL_WIDTH }}
           >
             {/* Header spacer */}
             <div
-              className="border-b border-gray-200 px-4 flex items-center text-xs font-semibold text-gray-500 uppercase tracking-wide"
+              className="border-b border-gray-200 px-4 flex items-center text-xs font-semibold text-gray-500 uppercase tracking-wide dark:border-white/10 dark:text-gray-400"
               style={{ height: HEADER_HEIGHT }}
             >
               Trade
@@ -393,12 +393,12 @@ export function TimelineBoard({ project, trades, projectId }: TimelineBoardProps
               return (
                 <div
                   key={trade.id}
-                  className="border-b border-gray-100 px-4 flex flex-col justify-center"
+                  className="border-b border-gray-100 px-4 flex flex-col justify-center dark:border-white/10"
                   style={{ height: ROW_HEIGHT }}
                 >
                   <div className="flex items-center gap-2">
                     <div className={`w-2 h-2 rounded-full flex-shrink-0 ${TRADE_ACCENT[trade.trade] || 'bg-gray-400'}`} />
-                    <span className="text-sm font-medium text-gray-900 truncate">{trade.trade}</span>
+                    <span className="text-sm font-medium text-gray-900 truncate dark:text-white">{trade.trade}</span>
                   </div>
                   <div className="flex items-center gap-2 mt-1 ml-4">
                     <StatusIcon className={`w-3 h-3 flex-shrink-0 ${colors.text}`} />
@@ -406,13 +406,13 @@ export function TimelineBoard({ project, trades, projectId }: TimelineBoardProps
                       {tasksTotal > 0 ? `${tasksDone}/${tasksTotal}` : 'No tasks'}
                     </span>
                     {trade.budget != null && (
-                      <span className="text-xs text-gray-400">{formatCurrency(trade.budget)}</span>
+                      <span className="text-xs text-gray-400 dark:text-gray-500">{formatCurrency(trade.budget)}</span>
                     )}
                   </div>
                   {trade.assignedSub && (
                     <div className="flex items-center gap-1 mt-0.5 ml-4">
-                      <User className="w-3 h-3 text-gray-400" />
-                      <span className="text-[11px] text-gray-500 truncate">
+                      <User className="w-3 h-3 text-gray-400 dark:text-gray-500" />
+                      <span className="text-[11px] text-gray-500 truncate dark:text-gray-400">
                         {trade.assignedSub.businessName || trade.assignedSub.name || 'Sub assigned'}
                       </span>
                     </div>
@@ -422,7 +422,7 @@ export function TimelineBoard({ project, trades, projectId }: TimelineBoardProps
             })}
 
             {trades.length === 0 && (
-              <div className="px-4 py-6 text-sm text-gray-400 text-center">No scopes added yet</div>
+              <div className="px-4 py-6 text-sm text-gray-400 text-center dark:text-gray-500">No scopes added yet</div>
             )}
           </div>
 
@@ -431,7 +431,7 @@ export function TimelineBoard({ project, trades, projectId }: TimelineBoardProps
             <div style={{ width: timelineWidth, minWidth: '100%' }}>
               {/* Week header row */}
               <div
-                className="relative border-b border-gray-200 bg-gray-50/30"
+                className="relative border-b border-gray-200 bg-gray-50/30 dark:border-white/10"
                 style={{ height: HEADER_HEIGHT }}
               >
                 {weekMarkers.map((marker, i) => (
@@ -465,14 +465,14 @@ export function TimelineBoard({ project, trades, projectId }: TimelineBoardProps
                 return (
                   <div
                     key={trade.id}
-                    className="relative border-b border-gray-100"
+                    className="relative border-b border-gray-100 dark:border-white/10"
                     style={{ height: ROW_HEIGHT }}
                   >
                     {/* Vertical grid lines for weeks */}
                     {weekMarkers.map((marker, i) => (
                       <div
                         key={i}
-                        className="absolute top-0 h-full border-l border-gray-100"
+                        className="absolute top-0 h-full border-l border-gray-100 dark:border-white/10"
                         style={{ left: marker.offsetPx }}
                       />
                     ))}
@@ -518,7 +518,7 @@ export function TimelineBoard({ project, trades, projectId }: TimelineBoardProps
                           </span>
                         )}
                         {!hasDates && widthPx > 60 && (
-                          <span className="text-[10px] text-gray-600 ml-auto">No dates</span>
+                          <span className="text-[10px] text-gray-600 ml-auto dark:text-gray-300">No dates</span>
                         )}
                       </div>
 
@@ -575,7 +575,7 @@ export function TimelineBoard({ project, trades, projectId }: TimelineBoardProps
               })}
 
               {trades.length === 0 && (
-                <div className="flex items-center justify-center h-32 text-sm text-gray-400">
+                <div className="flex items-center justify-center h-32 text-sm text-gray-400 dark:text-gray-500">
                   Add scopes of work to see them on the timeline
                 </div>
               )}
@@ -585,7 +585,7 @@ export function TimelineBoard({ project, trades, projectId }: TimelineBoardProps
       </div>
 
       {/* Legend */}
-      <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500">
+      <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
         <div className="flex items-center gap-1.5">
           <div className="w-3 h-2 rounded-sm bg-gray-300" />
           Not Started
@@ -606,7 +606,7 @@ export function TimelineBoard({ project, trades, projectId }: TimelineBoardProps
           <div className="w-4 h-0 border-t-2 border-dashed border-red-400" />
           Today
         </div>
-        <div className="flex items-center gap-1.5 ml-auto text-gray-400">
+        <div className="flex items-center gap-1.5 ml-auto text-gray-400 dark:text-gray-500">
           Drag edges to resize &middot; Grab bar to move
         </div>
       </div>

@@ -57,9 +57,9 @@ export function OnboardingOverlay({ onDismiss }: { onDismiss: () => void }) {
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
 
       {/* Content card */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4">
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 dark:bg-white/5 dark:backdrop-blur-sm">
         {/* Close */}
-        <button onClick={dismiss} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+        <button onClick={dismiss} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300">
           <X className="w-5 h-5" />
         </button>
 
@@ -71,14 +71,14 @@ export function OnboardingOverlay({ onDismiss }: { onDismiss: () => void }) {
         </div>
 
         {/* Step content */}
-        <h3 className="text-xl font-bold text-gray-900 mb-2">{current.title}</h3>
-        <p className="text-sm text-gray-500 leading-relaxed mb-8">{current.description}</p>
+        <h3 className="text-xl font-bold text-gray-900 mb-2 dark:text-white">{current.title}</h3>
+        <p className="text-sm text-gray-500 leading-relaxed mb-8 dark:text-gray-400">{current.description}</p>
 
         {/* Navigation */}
         <div className="flex items-center justify-between">
           <button
             onClick={() => step > 0 ? setStep(step - 1) : dismiss()}
-            className="text-sm text-gray-400 hover:text-gray-600"
+            className="text-sm text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
           >
             {step > 0 ? (
               <span className="flex items-center gap-1"><ChevronLeft className="w-4 h-4" /> Back</span>

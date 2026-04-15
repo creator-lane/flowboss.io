@@ -125,22 +125,22 @@ export function InviteSubModal({
       {/* Success overlay */}
       {success && (
         <div className="flex flex-col items-center justify-center py-8 gap-3">
-          <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
-            <Check className="w-6 h-6 text-green-600" />
+          <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center dark:bg-green-500/20">
+            <Check className="w-6 h-6 text-green-600 dark:text-green-300" />
           </div>
-          <p className="text-sm font-medium text-gray-900">{success}</p>
+          <p className="text-sm font-medium text-gray-900 dark:text-white">{success}</p>
         </div>
       )}
 
       {!success && (
         <>
-          <p className="text-sm text-gray-500 mb-4">
-            Assign a sub for <span className="font-medium text-gray-700">{tradeName}</span> on{' '}
-            <span className="font-medium text-gray-700">{projectName}</span>
+          <p className="text-sm text-gray-500 mb-4 dark:text-gray-400">
+            Assign a sub for <span className="font-medium text-gray-700 dark:text-gray-200">{tradeName}</span> on{' '}
+            <span className="font-medium text-gray-700 dark:text-gray-200">{projectName}</span>
           </p>
 
           {/* Tab selector */}
-          <div className="flex gap-1 bg-gray-100 rounded-lg p-1 mb-5">
+          <div className="flex gap-1 bg-gray-100 rounded-lg p-1 mb-5 dark:bg-white/10">
             {tabs.map((tab) => (
               <button
                 key={tab.key}
@@ -149,7 +149,7 @@ export function InviteSubModal({
                   activeTab === tab.key
                     ? 'bg-white text-gray-900 shadow-sm'
                     : 'text-gray-500 hover:text-gray-700'
-                }`}
+                } dark:text-white`}
               >
                 {tab.icon}
                 <span className="hidden sm:inline">{tab.label}</span>
@@ -160,27 +160,27 @@ export function InviteSubModal({
           {/* Tab A: Placeholder */}
           {activeTab === 'placeholder' && (
             <div className="space-y-4">
-              <p className="text-xs text-gray-400">
+              <p className="text-xs text-gray-400 dark:text-gray-500">
                 Set a placeholder name to plan without inviting anyone yet.
               </p>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Company Name *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-200">Company Name *</label>
                 <input
                   type="text"
                   value={companyName}
                   onChange={(e) => setCompanyName(e.target.value)}
                   placeholder="e.g. Smith Plumbing Co."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent dark:border-white/10 dark:focus:ring-blue-400"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Contact Info (optional)</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-200">Contact Info (optional)</label>
                 <input
                   type="text"
                   value={contactInfo}
                   onChange={(e) => setContactInfo(e.target.value)}
                   placeholder="Phone or email"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent dark:border-white/10 dark:focus:ring-blue-400"
                 />
               </div>
               <button
@@ -197,11 +197,11 @@ export function InviteSubModal({
           {/* Tab B: Share Link */}
           {activeTab === 'link' && (
             <div className="space-y-4">
-              <p className="text-xs text-gray-400">
+              <p className="text-xs text-gray-400 dark:text-gray-500">
                 Share this link with a sub to invite them to the project. They can sign up or log in to see their assignment.
               </p>
               <div className="flex items-center gap-2">
-                <div className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-700 font-mono truncate select-all">
+                <div className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-700 font-mono truncate select-all dark:bg-white/[0.02] dark:border-white/10 dark:text-gray-200">
                   {inviteLink}
                 </div>
                 <button
@@ -225,7 +225,7 @@ export function InviteSubModal({
                   )}
                 </button>
               </div>
-              <div className="flex items-center gap-2 text-xs text-gray-400">
+              <div className="flex items-center gap-2 text-xs text-gray-400 dark:text-gray-500">
                 <Smartphone className="w-3.5 h-3.5" />
                 <span>Share via text or any messaging app</span>
               </div>
@@ -235,27 +235,27 @@ export function InviteSubModal({
           {/* Tab C: Email Invite */}
           {activeTab === 'email' && (
             <div className="space-y-4">
-              <p className="text-xs text-gray-400">
+              <p className="text-xs text-gray-400 dark:text-gray-500">
                 Send an email invite to a sub. They will receive instructions to join the project.
               </p>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Email Address *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-200">Email Address *</label>
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="sub@company.com"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent dark:border-white/10 dark:focus:ring-blue-400"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Company Name (optional)</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-200">Company Name (optional)</label>
                 <input
                   type="text"
                   value={emailCompany}
                   onChange={(e) => setEmailCompany(e.target.value)}
                   placeholder="e.g. Smith Plumbing Co."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent dark:border-white/10 dark:focus:ring-blue-400"
                 />
               </div>
               <button

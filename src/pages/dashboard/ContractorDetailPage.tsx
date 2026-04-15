@@ -120,15 +120,15 @@ export function ContractorDetailPage() {
         <button
           type="button"
           onClick={() => navigate('/dashboard/contractors')}
-          className="flex items-center gap-2 text-sm text-neutral-500 hover:text-neutral-700 mb-6"
+          className="flex items-center gap-2 text-sm text-neutral-500 hover:text-neutral-700 mb-6 dark:text-gray-400"
         >
           <ArrowLeft className="w-4 h-4" />
           Back to Contractors
         </button>
         <div className="animate-pulse space-y-6">
-          <div className="h-8 bg-gray-200 rounded w-48" />
-          <div className="h-32 bg-gray-100 rounded-xl" />
-          <div className="h-32 bg-gray-100 rounded-xl" />
+          <div className="h-8 bg-gray-200 rounded w-48 dark:bg-white/10" />
+          <div className="h-32 bg-gray-100 rounded-xl dark:bg-white/10" />
+          <div className="h-32 bg-gray-100 rounded-xl dark:bg-white/10" />
         </div>
       </div>
     );
@@ -138,11 +138,11 @@ export function ContractorDetailPage() {
     return (
       <div className="p-4 sm:p-6 lg:p-8 max-w-4xl mx-auto text-center py-20">
         <AlertTriangle className="w-10 h-10 text-neutral-300 mx-auto mb-3" />
-        <p className="text-neutral-500">Contractor not found</p>
+        <p className="text-neutral-500 dark:text-gray-400">Contractor not found</p>
         <button
           type="button"
           onClick={() => navigate('/dashboard/contractors')}
-          className="mt-4 text-sm text-brand-500 hover:text-brand-600 font-medium"
+          className="mt-4 text-sm text-brand-500 hover:text-brand-600 font-medium dark:text-blue-300"
         >
           Back to Contractors
         </button>
@@ -161,61 +161,61 @@ export function ContractorDetailPage() {
       <button
         type="button"
         onClick={() => navigate('/dashboard/contractors')}
-        className="flex items-center gap-2 text-sm text-neutral-500 hover:text-neutral-700 mb-6 transition-colors"
+        className="flex items-center gap-2 text-sm text-neutral-500 hover:text-neutral-700 mb-6 transition-colors dark:text-gray-400"
       >
         <ArrowLeft className="w-4 h-4" />
         Back to Contractors
       </button>
 
       {/* Header */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
+      <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
         {editing ? (
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-medium text-neutral-500 mb-1">Company Name</label>
+                <label className="block text-xs font-medium text-neutral-500 mb-1 dark:text-gray-400">Company Name</label>
                 <input
                   type="text"
                   value={editForm.company_name}
                   onChange={(e) => setEditForm({ ...editForm, company_name: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 dark:border-white/10 dark:focus:ring-blue-400"
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-neutral-500 mb-1">Contact Name</label>
+                <label className="block text-xs font-medium text-neutral-500 mb-1 dark:text-gray-400">Contact Name</label>
                 <input
                   type="text"
                   value={editForm.name}
                   onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 dark:border-white/10 dark:focus:ring-blue-400"
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-neutral-500 mb-1">Phone</label>
+                <label className="block text-xs font-medium text-neutral-500 mb-1 dark:text-gray-400">Phone</label>
                 <input
                   type="tel"
                   value={editForm.phone}
                   onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 dark:border-white/10 dark:focus:ring-blue-400"
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-neutral-500 mb-1">Email</label>
+                <label className="block text-xs font-medium text-neutral-500 mb-1 dark:text-gray-400">Email</label>
                 <input
                   type="email"
                   value={editForm.email}
                   onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 dark:border-white/10 dark:focus:ring-blue-400"
                 />
               </div>
             </div>
             <div>
-              <label className="block text-xs font-medium text-neutral-500 mb-1">Notes</label>
+              <label className="block text-xs font-medium text-neutral-500 mb-1 dark:text-gray-400">Notes</label>
               <textarea
                 value={editForm.notes}
                 onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })}
                 rows={3}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none dark:border-white/10 dark:focus:ring-blue-400"
               />
             </div>
             <div className="flex items-center gap-2">
@@ -231,7 +231,7 @@ export function ContractorDetailPage() {
               <button
                 type="button"
                 onClick={() => setEditing(false)}
-                className="inline-flex items-center gap-2 px-4 py-2 text-neutral-700 hover:bg-gray-100 rounded-lg text-sm font-medium"
+                className="inline-flex items-center gap-2 px-4 py-2 text-neutral-700 hover:bg-gray-100 rounded-lg text-sm font-medium dark:text-gray-200 dark:hover:bg-white/10"
               >
                 <X className="w-4 h-4" />
                 Cancel
@@ -241,19 +241,19 @@ export function ContractorDetailPage() {
         ) : (
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-full bg-brand-50 flex items-center justify-center flex-shrink-0">
-                <HardHat className="w-6 h-6 text-brand-600" />
+              <div className="w-14 h-14 rounded-full bg-brand-50 flex items-center justify-center flex-shrink-0 dark:bg-blue-500/10">
+                <HardHat className="w-6 h-6 text-brand-600 dark:text-blue-300" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-neutral-900">{companyName}</h1>
+                <h1 className="text-xl font-bold text-neutral-900 dark:text-white">{companyName}</h1>
                 {contractor.name && (
-                  <p className="text-sm text-neutral-500 mt-0.5">{contractor.name}</p>
+                  <p className="text-sm text-neutral-500 mt-0.5 dark:text-gray-400">{contractor.name}</p>
                 )}
                 <div className="flex flex-wrap items-center gap-4 mt-2">
                   {contractor.phone && (
                     <a
                       href={`tel:${contractor.phone}`}
-                      className="flex items-center gap-1.5 text-sm text-neutral-600 hover:text-brand-600 transition-colors"
+                      className="flex items-center gap-1.5 text-sm text-neutral-600 hover:text-brand-600 transition-colors dark:text-gray-300"
                     >
                       <Phone className="w-3.5 h-3.5" />
                       {contractor.phone}
@@ -262,7 +262,7 @@ export function ContractorDetailPage() {
                   {contractor.email && (
                     <a
                       href={`mailto:${contractor.email}`}
-                      className="flex items-center gap-1.5 text-sm text-neutral-600 hover:text-brand-600 transition-colors"
+                      className="flex items-center gap-1.5 text-sm text-neutral-600 hover:text-brand-600 transition-colors dark:text-gray-300"
                     >
                       <Mail className="w-3.5 h-3.5" />
                       {contractor.email}
@@ -274,7 +274,7 @@ export function ContractorDetailPage() {
             <button
               type="button"
               onClick={startEditing}
-              className="p-2 text-neutral-400 hover:text-neutral-600 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-2 text-neutral-400 hover:text-neutral-600 hover:bg-gray-100 rounded-lg transition-colors dark:text-gray-500 dark:hover:bg-white/10"
             >
               <Pencil className="w-4 h-4" />
             </button>
@@ -284,49 +284,49 @@ export function ContractorDetailPage() {
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-4 mb-6">
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
+        <div className="bg-white rounded-xl border border-gray-200 p-5 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
           <div className="flex items-center gap-2 mb-2">
             <Briefcase className="w-4 h-4 text-blue-500" />
-            <p className="text-xs text-neutral-400 font-medium uppercase tracking-wider">Total Jobs</p>
+            <p className="text-xs text-neutral-400 font-medium uppercase tracking-wider dark:text-gray-500">Total Jobs</p>
           </div>
-          <p className="text-2xl font-bold text-neutral-900">{jobCount}</p>
+          <p className="text-2xl font-bold text-neutral-900 dark:text-white">{jobCount}</p>
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
+        <div className="bg-white rounded-xl border border-gray-200 p-5 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
           <div className="flex items-center gap-2 mb-2">
             <DollarSign className="w-4 h-4 text-green-500" />
-            <p className="text-xs text-neutral-400 font-medium uppercase tracking-wider">Total Revenue</p>
+            <p className="text-xs text-neutral-400 font-medium uppercase tracking-wider dark:text-gray-500">Total Revenue</p>
           </div>
-          <p className="text-2xl font-bold text-neutral-900">{formatCurrency(totalRevenue)}</p>
+          <p className="text-2xl font-bold text-neutral-900 dark:text-white">{formatCurrency(totalRevenue)}</p>
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
+        <div className="bg-white rounded-xl border border-gray-200 p-5 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
           <div className="flex items-center gap-2 mb-2">
             <TrendingUp className="w-4 h-4 text-purple-500" />
-            <p className="text-xs text-neutral-400 font-medium uppercase tracking-wider">Avg Ticket</p>
+            <p className="text-xs text-neutral-400 font-medium uppercase tracking-wider dark:text-gray-500">Avg Ticket</p>
           </div>
-          <p className="text-2xl font-bold text-neutral-900">{formatCurrency(avgTicket)}</p>
+          <p className="text-2xl font-bold text-neutral-900 dark:text-white">{formatCurrency(avgTicket)}</p>
         </div>
       </div>
 
       {/* Notes */}
       {contractor.notes && !editing && (
-        <div className="bg-white rounded-xl border border-gray-200 p-5 mb-6">
-          <h3 className="text-sm font-semibold text-neutral-900 mb-2">Notes</h3>
-          <p className="text-sm text-neutral-600 whitespace-pre-wrap">{contractor.notes}</p>
+        <div className="bg-white rounded-xl border border-gray-200 p-5 mb-6 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
+          <h3 className="text-sm font-semibold text-neutral-900 mb-2 dark:text-white">Notes</h3>
+          <p className="text-sm text-neutral-600 whitespace-pre-wrap dark:text-gray-300">{contractor.notes}</p>
         </div>
       )}
 
       {/* Linked jobs */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden mb-6">
-        <div className="px-5 py-4 border-b border-gray-100">
-          <h3 className="text-sm font-semibold text-neutral-900 flex items-center gap-2">
-            <Briefcase className="w-4 h-4 text-neutral-400" />
+      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden mb-6 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
+        <div className="px-5 py-4 border-b border-gray-100 dark:border-white/10">
+          <h3 className="text-sm font-semibold text-neutral-900 flex items-center gap-2 dark:text-white">
+            <Briefcase className="w-4 h-4 text-neutral-400 dark:text-gray-500" />
             Linked Jobs ({linkedJobs.length})
           </h3>
         </div>
         {linkedJobs.length === 0 ? (
           <div className="p-8 text-center">
             <Briefcase className="w-8 h-8 text-neutral-300 mx-auto mb-2" />
-            <p className="text-sm text-neutral-500">No jobs linked to this contractor yet.</p>
+            <p className="text-sm text-neutral-500 dark:text-gray-400">No jobs linked to this contractor yet.</p>
           </div>
         ) : (
           <div className="divide-y divide-gray-50">
@@ -342,11 +342,11 @@ export function ContractorDetailPage() {
                   key={job.id}
                   type="button"
                   onClick={() => navigate(`/dashboard/jobs/${job.id}`)}
-                  className="w-full text-left px-5 py-3 hover:bg-gray-50 transition-colors flex items-center justify-between"
+                  className="w-full text-left px-5 py-3 hover:bg-gray-50 transition-colors flex items-center justify-between dark:hover:bg-white/10"
                 >
                   <div>
-                    <p className="text-sm font-medium text-neutral-900">{customerName}</p>
-                    <p className="text-xs text-neutral-500 mt-0.5">
+                    <p className="text-sm font-medium text-neutral-900 dark:text-white">{customerName}</p>
+                    <p className="text-xs text-neutral-500 mt-0.5 dark:text-gray-400">
                       {job.description || 'No description'}
                     </p>
                   </div>
@@ -355,7 +355,7 @@ export function ContractorDetailPage() {
                       {(job.status || 'SCHEDULED').replace(/_/g, ' ')}
                     </span>
                     {(job.scheduledStart || job.scheduled_start) && (
-                      <span className="text-xs text-neutral-400">
+                      <span className="text-xs text-neutral-400 dark:text-gray-500">
                         {format(new Date(job.scheduledStart || job.scheduled_start), 'MMM d')}
                       </span>
                     )}
@@ -368,13 +368,13 @@ export function ContractorDetailPage() {
       </div>
 
       {/* Actions */}
-      <div className="bg-white rounded-xl border border-gray-200 p-5">
-        <h3 className="text-sm font-semibold text-neutral-900 mb-4">Actions</h3>
+      <div className="bg-white rounded-xl border border-gray-200 p-5 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
+        <h3 className="text-sm font-semibold text-neutral-900 mb-4 dark:text-white">Actions</h3>
         <div className="flex items-center gap-3 flex-wrap">
           <button
             type="button"
             onClick={startEditing}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-gray-50 text-neutral-700 rounded-lg text-sm font-medium hover:bg-gray-100 transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-gray-50 text-neutral-700 rounded-lg text-sm font-medium hover:bg-gray-100 transition-colors dark:bg-white/[0.02] dark:text-gray-200 dark:hover:bg-white/10"
           >
             <Pencil className="w-4 h-4" />
             Edit Contractor
@@ -384,14 +384,14 @@ export function ContractorDetailPage() {
             <button
               type="button"
               onClick={() => setShowDeleteConfirm(true)}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-lg text-sm font-medium hover:bg-red-100 transition-colors"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-lg text-sm font-medium hover:bg-red-100 transition-colors dark:bg-red-500/10 dark:text-red-300"
             >
               <Trash2 className="w-4 h-4" />
               Delete Contractor
             </button>
           ) : (
             <div className="flex items-center gap-2">
-              <span className="text-sm text-red-600 font-medium">Are you sure?</span>
+              <span className="text-sm text-red-600 font-medium dark:text-red-300">Are you sure?</span>
               <button
                 type="button"
                 onClick={() => deleteMutation.mutate()}
@@ -403,7 +403,7 @@ export function ContractorDetailPage() {
               <button
                 type="button"
                 onClick={() => setShowDeleteConfirm(false)}
-                className="px-3 py-2 text-sm text-neutral-500 hover:text-neutral-700"
+                className="px-3 py-2 text-sm text-neutral-500 hover:text-neutral-700 dark:text-gray-400"
               >
                 Cancel
               </button>

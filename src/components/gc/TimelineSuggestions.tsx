@@ -148,8 +148,8 @@ function MiniTimeline({ template }: { template: TimelineTemplate }) {
         const widthPct = (t.durationWeeks / maxWeek) * 100;
         return (
           <div key={i} className="flex items-center gap-2 h-4">
-            <span className="text-[10px] text-gray-500 w-16 truncate text-right">{t.trade}</span>
-            <div className="flex-1 relative h-3 bg-gray-50 rounded-sm">
+            <span className="text-[10px] text-gray-500 w-16 truncate text-right dark:text-gray-400">{t.trade}</span>
+            <div className="flex-1 relative h-3 bg-gray-50 rounded-sm dark:bg-white/[0.02]">
               <div
                 className={`absolute top-0 h-full rounded-sm ${TRADE_BAR_COLORS[t.trade] || 'bg-brand-300'}`}
                 style={{ left: `${leftPct}%`, width: `${Math.max(widthPct, 3)}%` }}
@@ -241,22 +241,22 @@ export function TimelineSuggestions({
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl shadow-sm">
-      <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+    <div className="bg-white border border-gray-200 rounded-xl shadow-sm dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10 dark:shadow-black/30">
+      <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-white/10">
         <div className="flex items-center gap-2">
-          <Sparkles className="w-5 h-5 text-brand-500" />
-          <h3 className="font-semibold text-gray-900">Timeline Suggestions</h3>
+          <Sparkles className="w-5 h-5 text-brand-500 dark:text-blue-300" />
+          <h3 className="font-semibold text-gray-900 dark:text-white">Timeline Suggestions</h3>
         </div>
         <button
           onClick={onClose}
-          className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+          className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors dark:hover:bg-white/10 dark:text-gray-500 dark:hover:text-gray-300"
         >
           <X className="w-4 h-4" />
         </button>
       </div>
 
       {!projectStartDate && (
-        <div className="mx-5 mt-4 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-700">
+        <div className="mx-5 mt-4 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-700 dark:bg-amber-500/10 dark:border-amber-500/30 dark:text-amber-300">
           No project start date set. Templates will use today as the start date.
         </div>
       )}
@@ -274,7 +274,7 @@ export function TimelineSuggestions({
                 isRecommended
                   ? 'border-brand-300 bg-brand-50/30 ring-1 ring-brand-200'
                   : 'border-gray-200 bg-white hover:border-gray-300'
-              }`}
+              } dark:bg-white/5 dark:backdrop-blur-sm`}
             >
               {isRecommended && (
                 <div className="absolute -top-2.5 left-3 px-2 py-0.5 bg-brand-500 text-white text-[10px] font-semibold rounded-full uppercase tracking-wide">
@@ -283,8 +283,8 @@ export function TimelineSuggestions({
               )}
 
               <div className="mt-1">
-                <h4 className="font-semibold text-sm text-gray-900">{template.name}</h4>
-                <p className="text-xs text-gray-500 mt-0.5">{template.description}</p>
+                <h4 className="font-semibold text-sm text-gray-900 dark:text-white">{template.name}</h4>
+                <p className="text-xs text-gray-500 mt-0.5 dark:text-gray-400">{template.description}</p>
               </div>
 
               <MiniTimeline template={template} />
@@ -296,7 +296,7 @@ export function TimelineSuggestions({
                   isRecommended
                     ? 'bg-brand-500 text-white hover:bg-brand-600 disabled:opacity-60'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200 disabled:opacity-60'
-                }`}
+                } dark:text-gray-200 dark:hover:bg-white/10`}
               >
                 {isApplying ? (
                   <>

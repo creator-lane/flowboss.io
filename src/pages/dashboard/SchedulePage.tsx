@@ -91,15 +91,15 @@ function StatusBadge({ status }: { status: string }) {
 
 function SkeletonCard() {
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5 animate-pulse">
+    <div className="bg-white rounded-xl border border-gray-200 p-5 animate-pulse dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
       <div className="flex items-start justify-between mb-3">
         <div className="space-y-2 flex-1">
-          <div className="h-4 bg-gray-200 rounded w-40" />
-          <div className="h-3 bg-gray-100 rounded w-64" />
+          <div className="h-4 bg-gray-200 rounded w-40 dark:bg-white/10" />
+          <div className="h-3 bg-gray-100 rounded w-64 dark:bg-white/10" />
         </div>
-        <div className="h-5 bg-gray-200 rounded-full w-20" />
+        <div className="h-5 bg-gray-200 rounded-full w-20 dark:bg-white/10" />
       </div>
-      <div className="h-3 bg-gray-100 rounded w-32 mt-3" />
+      <div className="h-3 bg-gray-100 rounded w-32 mt-3 dark:bg-white/10" />
     </div>
   );
 }
@@ -117,7 +117,7 @@ function ViewToggle({
     { value: 'month', label: 'Month' },
   ];
   return (
-    <div className="inline-flex rounded-lg border border-gray-200 bg-gray-50 p-0.5">
+    <div className="inline-flex rounded-lg border border-gray-200 bg-gray-50 p-0.5 dark:border-white/10 dark:bg-white/[0.02]">
       {opts.map((o) => (
         <button
           key={o.value}
@@ -127,7 +127,7 @@ function ViewToggle({
             view === o.value
               ? 'bg-white text-brand-600 shadow-sm'
               : 'text-neutral-500 hover:text-neutral-700'
-          }`}
+          } dark:text-blue-300`}
         >
           {o.label}
         </button>
@@ -258,12 +258,12 @@ export function SchedulePage() {
       {/* View toggle + header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-neutral-900">
+          <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">
             {headerLabel}
             {subLabel && (
               <>
-                <span className="text-neutral-400 font-normal"> &mdash; </span>
-                <span className="font-semibold text-neutral-700">{subLabel}</span>
+                <span className="text-neutral-400 font-normal dark:text-gray-500"> &mdash; </span>
+                <span className="font-semibold text-neutral-700 dark:text-gray-200">{subLabel}</span>
               </>
             )}
           </h1>
@@ -280,15 +280,15 @@ export function SchedulePage() {
 
       {/* Earnings summary (day view only) */}
       {view === 'day' && dayEarnings && !isLoading && (
-        <div className="mb-6 flex items-center gap-4 bg-green-50 border border-green-200 rounded-xl px-5 py-3">
-          <div className="flex items-center justify-center w-10 h-10 bg-green-100 rounded-lg">
-            <DollarSign className="w-5 h-5 text-green-600" />
+        <div className="mb-6 flex items-center gap-4 bg-green-50 border border-green-200 rounded-xl px-5 py-3 dark:bg-green-500/10 dark:border-green-500/30">
+          <div className="flex items-center justify-center w-10 h-10 bg-green-100 rounded-lg dark:bg-green-500/20">
+            <DollarSign className="w-5 h-5 text-green-600 dark:text-green-300" />
           </div>
           <div>
-            <p className="text-lg font-bold text-green-700">
+            <p className="text-lg font-bold text-green-700 dark:text-green-300">
               Today&apos;s Earnings: {fmtCurrency.format(dayEarnings.total)}
             </p>
-            <p className="text-sm text-green-600">
+            <p className="text-sm text-green-600 dark:text-green-300">
               {dayEarnings.count} job{dayEarnings.count !== 1 ? 's' : ''}
             </p>
           </div>
@@ -300,14 +300,14 @@ export function SchedulePage() {
         <button
           type="button"
           onClick={goPrev}
-          className="p-2 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
+          className="p-2 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors dark:border-white/10 dark:hover:bg-white/10"
           aria-label="Previous"
         >
-          <ChevronLeft className="w-5 h-5 text-neutral-500" />
+          <ChevronLeft className="w-5 h-5 text-neutral-500 dark:text-gray-400" />
         </button>
 
-        <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-lg border border-gray-200 text-sm font-medium text-neutral-700">
-          <CalendarDays className="w-4 h-4 text-neutral-400" />
+        <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-lg border border-gray-200 text-sm font-medium text-neutral-700 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10 dark:text-gray-200">
+          <CalendarDays className="w-4 h-4 text-neutral-400 dark:text-gray-500" />
           {view === 'day' && format(selectedDate, 'MMM d, yyyy')}
           {view === 'week' && (() => {
             const ws = startOfWeek(selectedDate, { weekStartsOn: 1 });
@@ -320,10 +320,10 @@ export function SchedulePage() {
         <button
           type="button"
           onClick={goNext}
-          className="p-2 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
+          className="p-2 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors dark:border-white/10 dark:hover:bg-white/10"
           aria-label="Next"
         >
-          <ChevronRight className="w-5 h-5 text-neutral-500" />
+          <ChevronRight className="w-5 h-5 text-neutral-500 dark:text-gray-400" />
         </button>
 
         {!todaySelected && (
@@ -337,7 +337,7 @@ export function SchedulePage() {
         )}
 
         {view === 'day' && (
-          <div className="ml-auto text-sm text-neutral-400">
+          <div className="ml-auto text-sm text-neutral-400 dark:text-gray-500">
             {jobList.length} job{jobList.length !== 1 ? 's' : ''}
           </div>
         )}
@@ -471,15 +471,15 @@ function DayView({
                 key={job.id}
                 type="button"
                 onClick={() => navigate(`/dashboard/jobs/${job.id}`)}
-                className="w-full text-left bg-white rounded-xl border border-gray-200 p-5 hover:shadow-lg hover:shadow-gray-200/50 hover:-translate-y-0.5 hover:border-brand-200 transition-all duration-200 group"
+                className="w-full text-left bg-white rounded-xl border border-gray-200 p-5 hover:shadow-lg hover:shadow-gray-200/50 hover:-translate-y-0.5 hover:border-brand-200 transition-all duration-200 group dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
-                    <p className="text-base font-semibold text-neutral-900 group-hover:text-brand-600 transition-colors">
+                    <p className="text-base font-semibold text-neutral-900 group-hover:text-brand-600 transition-colors dark:text-white">
                       {customerName}
                     </p>
                     {job.description && (
-                      <p className="text-sm text-neutral-500 mt-1 line-clamp-1">
+                      <p className="text-sm text-neutral-500 mt-1 line-clamp-1 dark:text-gray-400">
                         {job.description}
                       </p>
                     )}
@@ -487,7 +487,7 @@ function DayView({
                   <StatusBadge status={job.status} />
                 </div>
 
-                <div className="flex items-center gap-4 mt-3 text-xs text-neutral-400">
+                <div className="flex items-center gap-4 mt-3 text-xs text-neutral-400 dark:text-gray-500">
                   {timeRange && (
                     <span className="flex items-center gap-1">
                       <Clock className="w-3.5 h-3.5" />
@@ -509,35 +509,35 @@ function DayView({
           {dayGcEvents.length > 0 && (
             <>
               <div className="flex items-center gap-3 pt-4 pb-1">
-                <div className="h-px flex-1 bg-gray-200" />
-                <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
+                <div className="h-px flex-1 bg-gray-200 dark:bg-white/10" />
+                <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider flex items-center gap-1.5 dark:text-gray-500">
                   <HardHat className="w-3.5 h-3.5" />
                   GC Projects
                 </span>
-                <div className="h-px flex-1 bg-gray-200" />
+                <div className="h-px flex-1 bg-gray-200 dark:bg-white/10" />
               </div>
               {dayGcEvents.map((evt) => (
                 <button
                   key={evt.tradeId}
                   type="button"
                   onClick={() => navigate(`/dashboard/projects/${evt.projectId}`)}
-                  className="w-full text-left bg-brand-50 rounded-xl border border-gray-200 border-l-4 border-l-brand-400 p-5 hover:shadow-lg hover:shadow-gray-200/50 hover:-translate-y-0.5 transition-all duration-200 group"
+                  className="w-full text-left bg-brand-50 rounded-xl border border-gray-200 border-l-4 border-l-brand-400 p-5 hover:shadow-lg hover:shadow-gray-200/50 hover:-translate-y-0.5 transition-all duration-200 group dark:bg-blue-500/10 dark:border-white/10"
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <HardHat className="w-4 h-4 text-brand-500 flex-shrink-0" />
-                        <p className="text-base font-semibold text-neutral-900 group-hover:text-brand-600 transition-colors">
+                        <HardHat className="w-4 h-4 text-brand-500 flex-shrink-0 dark:text-blue-300" />
+                        <p className="text-base font-semibold text-neutral-900 group-hover:text-brand-600 transition-colors dark:text-white">
                           {evt.tradeName}
                         </p>
                       </div>
-                      <p className="text-sm text-neutral-500 mt-1">{evt.projectName}</p>
+                      <p className="text-sm text-neutral-500 mt-1 dark:text-gray-400">{evt.projectName}</p>
                     </div>
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-brand-100 text-brand-700 ring-1 ring-inset ring-brand-500/20">
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-brand-100 text-brand-700 ring-1 ring-inset ring-brand-500/20 dark:bg-blue-500/20 dark:text-blue-300">
                       {evt.doneTasks}/{evt.totalTasks} tasks
                     </span>
                   </div>
-                  <div className="flex items-center gap-4 mt-3 text-xs text-neutral-400">
+                  <div className="flex items-center gap-4 mt-3 text-xs text-neutral-400 dark:text-gray-500">
                     <span className="flex items-center gap-1">
                       <CalendarDays className="w-3.5 h-3.5" />
                       {format(evt.startDate, 'MMM d')} - {format(evt.endDate, 'MMM d')}
@@ -619,9 +619,9 @@ function WeekView({
       <div className="grid grid-cols-7 gap-2">
         {Array.from({ length: 7 }).map((_, i) => (
           <div key={i} className="space-y-2">
-            <div className="h-6 bg-gray-200 rounded animate-pulse" />
-            <div className="h-20 bg-gray-100 rounded animate-pulse" />
-            <div className="h-20 bg-gray-100 rounded animate-pulse" />
+            <div className="h-6 bg-gray-200 rounded animate-pulse dark:bg-white/10" />
+            <div className="h-20 bg-gray-100 rounded animate-pulse dark:bg-white/10" />
+            <div className="h-20 bg-gray-100 rounded animate-pulse dark:bg-white/10" />
           </div>
         ))}
       </div>
@@ -647,7 +647,7 @@ function WeekView({
                 today
                   ? 'bg-brand-500 text-white'
                   : 'bg-gray-100 text-neutral-600 hover:bg-gray-200'
-              }`}
+              } dark:text-gray-300`}
             >
               <div className="text-xs opacity-75">{format(day, 'EEE')}</div>
               <div>{format(day, 'd')}</div>
@@ -672,13 +672,13 @@ function WeekView({
                         key={job.id}
                         type="button"
                         onClick={() => navigate(`/dashboard/jobs/${job.id}`)}
-                        className={`w-full text-left rounded-lg border p-2 text-xs hover:shadow-sm transition-all ${statusCfg.bg} border-gray-200`}
+                        className={`w-full text-left rounded-lg border p-2 text-xs hover:shadow-sm transition-all ${statusCfg.bg} border-gray-200 dark:border-white/10`}
                       >
-                        <p className="font-medium text-neutral-800 truncate">
+                        <p className="font-medium text-neutral-800 truncate dark:text-gray-100">
                           {customerName}
                         </p>
                         {time && (
-                          <p className="text-neutral-500 mt-0.5 flex items-center gap-0.5">
+                          <p className="text-neutral-500 mt-0.5 flex items-center gap-0.5 dark:text-gray-400">
                             <Clock className="w-2.5 h-2.5" />
                             {time}
                           </p>
@@ -692,14 +692,14 @@ function WeekView({
                       key={`gc-${evt.tradeId}`}
                       type="button"
                       onClick={() => navigate(`/dashboard/projects/${evt.projectId}`)}
-                      className="w-full text-left rounded-lg border border-gray-200 border-l-4 border-l-brand-400 bg-brand-50 p-2 text-xs hover:shadow-sm transition-all"
+                      className="w-full text-left rounded-lg border border-gray-200 border-l-4 border-l-brand-400 bg-brand-50 p-2 text-xs hover:shadow-sm transition-all dark:border-white/10 dark:bg-blue-500/10"
                     >
-                      <p className="font-medium text-neutral-800 truncate flex items-center gap-1">
-                        <HardHat className="w-2.5 h-2.5 text-brand-500 flex-shrink-0" />
+                      <p className="font-medium text-neutral-800 truncate flex items-center gap-1 dark:text-gray-100">
+                        <HardHat className="w-2.5 h-2.5 text-brand-500 flex-shrink-0 dark:text-blue-300" />
                         {evt.tradeName}
                       </p>
-                      <p className="text-neutral-500 mt-0.5 truncate">{evt.projectName}</p>
-                      <p className="text-brand-600 mt-0.5 font-medium">{evt.doneTasks}/{evt.totalTasks} tasks</p>
+                      <p className="text-neutral-500 mt-0.5 truncate dark:text-gray-400">{evt.projectName}</p>
+                      <p className="text-brand-600 mt-0.5 font-medium dark:text-blue-300">{evt.doneTasks}/{evt.totalTasks} tasks</p>
                     </button>
                   ))}
                 </>
@@ -807,14 +807,14 @@ function MonthView({
       <div className="space-y-2">
         <div className="grid grid-cols-7 gap-2">
           {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((d) => (
-            <div key={d} className="text-center text-xs font-medium text-neutral-400 py-1">
+            <div key={d} className="text-center text-xs font-medium text-neutral-400 py-1 dark:text-gray-500">
               {d}
             </div>
           ))}
         </div>
         <div className="grid grid-cols-7 gap-2">
           {Array.from({ length: 35 }).map((_, i) => (
-            <div key={i} className="h-20 bg-gray-100 rounded-lg animate-pulse" />
+            <div key={i} className="h-20 bg-gray-100 rounded-lg animate-pulse dark:bg-white/10" />
           ))}
         </div>
       </div>
@@ -907,7 +907,7 @@ function MonthView({
                       />
                     ))}
                   {overflow > 0 && (
-                    <span className="text-[8px] text-gray-500 font-bold leading-none">
+                    <span className="text-[8px] text-gray-500 font-bold leading-none dark:text-gray-400">
                       +{overflow}
                     </span>
                   )}

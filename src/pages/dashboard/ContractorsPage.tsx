@@ -40,13 +40,13 @@ const formatCurrency = (n: number) =>
 
 function SkeletonCard() {
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5 animate-pulse">
-      <div className="h-5 bg-gray-200 rounded w-40 mb-3" />
-      <div className="h-4 bg-gray-100 rounded w-32 mb-2" />
-      <div className="h-4 bg-gray-100 rounded w-48 mb-3" />
+    <div className="bg-white rounded-xl border border-gray-200 p-5 animate-pulse dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
+      <div className="h-5 bg-gray-200 rounded w-40 mb-3 dark:bg-white/10" />
+      <div className="h-4 bg-gray-100 rounded w-32 mb-2 dark:bg-white/10" />
+      <div className="h-4 bg-gray-100 rounded w-48 mb-3 dark:bg-white/10" />
       <div className="flex gap-2">
-        <div className="h-5 bg-gray-200 rounded-full w-20" />
-        <div className="h-5 bg-gray-100 rounded w-24" />
+        <div className="h-5 bg-gray-200 rounded-full w-20 dark:bg-white/10" />
+        <div className="h-5 bg-gray-100 rounded w-24 dark:bg-white/10" />
       </div>
     </div>
   );
@@ -165,8 +165,8 @@ export function ContractorsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-neutral-900">Contractors</h1>
-          <p className="text-sm text-gray-500 mt-0.5">
+          <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">Contractors</h1>
+          <p className="text-sm text-gray-500 mt-0.5 dark:text-gray-400">
             {allContractors.length} total — {manualCount} manual, {projectCount} from projects
           </p>
         </div>
@@ -181,7 +181,7 @@ export function ContractorsPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1 mb-5 max-w-md">
+      <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1 mb-5 max-w-md dark:bg-white/10">
         {([
           { key: 'all' as const, label: 'All', count: allContractors.length },
           { key: 'manual' as const, label: 'Rolodex', count: manualCount },
@@ -194,7 +194,7 @@ export function ContractorsPage() {
               activeTab === tab.key
                 ? 'bg-white text-gray-900 shadow-sm'
                 : 'text-gray-500 hover:text-gray-700'
-            }`}
+            } dark:text-white`}
           >
             {tab.label}
             <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${
@@ -208,13 +208,13 @@ export function ContractorsPage() {
 
       {/* Search */}
       <div className="relative max-w-md mb-6">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400 dark:text-gray-500" />
         <input
           type="text"
           placeholder="Search by name, trade, phone, or email..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent placeholder:text-neutral-400"
+          className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent placeholder:text-neutral-400 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10 dark:focus:ring-blue-400"
         />
       </div>
 
@@ -228,8 +228,8 @@ export function ContractorsPage() {
       ) : filteredContractors.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <HardHat className="w-12 h-12 text-neutral-300 mb-4" />
-          <p className="text-lg font-medium text-neutral-500 mb-1">No contractors found</p>
-          <p className="text-sm text-neutral-400 mb-6">
+          <p className="text-lg font-medium text-neutral-500 mb-1 dark:text-gray-400">No contractors found</p>
+          <p className="text-sm text-neutral-400 mb-6 dark:text-gray-500">
             {allContractors.length === 0
               ? 'Add a contractor or assign subs on your projects to see them here.'
               : 'Try adjusting your search or switching tabs.'}
@@ -258,22 +258,22 @@ export function ContractorsPage() {
                 key={contractor.id || contractor.userId || contractor._displayName}
                 type="button"
                 onClick={() => handleCardClick(contractor)}
-                className="w-full text-left bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md hover:-translate-y-0.5 transition-all group"
+                className="w-full text-left bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md hover:-translate-y-0.5 transition-all group dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10"
               >
                 <div className="flex items-start justify-between gap-3 mb-2">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-0.5">
-                      <h3 className="text-sm font-semibold text-neutral-900 truncate group-hover:text-brand-600 transition-colors">
+                      <h3 className="text-sm font-semibold text-neutral-900 truncate group-hover:text-brand-600 transition-colors dark:text-white">
                         {contractor._displayName}
                       </h3>
                       {contractor.isPlaceholder && (
-                        <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-amber-50 text-amber-600 ring-1 ring-inset ring-amber-500/20 flex-shrink-0">
+                        <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-amber-50 text-amber-600 ring-1 ring-inset ring-amber-500/20 flex-shrink-0 dark:bg-amber-500/10 dark:text-amber-300">
                           Placeholder
                         </span>
                       )}
                     </div>
                     {contractor.name && contractor.name !== contractor._displayName && (
-                      <p className="text-xs text-neutral-500">{contractor.name}</p>
+                      <p className="text-xs text-neutral-500 dark:text-gray-400">{contractor.name}</p>
                     )}
                   </div>
                   <ChevronRight className="w-4 h-4 text-neutral-300 mt-0.5 flex-shrink-0 group-hover:text-neutral-500 transition-colors" />
@@ -282,13 +282,13 @@ export function ContractorsPage() {
                 {/* Source badges */}
                 <div className="flex items-center gap-1.5 mb-2.5">
                   {isManual && (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-gray-100 text-gray-600">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-gray-100 text-gray-600 dark:bg-white/10 dark:text-gray-300">
                       <HardHat className="w-2.5 h-2.5" />
                       Rolodex
                     </span>
                   )}
                   {isProjectSub && (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-brand-50 text-brand-600">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-brand-50 text-brand-600 dark:bg-blue-500/10 dark:text-blue-300">
                       <FolderKanban className="w-2.5 h-2.5" />
                       {(contractor.projectCount || projectsList.length || 0)} project{(contractor.projectCount || projectsList.length || 0) !== 1 ? 's' : ''}
                     </span>
@@ -298,13 +298,13 @@ export function ContractorsPage() {
                 {/* Contact info */}
                 <div className="space-y-1 mb-3">
                   {(contractor.phone) && (
-                    <p className="text-xs text-neutral-400 flex items-center gap-1.5">
+                    <p className="text-xs text-neutral-400 flex items-center gap-1.5 dark:text-gray-500">
                       <Phone className="w-3 h-3" />
                       {contractor.phone}
                     </p>
                   )}
                   {(contractor.email) && (
-                    <p className="text-xs text-neutral-400 flex items-center gap-1.5">
+                    <p className="text-xs text-neutral-400 flex items-center gap-1.5 dark:text-gray-500">
                       <Mail className="w-3 h-3" />
                       <span className="truncate">{contractor.email}</span>
                     </p>
@@ -323,7 +323,7 @@ export function ContractorsPage() {
                       </span>
                     ))}
                     {trades.length > 4 && (
-                      <span className="px-2 py-0.5 rounded text-[11px] font-medium bg-gray-100 text-gray-500">
+                      <span className="px-2 py-0.5 rounded text-[11px] font-medium bg-gray-100 text-gray-500 dark:bg-white/10 dark:text-gray-400">
                         +{trades.length - 4}
                       </span>
                     )}
@@ -333,13 +333,13 @@ export function ContractorsPage() {
                 {/* Stats */}
                 <div className="flex items-center gap-3 flex-wrap">
                   {isManual && (contractor.jobCount || 0) > 0 && (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-600 rounded text-xs font-medium">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-600 rounded text-xs font-medium dark:bg-blue-500/10 dark:text-blue-300">
                       <Briefcase className="w-3 h-3" />
                       {contractor.jobCount} jobs
                     </span>
                   )}
                   {isManual && (contractor.totalRevenue || 0) > 0 && (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-50 text-green-600 rounded text-xs font-medium">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-50 text-green-600 rounded text-xs font-medium dark:bg-green-500/10 dark:text-green-300">
                       <DollarSign className="w-3 h-3" />
                       {formatCurrency(contractor.totalRevenue)}
                     </span>
@@ -348,12 +348,12 @@ export function ContractorsPage() {
                   {isProjectSub && projectsList.length > 0 && (
                     <div className="flex flex-wrap gap-1">
                       {projectsList.slice(0, 2).map((p: any) => (
-                        <span key={p.id} className="text-[10px] bg-gray-50 text-gray-500 px-1.5 py-0.5 rounded">
+                        <span key={p.id} className="text-[10px] bg-gray-50 text-gray-500 px-1.5 py-0.5 rounded dark:bg-white/[0.02] dark:text-gray-400">
                           {p.name?.length > 25 ? p.name.slice(0, 25) + '...' : p.name}
                         </span>
                       ))}
                       {projectsList.length > 2 && (
-                        <span className="text-[10px] text-gray-400">+{projectsList.length - 2} more</span>
+                        <span className="text-[10px] text-gray-400 dark:text-gray-500">+{projectsList.length - 2} more</span>
                       )}
                     </div>
                   )}
@@ -366,7 +366,7 @@ export function ContractorsPage() {
 
       {/* Result count */}
       {!isLoading && filteredContractors.length > 0 && (
-        <p className="text-xs text-neutral-400 text-center mt-6">
+        <p className="text-xs text-neutral-400 text-center mt-6 dark:text-gray-500">
           Showing {filteredContractors.length} contractor{filteredContractors.length !== 1 ? 's' : ''}
         </p>
       )}

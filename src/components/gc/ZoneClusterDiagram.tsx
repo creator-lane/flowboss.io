@@ -171,7 +171,7 @@ export function ZoneClusterDiagram({
   return (
     <div
       ref={containerRef}
-      className="relative bg-gradient-to-br from-slate-50 via-white to-gray-50 rounded-2xl border border-gray-200 overflow-hidden"
+      className="relative bg-gradient-to-br from-slate-50 via-white to-gray-50 rounded-2xl border border-gray-200 overflow-hidden dark:border-white/10"
       style={{ height: dimensions.height }}
     >
       {/* Dot pattern */}
@@ -240,19 +240,19 @@ export function ZoneClusterDiagram({
             <div className="w-full h-full rounded-full bg-gradient-to-br from-white to-slate-50" />
           </div>
           {/* Content */}
-          <div className="absolute inset-[5px] rounded-full bg-white flex flex-col items-center justify-center">
-            <span className="text-xs font-bold text-gray-900 truncate max-w-[100px]">{project.name}</span>
+          <div className="absolute inset-[5px] rounded-full bg-white flex flex-col items-center justify-center dark:bg-white/5 dark:backdrop-blur-sm">
+            <span className="text-xs font-bold text-gray-900 truncate max-w-[100px] dark:text-white">{project.name}</span>
             {project.sqFootage && (
-              <span className="text-[9px] text-gray-400">{project.sqFootage.toLocaleString()} sq ft</span>
+              <span className="text-[9px] text-gray-400 dark:text-gray-500">{project.sqFootage.toLocaleString()} sq ft</span>
             )}
             {(project.bedrooms || project.bathrooms) && (
-              <span className="text-[9px] text-gray-400">
+              <span className="text-[9px] text-gray-400 dark:text-gray-500">
                 {project.bedrooms && `${project.bedrooms} bed`}
                 {project.bedrooms && project.bathrooms && ' \u00B7 '}
                 {project.bathrooms && `${project.bathrooms} bath`}
               </span>
             )}
-            <span className="text-lg font-extrabold text-brand-600 mt-0.5" data-tour="progress-ring">{overallProgress}%</span>
+            <span className="text-lg font-extrabold text-brand-600 mt-0.5 dark:text-blue-300" data-tour="progress-ring">{overallProgress}%</span>
           </div>
         </div>
       </div>
@@ -289,7 +289,7 @@ export function ZoneClusterDiagram({
               <div className="p-3">
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-base">{ZONE_EMOJI[zone.name] || '\u{1F4CD}'}</span>
-                  <span className="text-sm font-bold text-gray-900 truncate">{zone.name}</span>
+                  <span className="text-sm font-bold text-gray-900 truncate dark:text-white">{zone.name}</span>
                 </div>
 
                 {/* Trades in this zone (compact) */}
@@ -297,17 +297,17 @@ export function ZoneClusterDiagram({
                   {zoneTrades.slice(0, 5).map((t: any) => (
                     <div key={t.id} className="flex items-center gap-1.5 text-[11px]">
                       <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${statusDot(t.status)}`} />
-                      <span className="text-gray-600 truncate">{t.trade}</span>
+                      <span className="text-gray-600 truncate dark:text-gray-300">{t.trade}</span>
                     </div>
                   ))}
                   {zoneTrades.length > 5 && (
-                    <span className="text-[10px] text-gray-400">+{zoneTrades.length - 5} more</span>
+                    <span className="text-[10px] text-gray-400 dark:text-gray-500">+{zoneTrades.length - 5} more</span>
                   )}
                 </div>
 
                 {/* Zone completion */}
                 <div className="flex items-center justify-between text-[10px] mb-1">
-                  <span className="text-gray-400">{doneTasks}/{totalTasks} tasks</span>
+                  <span className="text-gray-400 dark:text-gray-500">{doneTasks}/{totalTasks} tasks</span>
                   <span className="font-bold" style={{ color: zoneAccent }}>{progress}%</span>
                 </div>
                 <div className="h-2 rounded-full overflow-hidden" style={{ backgroundColor: `${zoneAccent}15` }}>
@@ -322,7 +322,7 @@ export function ZoneClusterDiagram({
       {/* Empty state */}
       {zoneList.length === 0 && (
         <div className="absolute left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-3" style={{ top: centerY + 100 }}>
-          <p className="text-gray-400 text-sm">No zones or trades yet</p>
+          <p className="text-gray-400 text-sm dark:text-gray-500">No zones or trades yet</p>
         </div>
       )}
     </div>

@@ -48,12 +48,12 @@ const fmtNum = (n: number) =>
 
 // ── Skeleton primitives ─────────────────────────────────────────────
 function SkeletonBlock({ className = '' }: { className?: string }) {
-  return <div className={`bg-gray-200 rounded animate-pulse ${className}`} />;
+  return <div className={`bg-gray-200 rounded animate-pulse dark:bg-white/10${className} dark:bg-white/10`} />;
 }
 
 function SectionSkeleton({ rows = 5 }: { rows?: number }) {
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
+    <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
       <SkeletonBlock className="h-5 w-48" />
       {Array.from({ length: rows }).map((_, i) => (
         <SkeletonBlock key={i} className="h-8 w-full" />
@@ -64,7 +64,7 @@ function SectionSkeleton({ rows = 5 }: { rows?: number }) {
 
 function KPISkeleton() {
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-6 animate-pulse space-y-3">
+    <div className="bg-white rounded-xl border border-gray-200 p-6 animate-pulse space-y-3 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
       <SkeletonBlock className="h-4 w-24" />
       <SkeletonBlock className="h-8 w-32" />
       <SkeletonBlock className="h-3 w-20" />
@@ -474,8 +474,8 @@ export function InsightsPage() {
     return (
       <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-neutral-900">Insights</h1>
-          <p className="text-sm text-neutral-500 mt-1">
+          <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">Insights</h1>
+          <p className="text-sm text-neutral-500 mt-1 dark:text-gray-400">
             Your business analytics at a glance
           </p>
         </div>
@@ -495,8 +495,8 @@ export function InsightsPage() {
     <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-8">
       {/* Page header */}
       <div>
-        <h1 className="text-2xl font-bold text-neutral-900">Insights</h1>
-        <p className="text-sm text-neutral-500 mt-1">
+        <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">Insights</h1>
+        <p className="text-sm text-neutral-500 mt-1 dark:text-gray-400">
           Your business analytics at a glance
         </p>
       </div>
@@ -545,14 +545,14 @@ export function InsightsPage() {
               return (
                 <div key={m.description + i}>
                   <div className="flex items-center justify-between text-sm mb-1">
-                    <span className="text-neutral-700 font-medium truncate max-w-[60%]">
+                    <span className="text-neutral-700 font-medium truncate max-w-[60%] dark:text-gray-200">
                       {m.description}
                     </span>
-                    <span className="font-semibold text-neutral-900">
+                    <span className="font-semibold text-neutral-900 dark:text-white">
                       {fmtCurrencyFull.format(m.revenuePerHour)}/hr
                     </span>
                   </div>
-                  <div className="h-5 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="h-5 bg-gray-100 rounded-full overflow-hidden dark:bg-white/10">
                     <div
                       className="h-full rounded-full transition-all duration-500"
                       style={{
@@ -561,7 +561,7 @@ export function InsightsPage() {
                       }}
                     />
                   </div>
-                  <div className="text-xs text-neutral-400 mt-0.5">
+                  <div className="text-xs text-neutral-400 mt-0.5 dark:text-gray-500">
                     {m.count} jobs &middot; {fmtCurrency.format(m.revenue)} total &middot; {m.hours.toFixed(1)} hrs
                   </div>
                 </div>
@@ -579,7 +579,7 @@ export function InsightsPage() {
           <div className="overflow-x-auto -mx-6">
             <table className="w-full min-w-[600px]">
               <thead>
-                <tr className="text-xs text-neutral-500 uppercase tracking-wider border-b border-gray-100">
+                <tr className="text-xs text-neutral-500 uppercase tracking-wider border-b border-gray-100 dark:text-gray-400 dark:border-white/10">
                   <th className="text-left px-6 py-2 font-medium">#</th>
                   <th className="text-left px-3 py-2 font-medium">Customer</th>
                   <th className="text-right px-3 py-2 font-medium">Revenue</th>
@@ -607,19 +607,19 @@ export function InsightsPage() {
                         {c.rank}
                       </span>
                     </td>
-                    <td className="px-3 py-3 text-sm font-medium text-neutral-900">
+                    <td className="px-3 py-3 text-sm font-medium text-neutral-900 dark:text-white">
                       {c.name}
                     </td>
-                    <td className="px-3 py-3 text-sm text-right font-semibold text-green-700">
+                    <td className="px-3 py-3 text-sm text-right font-semibold text-green-700 dark:text-green-300">
                       {fmtCurrency.format(c.revenue)}
                     </td>
-                    <td className="px-3 py-3 text-sm text-right text-neutral-600">
+                    <td className="px-3 py-3 text-sm text-right text-neutral-600 dark:text-gray-300">
                       {c.jobCount}
                     </td>
-                    <td className="px-3 py-3 text-sm text-right text-neutral-600">
+                    <td className="px-3 py-3 text-sm text-right text-neutral-600 dark:text-gray-300">
                       {fmtCurrency.format(c.avgTicket)}
                     </td>
-                    <td className="px-6 py-3 text-sm text-right text-neutral-400">
+                    <td className="px-6 py-3 text-sm text-right text-neutral-400 dark:text-gray-500">
                       {c.lastJobDate
                         ? format(parseISO(c.lastJobDate), 'MMM d, yyyy')
                         : '—'}
@@ -645,14 +645,14 @@ export function InsightsPage() {
                   key={m.label}
                   className="flex-1 flex flex-col items-center justify-end h-full gap-1"
                 >
-                  <span className="text-[10px] text-neutral-500 font-medium">
+                  <span className="text-[10px] text-neutral-500 font-medium dark:text-gray-400">
                     {fmtCurrency.format(m.revenue)}
                   </span>
                   <div
                     className="w-full rounded-t-md bg-brand-500 transition-all duration-500"
                     style={{ height: `${Math.max(h, 2)}%` }}
                   />
-                  <span className="text-[9px] text-neutral-400 whitespace-nowrap">
+                  <span className="text-[9px] text-neutral-400 whitespace-nowrap dark:text-gray-500">
                     {m.label.split(' ')[0]}
                   </span>
                 </div>
@@ -661,17 +661,17 @@ export function InsightsPage() {
           </div>
           {/* Trend direction */}
           {analytics.months.length >= 2 && (
-            <div className="mt-3 text-xs text-neutral-500 flex items-center gap-1">
+            <div className="mt-3 text-xs text-neutral-500 flex items-center gap-1 dark:text-gray-400">
               {analytics.months[analytics.months.length - 1].revenue >=
               analytics.months[analytics.months.length - 2].revenue ? (
                 <>
                   <TrendingUp className="w-3.5 h-3.5 text-green-500" />
-                  <span className="text-green-600">Trending up</span>
+                  <span className="text-green-600 dark:text-green-300">Trending up</span>
                 </>
               ) : (
                 <>
                   <TrendingDown className="w-3.5 h-3.5 text-red-500" />
-                  <span className="text-red-600">Trending down</span>
+                  <span className="text-red-600 dark:text-red-300">Trending down</span>
                 </>
               )}
               <span> from previous month</span>
@@ -695,7 +695,7 @@ export function InsightsPage() {
                   >
                     {DAY_NAMES[dayIdx].slice(0, 3)}
                   </span>
-                  <div className="flex-1 h-6 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="flex-1 h-6 bg-gray-100 rounded-full overflow-hidden dark:bg-white/10">
                     <div
                       className={`h-full rounded-full transition-all duration-500 ${
                         isBusiest ? 'bg-brand-500' : 'bg-neutral-300'
@@ -725,7 +725,7 @@ export function InsightsPage() {
           <div className="overflow-x-auto -mx-6">
             <table className="w-full min-w-[500px]">
               <thead>
-                <tr className="text-xs text-neutral-500 uppercase tracking-wider border-b border-gray-100">
+                <tr className="text-xs text-neutral-500 uppercase tracking-wider border-b border-gray-100 dark:text-gray-400 dark:border-white/10">
                   <th className="text-left px-6 py-2 font-medium">Zip Code</th>
                   <th className="text-right px-3 py-2 font-medium">Jobs</th>
                   <th className="text-right px-3 py-2 font-medium">Revenue</th>
@@ -735,16 +735,16 @@ export function InsightsPage() {
               <tbody>
                 {analytics.serviceAreas.map((area) => (
                   <tr key={area.zip} className="border-b border-gray-50">
-                    <td className="px-6 py-3 text-sm font-medium text-neutral-900">
+                    <td className="px-6 py-3 text-sm font-medium text-neutral-900 dark:text-white">
                       {area.zip}
                     </td>
-                    <td className="px-3 py-3 text-sm text-right text-neutral-600">
+                    <td className="px-3 py-3 text-sm text-right text-neutral-600 dark:text-gray-300">
                       {area.jobs}
                     </td>
-                    <td className="px-3 py-3 text-sm text-right font-semibold text-green-700">
+                    <td className="px-3 py-3 text-sm text-right font-semibold text-green-700 dark:text-green-300">
                       {fmtCurrency.format(area.revenue)}
                     </td>
-                    <td className="px-6 py-3 text-sm text-right text-neutral-600">
+                    <td className="px-6 py-3 text-sm text-right text-neutral-600 dark:text-gray-300">
                       {area.customers}
                     </td>
                   </tr>
@@ -772,7 +772,7 @@ export function InsightsPage() {
                       : '#e5e7eb',
                   }}
                 />
-                <div className="text-center mt-2 text-sm font-semibold text-neutral-700">
+                <div className="text-center mt-2 text-sm font-semibold text-neutral-700 dark:text-gray-200">
                   {fmtCurrency.format(analytics.totalExpenses)}
                 </div>
               </div>
@@ -787,10 +787,10 @@ export function InsightsPage() {
                           analytics.expenseColors[i % analytics.expenseColors.length],
                       }}
                     />
-                    <span className="text-sm text-neutral-700 truncate flex-1">
+                    <span className="text-sm text-neutral-700 truncate flex-1 dark:text-gray-200">
                       {e.category}
                     </span>
-                    <span className="text-sm font-medium text-neutral-500 whitespace-nowrap">
+                    <span className="text-sm font-medium text-neutral-500 whitespace-nowrap dark:text-gray-400">
                       {fmtCurrency.format(e.amount)} ({e.pct.toFixed(0)}%)
                     </span>
                   </div>
@@ -803,10 +803,10 @@ export function InsightsPage() {
         {/* ── 8. Payment Speed ─────────────────────────────────── */}
         <Section title="Payment Speed" subtitle="Invoice payment timeline" icon={Clock}>
           <div className="text-center mb-4">
-            <span className="text-3xl font-bold text-neutral-900">
+            <span className="text-3xl font-bold text-neutral-900 dark:text-white">
               {analytics.paymentSpeed.avg.toFixed(1)}
             </span>
-            <span className="text-sm text-neutral-500 ml-1">avg days to pay</span>
+            <span className="text-sm text-neutral-500 ml-1 dark:text-gray-400">avg days to pay</span>
           </div>
           <div className="space-y-3">
             <PaymentBar
@@ -879,11 +879,11 @@ function KPICard({
   bgAccent: string;
 }) {
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-6">
+    <div className="bg-white rounded-xl border border-gray-200 p-6 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
       <div className={`inline-flex items-center justify-center w-10 h-10 rounded-lg ${bgAccent} mb-3`}>
         <Icon className={`w-5 h-5 ${accent}`} />
       </div>
-      <p className="text-sm text-neutral-500 font-medium">{label}</p>
+      <p className="text-sm text-neutral-500 font-medium dark:text-gray-400">{label}</p>
       <p className={`text-2xl font-bold mt-1 ${accent}`}>{value}</p>
     </div>
   );
@@ -901,12 +901,12 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-6">
+    <div className="bg-white rounded-xl border border-gray-200 p-6 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
       <div className="flex items-center gap-2 mb-1">
-        <Icon className="w-5 h-5 text-neutral-400" />
-        <h2 className="text-lg font-semibold text-neutral-900">{title}</h2>
+        <Icon className="w-5 h-5 text-neutral-400 dark:text-gray-500" />
+        <h2 className="text-lg font-semibold text-neutral-900 dark:text-white">{title}</h2>
       </div>
-      <p className="text-sm text-neutral-400 mb-5">{subtitle}</p>
+      <p className="text-sm text-neutral-400 mb-5 dark:text-gray-500">{subtitle}</p>
       {children}
     </div>
   );
@@ -914,7 +914,7 @@ function Section({
 
 function EmptyState({ msg }: { msg: string }) {
   return (
-    <div className="py-8 text-center text-sm text-neutral-400">{msg}</div>
+    <div className="py-8 text-center text-sm text-neutral-400 dark:text-gray-500">{msg}</div>
   );
 }
 
@@ -930,10 +930,10 @@ function PaymentBar({
   return (
     <div>
       <div className="flex justify-between text-sm mb-1">
-        <span className="text-neutral-600">{label}</span>
-        <span className="font-medium text-neutral-800">{pct.toFixed(0)}%</span>
+        <span className="text-neutral-600 dark:text-gray-300">{label}</span>
+        <span className="font-medium text-neutral-800 dark:text-gray-100">{pct.toFixed(0)}%</span>
       </div>
-      <div className="h-4 bg-gray-100 rounded-full overflow-hidden">
+      <div className="h-4 bg-gray-100 rounded-full overflow-hidden dark:bg-white/10">
         <div
           className={`h-full rounded-full transition-all duration-500 ${color}`}
           style={{ width: `${Math.max(pct, 1)}%` }}
@@ -958,11 +958,11 @@ function GrowthCard({
   // For expenses, up is bad (red), down is good (green)
   const isGood = invertColor ? !isPositive : isPositive;
   return (
-    <div className="bg-gray-50 rounded-lg p-4">
-      <p className="text-xs text-neutral-500 font-medium uppercase tracking-wider">
+    <div className="bg-gray-50 rounded-lg p-4 dark:bg-white/[0.02]">
+      <p className="text-xs text-neutral-500 font-medium uppercase tracking-wider dark:text-gray-400">
         {label}
       </p>
-      <p className="text-lg font-bold text-neutral-900 mt-1">{value}</p>
+      <p className="text-lg font-bold text-neutral-900 mt-1 dark:text-white">{value}</p>
       <div className={`flex items-center gap-1 mt-1 text-sm font-medium ${isGood ? 'text-green-600' : 'text-red-600'}`}>
         {isPositive ? (
           <TrendingUp className="w-3.5 h-3.5" />

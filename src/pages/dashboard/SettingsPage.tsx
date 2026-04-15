@@ -53,7 +53,7 @@ function SkeletonField() {
   return (
     <div className="animate-pulse space-y-2">
       <div className="h-3 bg-neutral-200 rounded w-24" />
-      <div className="h-10 bg-neutral-100 rounded-lg w-full" />
+      <div className="h-10 bg-neutral-100 rounded-lg w-full dark:bg-white/10" />
     </div>
   );
 }
@@ -102,12 +102,12 @@ function SubscriptionCard() {
 
   if (subStatus === 'none') {
     return (
-      <div className="bg-white rounded-xl border border-neutral-200 p-6 mb-6">
+      <div className="bg-white rounded-xl border border-neutral-200 p-6 mb-6 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
         <div className="flex items-center gap-2 mb-3">
-          <CreditCard className="w-5 h-5 text-brand-500" />
-          <h2 className="text-lg font-bold text-neutral-900">Subscription</h2>
+          <CreditCard className="w-5 h-5 text-brand-500 dark:text-blue-300" />
+          <h2 className="text-lg font-bold text-neutral-900 dark:text-white">Subscription</h2>
         </div>
-        <p className="text-sm text-neutral-500 mb-4">
+        <p className="text-sm text-neutral-500 mb-4 dark:text-gray-400">
           You're using FlowBoss via your mobile subscription. Web billing is available for new subscribers.
         </p>
       </div>
@@ -115,11 +115,11 @@ function SubscriptionCard() {
   }
 
   return (
-    <div className="bg-white rounded-xl border border-neutral-200 p-6 mb-6">
+    <div className="bg-white rounded-xl border border-neutral-200 p-6 mb-6 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <CreditCard className="w-5 h-5 text-brand-500" />
-          <h2 className="text-lg font-bold text-neutral-900">Subscription</h2>
+          <CreditCard className="w-5 h-5 text-brand-500 dark:text-blue-300" />
+          <h2 className="text-lg font-bold text-neutral-900 dark:text-white">Subscription</h2>
         </div>
         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusCfg.color}`}>
           {statusCfg.label}
@@ -129,20 +129,20 @@ function SubscriptionCard() {
       <div className="grid grid-cols-2 gap-4 text-sm mb-4">
         {subPlan && (
           <div>
-            <p className="text-neutral-400 text-xs">Plan</p>
-            <p className="font-medium text-neutral-900 capitalize">{subPlan}</p>
+            <p className="text-neutral-400 text-xs dark:text-gray-500">Plan</p>
+            <p className="font-medium text-neutral-900 capitalize dark:text-white">{subPlan}</p>
           </div>
         )}
         {periodEnd && (
           <div>
-            <p className="text-neutral-400 text-xs">Next billing</p>
-            <p className="font-medium text-neutral-900">{new Date(periodEnd).toLocaleDateString()}</p>
+            <p className="text-neutral-400 text-xs dark:text-gray-500">Next billing</p>
+            <p className="font-medium text-neutral-900 dark:text-white">{new Date(periodEnd).toLocaleDateString()}</p>
           </div>
         )}
         {trialEnd && subStatus === 'trialing' && (
           <div>
-            <p className="text-neutral-400 text-xs">Trial ends</p>
-            <p className="font-medium text-neutral-900">{new Date(trialEnd).toLocaleDateString()}</p>
+            <p className="text-neutral-400 text-xs dark:text-gray-500">Trial ends</p>
+            <p className="font-medium text-neutral-900 dark:text-white">{new Date(trialEnd).toLocaleDateString()}</p>
           </div>
         )}
       </div>
@@ -158,13 +158,13 @@ function SubscriptionCard() {
             <ExternalLink className="w-4 h-4" />
             Open Billing Portal
           </a>
-          <p className="text-xs text-neutral-400">Manage payment method, change plan, or cancel</p>
+          <p className="text-xs text-neutral-400 dark:text-gray-500">Manage payment method, change plan, or cancel</p>
         </div>
       ) : (
         <button
           onClick={handleManageBilling}
           disabled={loadingPortal}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-neutral-100 text-neutral-700 text-sm font-medium rounded-lg hover:bg-neutral-200 transition-colors disabled:opacity-50"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-neutral-100 text-neutral-700 text-sm font-medium rounded-lg hover:bg-neutral-200 transition-colors disabled:opacity-50 dark:bg-white/10 dark:text-gray-200"
         >
           {loadingPortal ? <Loader2 className="w-4 h-4 animate-spin" /> : <CreditCard className="w-4 h-4" />}
           Manage Billing
@@ -207,8 +207,8 @@ function ScoreRing({ score, size = 96 }: { score: number; size?: number }) {
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-2xl font-bold text-neutral-900">{score.toFixed(1)}</span>
-        <span className="text-[10px] text-neutral-400 -mt-0.5">/ 5.0</span>
+        <span className="text-2xl font-bold text-neutral-900 dark:text-white">{score.toFixed(1)}</span>
+        <span className="text-[10px] text-neutral-400 -mt-0.5 dark:text-gray-500">/ 5.0</span>
       </div>
     </div>
   );
@@ -221,17 +221,17 @@ function DimensionBar({ label, value, weight }: { label: string; value: number; 
   return (
     <div className="space-y-1">
       <div className="flex items-center justify-between text-sm">
-        <span className="font-medium text-neutral-700">{label}</span>
-        <span className="text-neutral-400 text-xs">{weight}</span>
+        <span className="font-medium text-neutral-700 dark:text-gray-200">{label}</span>
+        <span className="text-neutral-400 text-xs dark:text-gray-500">{weight}</span>
       </div>
       <div className="flex items-center gap-3">
-        <div className="flex-1 h-2.5 bg-neutral-100 rounded-full overflow-hidden">
+        <div className="flex-1 h-2.5 bg-neutral-100 rounded-full overflow-hidden dark:bg-white/10">
           <div
             className={`h-full rounded-full ${barColor} transition-all duration-700`}
             style={{ width: `${pct}%` }}
           />
         </div>
-        <span className="text-sm font-semibold text-neutral-900 w-8 text-right">
+        <span className="text-sm font-semibold text-neutral-900 w-8 text-right dark:text-white">
           {value.toFixed(1)}
         </span>
       </div>
@@ -254,18 +254,18 @@ function FlowBossScoreCard() {
 
   if (isLoading) {
     return (
-      <div className="bg-white rounded-xl border border-neutral-200 p-6 mb-6">
+      <div className="bg-white rounded-xl border border-neutral-200 p-6 mb-6 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
         <div className="flex items-center gap-2 mb-5">
-          <Shield className="w-5 h-5 text-brand-500" />
-          <h2 className="text-lg font-bold text-neutral-900">Your FlowBoss Score</h2>
+          <Shield className="w-5 h-5 text-brand-500 dark:text-blue-300" />
+          <h2 className="text-lg font-bold text-neutral-900 dark:text-white">Your FlowBoss Score</h2>
         </div>
         <div className="animate-pulse flex items-center gap-6">
-          <div className="w-24 h-24 rounded-full bg-neutral-100" />
+          <div className="w-24 h-24 rounded-full bg-neutral-100 dark:bg-white/10" />
           <div className="flex-1 space-y-3">
-            <div className="h-3 bg-neutral-100 rounded w-3/4" />
-            <div className="h-3 bg-neutral-100 rounded w-1/2" />
-            <div className="h-3 bg-neutral-100 rounded w-2/3" />
-            <div className="h-3 bg-neutral-100 rounded w-1/2" />
+            <div className="h-3 bg-neutral-100 rounded w-3/4 dark:bg-white/10" />
+            <div className="h-3 bg-neutral-100 rounded w-1/2 dark:bg-white/10" />
+            <div className="h-3 bg-neutral-100 rounded w-2/3 dark:bg-white/10" />
+            <div className="h-3 bg-neutral-100 rounded w-1/2 dark:bg-white/10" />
           </div>
         </div>
       </div>
@@ -275,16 +275,16 @@ function FlowBossScoreCard() {
   // Empty state: no ratings yet
   if (score === null || totalRatings === 0) {
     return (
-      <div className="bg-white rounded-xl border border-neutral-200 p-6 mb-6">
+      <div className="bg-white rounded-xl border border-neutral-200 p-6 mb-6 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
         <div className="flex items-center gap-2 mb-4">
-          <Shield className="w-5 h-5 text-brand-500" />
-          <h2 className="text-lg font-bold text-neutral-900">Your FlowBoss Score</h2>
+          <Shield className="w-5 h-5 text-brand-500 dark:text-blue-300" />
+          <h2 className="text-lg font-bold text-neutral-900 dark:text-white">Your FlowBoss Score</h2>
         </div>
         <div className="flex flex-col items-center text-center py-6">
-          <div className="w-16 h-16 rounded-full bg-brand-50 flex items-center justify-center mb-4">
+          <div className="w-16 h-16 rounded-full bg-brand-50 flex items-center justify-center mb-4 dark:bg-blue-500/10">
             <Shield className="w-8 h-8 text-brand-300" />
           </div>
-          <p className="text-sm text-neutral-500 max-w-sm">
+          <p className="text-sm text-neutral-500 max-w-sm dark:text-gray-400">
             Your FlowBoss Score builds as GCs rate your work on projects. Complete trades to start building your reputation.
           </p>
         </div>
@@ -293,10 +293,10 @@ function FlowBossScoreCard() {
   }
 
   return (
-    <div className="bg-white rounded-xl border border-neutral-200 p-6 mb-6">
+    <div className="bg-white rounded-xl border border-neutral-200 p-6 mb-6 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
       <div className="flex items-center gap-2 mb-5">
-        <Shield className="w-5 h-5 text-brand-500" />
-        <h2 className="text-lg font-bold text-neutral-900">Your FlowBoss Score</h2>
+        <Shield className="w-5 h-5 text-brand-500 dark:text-blue-300" />
+        <h2 className="text-lg font-bold text-neutral-900 dark:text-white">Your FlowBoss Score</h2>
       </div>
 
       <div className="flex items-start gap-8">
@@ -318,7 +318,7 @@ function FlowBossScoreCard() {
         </div>
       </div>
 
-      <p className="text-xs text-neutral-400 mt-4">
+      <p className="text-xs text-neutral-400 mt-4 dark:text-gray-500">
         Based on {totalRatings} rating{totalRatings !== 1 ? 's' : ''} from GC projects
       </p>
     </div>
@@ -408,15 +408,15 @@ function ProjectHistoryCard() {
 
   if (isLoading) {
     return (
-      <div className="bg-white rounded-xl border border-neutral-200 p-6 mb-6">
+      <div className="bg-white rounded-xl border border-neutral-200 p-6 mb-6 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
         <div className="flex items-center gap-2 mb-5">
-          <Clock className="w-5 h-5 text-brand-500" />
-          <h2 className="text-lg font-bold text-neutral-900">Your Project History</h2>
+          <Clock className="w-5 h-5 text-brand-500 dark:text-blue-300" />
+          <h2 className="text-lg font-bold text-neutral-900 dark:text-white">Your Project History</h2>
         </div>
         <div className="animate-pulse space-y-4">
-          <div className="h-3 bg-neutral-100 rounded w-3/4" />
-          <div className="h-3 bg-neutral-100 rounded w-1/2" />
-          <div className="h-3 bg-neutral-100 rounded w-2/3" />
+          <div className="h-3 bg-neutral-100 rounded w-3/4 dark:bg-white/10" />
+          <div className="h-3 bg-neutral-100 rounded w-1/2 dark:bg-white/10" />
+          <div className="h-3 bg-neutral-100 rounded w-2/3 dark:bg-white/10" />
         </div>
       </div>
     );
@@ -424,16 +424,16 @@ function ProjectHistoryCard() {
 
   if (history.length === 0) {
     return (
-      <div className="bg-white rounded-xl border border-neutral-200 p-6 mb-6">
+      <div className="bg-white rounded-xl border border-neutral-200 p-6 mb-6 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
         <div className="flex items-center gap-2 mb-4">
-          <Clock className="w-5 h-5 text-brand-500" />
-          <h2 className="text-lg font-bold text-neutral-900">Your Project History</h2>
+          <Clock className="w-5 h-5 text-brand-500 dark:text-blue-300" />
+          <h2 className="text-lg font-bold text-neutral-900 dark:text-white">Your Project History</h2>
         </div>
         <div className="flex flex-col items-center text-center py-6">
-          <div className="w-16 h-16 rounded-full bg-brand-50 flex items-center justify-center mb-4">
+          <div className="w-16 h-16 rounded-full bg-brand-50 flex items-center justify-center mb-4 dark:bg-blue-500/10">
             <Clock className="w-8 h-8 text-brand-300" />
           </div>
-          <p className="text-sm text-neutral-500 max-w-sm">
+          <p className="text-sm text-neutral-500 max-w-sm dark:text-gray-400">
             Your project history will appear here as GCs assign you trades on their projects.
           </p>
         </div>
@@ -442,14 +442,14 @@ function ProjectHistoryCard() {
   }
 
   return (
-    <div className="bg-white rounded-xl border border-neutral-200 p-6 mb-6">
+    <div className="bg-white rounded-xl border border-neutral-200 p-6 mb-6 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
       <div className="flex items-center gap-2 mb-1">
-        <Clock className="w-5 h-5 text-brand-500" />
-        <h2 className="text-lg font-bold text-neutral-900">Your Project History</h2>
+        <Clock className="w-5 h-5 text-brand-500 dark:text-blue-300" />
+        <h2 className="text-lg font-bold text-neutral-900 dark:text-white">Your Project History</h2>
       </div>
 
       {/* Summary stats */}
-      <div className="flex items-center gap-5 text-xs text-neutral-400 mb-5">
+      <div className="flex items-center gap-5 text-xs text-neutral-400 mb-5 dark:text-gray-500">
         <span>{stats.projectCount} project{stats.projectCount !== 1 ? 's' : ''}</span>
         <span>{stats.completedTrades} trade{stats.completedTrades !== 1 ? 's' : ''} completed</span>
         {stats.totalEarnings > 0 && (
@@ -488,14 +488,14 @@ function ProjectHistoryCard() {
 
                 <Link
                   to={`/dashboard/projects/assigned/${project.id}`}
-                  className="block p-3 rounded-xl border border-neutral-100 hover:border-neutral-300 hover:shadow-sm transition-all group"
+                  className="block p-3 rounded-xl border border-neutral-100 hover:border-neutral-300 hover:shadow-sm transition-all group dark:border-white/10"
                 >
                   <div className="flex items-start justify-between gap-3 mb-1.5">
-                    <p className="text-sm font-semibold text-neutral-900 group-hover:text-brand-600 transition-colors truncate">
+                    <p className="text-sm font-semibold text-neutral-900 group-hover:text-brand-600 transition-colors truncate dark:text-white">
                       {project.name}
                     </p>
                     {startDate && (
-                      <span className="text-[11px] text-neutral-400 whitespace-nowrap flex items-center gap-1">
+                      <span className="text-[11px] text-neutral-400 whitespace-nowrap flex items-center gap-1 dark:text-gray-500">
                         <Calendar className="w-3 h-3" />
                         {startDate}
                       </span>
@@ -503,7 +503,7 @@ function ProjectHistoryCard() {
                   </div>
 
                   {project.gcCompanyName && (
-                    <p className="text-xs text-neutral-400 mb-1.5">{project.gcCompanyName}</p>
+                    <p className="text-xs text-neutral-400 mb-1.5 dark:text-gray-500">{project.gcCompanyName}</p>
                   )}
 
                   {/* Trades */}
@@ -513,7 +513,7 @@ function ProjectHistoryCard() {
                         <span className={`px-2 py-0.5 rounded text-[11px] font-semibold ${TRADE_COLORS[trade.trade] || 'bg-neutral-100 text-neutral-600'}`}>
                           {trade.trade}
                         </span>
-                        <span className="flex items-center gap-0.5 text-[11px] text-neutral-400">
+                        <span className="flex items-center gap-0.5 text-[11px] text-neutral-400 dark:text-gray-500">
                           <span className={`w-1.5 h-1.5 rounded-full ${STATUS_DOT[trade.status] || 'bg-neutral-400'}`} />
                           {STATUS_LABEL[trade.status] || 'Not Started'}
                         </span>
@@ -704,10 +704,10 @@ export function SettingsPage() {
 
   return (
     <div className="p-6 lg:p-8 max-w-3xl mx-auto">
-      <h1 className="text-2xl font-bold text-neutral-900 mb-6">Settings</h1>
+      <h1 className="text-2xl font-bold text-neutral-900 mb-6 dark:text-white">Settings</h1>
 
       {/* Tabs */}
-      <div className="flex border-b border-neutral-200 mb-6">
+      <div className="flex border-b border-neutral-200 mb-6 dark:border-white/10">
         {TABS.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.key;
@@ -719,7 +719,7 @@ export function SettingsPage() {
                 isActive
                   ? 'border-brand-500 text-brand-600'
                   : 'border-transparent text-neutral-500 hover:text-neutral-700 hover:border-neutral-300'
-              }`}
+              } dark:text-gray-400`}
             >
               <Icon className="w-4 h-4" />
               {tab.label}
@@ -732,10 +732,10 @@ export function SettingsPage() {
       {activeTab === 'profile' && (
         <>
           {/* Business Profile */}
-          <div className="bg-white rounded-xl border border-neutral-200 p-6 mb-6">
+          <div className="bg-white rounded-xl border border-neutral-200 p-6 mb-6 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
             <div className="flex items-center gap-2 mb-5">
-              <Building2 className="w-5 h-5 text-brand-500" />
-              <h2 className="text-lg font-bold text-neutral-900">Business Profile</h2>
+              <Building2 className="w-5 h-5 text-brand-500 dark:text-blue-300" />
+              <h2 className="text-lg font-bold text-neutral-900 dark:text-white">Business Profile</h2>
             </div>
 
             {settingsLoading ? (
@@ -750,66 +750,66 @@ export function SettingsPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                   {/* Business Name */}
                   <div>
-                    <label className="block text-sm font-semibold text-neutral-600 mb-1.5">
+                    <label className="block text-sm font-semibold text-neutral-600 mb-1.5 dark:text-gray-300">
                       Business Name
                     </label>
                     <div className="relative">
-                      <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+                      <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400 dark:text-gray-500" />
                       <input
                         type="text"
                         value={displayName}
                         onChange={(e) => setBusinessName(e.target.value)}
                         placeholder="Your business name"
-                        className="w-full pl-10 pr-4 py-2.5 border border-neutral-300 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition"
+                        className="w-full pl-10 pr-4 py-2.5 border border-neutral-300 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition dark:border-white/10 dark:focus:ring-blue-400 dark:focus:border-blue-400"
                       />
                     </div>
                   </div>
 
                   {/* Phone */}
                   <div>
-                    <label className="block text-sm font-semibold text-neutral-600 mb-1.5">
+                    <label className="block text-sm font-semibold text-neutral-600 mb-1.5 dark:text-gray-300">
                       Phone
                     </label>
                     <div className="relative">
-                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400 dark:text-gray-500" />
                       <input
                         type="tel"
                         value={displayPhone}
                         onChange={(e) => setPhone(e.target.value)}
                         placeholder="(555) 123-4567"
-                        className="w-full pl-10 pr-4 py-2.5 border border-neutral-300 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition"
+                        className="w-full pl-10 pr-4 py-2.5 border border-neutral-300 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition dark:border-white/10 dark:focus:ring-blue-400 dark:focus:border-blue-400"
                       />
                     </div>
                   </div>
 
                   {/* Email */}
                   <div>
-                    <label className="block text-sm font-semibold text-neutral-600 mb-1.5">
+                    <label className="block text-sm font-semibold text-neutral-600 mb-1.5 dark:text-gray-300">
                       Email
                     </label>
                     <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400 dark:text-gray-500" />
                       <input
                         type="email"
                         value={displayEmail}
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder="you@company.com"
-                        className="w-full pl-10 pr-4 py-2.5 border border-neutral-300 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition"
+                        className="w-full pl-10 pr-4 py-2.5 border border-neutral-300 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition dark:border-white/10 dark:focus:ring-blue-400 dark:focus:border-blue-400"
                       />
                     </div>
                   </div>
 
                   {/* Trade */}
                   <div>
-                    <label className="block text-sm font-semibold text-neutral-600 mb-1.5">
+                    <label className="block text-sm font-semibold text-neutral-600 mb-1.5 dark:text-gray-300">
                       Trade
                     </label>
                     <div className="relative">
-                      <Wrench className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+                      <Wrench className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400 dark:text-gray-500" />
                       <select
                         value={displayTrade}
                         onChange={(e) => setTrade(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2.5 border border-neutral-300 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition appearance-none bg-white"
+                        className="w-full pl-10 pr-4 py-2.5 border border-neutral-300 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition appearance-none bg-white dark:border-white/10 dark:focus:ring-blue-400 dark:focus:border-blue-400 dark:bg-white/5 dark:backdrop-blur-sm"
                       >
                         <option value="">Select trade</option>
                         {TRADE_OPTIONS.map((t) => (
@@ -857,10 +857,10 @@ export function SettingsPage() {
           <ProjectHistoryCard />
 
           {/* Account */}
-          <div className="bg-white rounded-xl border border-neutral-200 p-6 mb-6">
+          <div className="bg-white rounded-xl border border-neutral-200 p-6 mb-6 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
             <div className="flex items-center gap-2 mb-4">
-              <User className="w-5 h-5 text-brand-500" />
-              <h2 className="text-lg font-bold text-neutral-900">Account</h2>
+              <User className="w-5 h-5 text-brand-500 dark:text-blue-300" />
+              <h2 className="text-lg font-bold text-neutral-900 dark:text-white">Account</h2>
             </div>
 
             <div className="flex items-center gap-3 mb-5">
@@ -870,22 +870,22 @@ export function SettingsPage() {
                 </span>
               </div>
               <div>
-                <p className="text-sm font-medium text-neutral-900">{user?.email ?? 'Not signed in'}</p>
-                <p className="text-xs text-neutral-400">Signed in</p>
+                <p className="text-sm font-medium text-neutral-900 dark:text-white">{user?.email ?? 'Not signed in'}</p>
+                <p className="text-xs text-neutral-400 dark:text-gray-500">Signed in</p>
               </div>
             </div>
 
             <div className="flex flex-wrap gap-3">
               <button
                 onClick={signOut}
-                className="inline-flex items-center gap-2 px-4 py-2 border border-red-300 text-red-600 font-semibold rounded-lg hover:bg-red-50 transition text-sm"
+                className="inline-flex items-center gap-2 px-4 py-2 border border-red-300 text-red-600 font-semibold rounded-lg hover:bg-red-50 transition text-sm dark:text-red-300"
               >
                 <LogOut className="w-4 h-4" />
                 Sign Out
               </button>
               <a
                 href="/delete-account"
-                className="inline-flex items-center gap-2 px-4 py-2 border border-neutral-300 text-neutral-600 font-semibold rounded-lg hover:bg-neutral-50 transition text-sm"
+                className="inline-flex items-center gap-2 px-4 py-2 border border-neutral-300 text-neutral-600 font-semibold rounded-lg hover:bg-neutral-50 transition text-sm dark:border-white/10 dark:text-gray-300 dark:hover:bg-white/10"
               >
                 <Trash2 className="w-4 h-4" />
                 Delete Account
@@ -894,22 +894,22 @@ export function SettingsPage() {
           </div>
 
           {/* Notifications / Email Digests */}
-          <div className="bg-white rounded-xl border border-neutral-200 p-6 mb-6">
+          <div className="bg-white rounded-xl border border-neutral-200 p-6 mb-6 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
             <div className="flex items-center gap-2 mb-4">
-              <Bell className="w-5 h-5 text-brand-500" />
-              <h2 className="text-lg font-bold text-neutral-900">Email Digests</h2>
+              <Bell className="w-5 h-5 text-brand-500 dark:text-blue-300" />
+              <h2 className="text-lg font-bold text-neutral-900 dark:text-white">Email Digests</h2>
             </div>
-            <p className="text-sm text-neutral-500 mb-5">
+            <p className="text-sm text-neutral-500 mb-5 dark:text-gray-400">
               Get a summary of your projects, jobs, and financials delivered to your inbox.
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               <div>
-                <label className="block text-sm font-semibold text-neutral-600 mb-1.5">Frequency</label>
+                <label className="block text-sm font-semibold text-neutral-600 mb-1.5 dark:text-gray-300">Frequency</label>
                 <select
                   value={displayDigestFrequency}
                   onChange={(e) => setDigestFrequency(e.target.value)}
-                  className="w-full px-3 py-2.5 border border-neutral-300 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none bg-white appearance-none"
+                  className="w-full px-3 py-2.5 border border-neutral-300 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none bg-white appearance-none dark:border-white/10 dark:focus:ring-blue-400 dark:focus:border-blue-400 dark:bg-white/5 dark:backdrop-blur-sm"
                 >
                   <option value="none">None</option>
                   <option value="daily">Daily</option>
@@ -917,15 +917,15 @@ export function SettingsPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-semibold text-neutral-600 mb-1.5">Email</label>
+                <label className="block text-sm font-semibold text-neutral-600 mb-1.5 dark:text-gray-300">Email</label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400 dark:text-gray-500" />
                   <input
                     type="email"
                     value={displayDigestEmail}
                     onChange={(e) => setDigestEmail(e.target.value)}
                     placeholder="you@company.com"
-                    className="w-full pl-10 pr-4 py-2.5 border border-neutral-300 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition"
+                    className="w-full pl-10 pr-4 py-2.5 border border-neutral-300 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition dark:border-white/10 dark:focus:ring-blue-400 dark:focus:border-blue-400"
                   />
                 </div>
               </div>
@@ -960,10 +960,10 @@ export function SettingsPage() {
 
       {/* Pricebook Tab */}
       {activeTab === 'pricebook' && (
-        <div className="bg-white rounded-xl border border-neutral-200 p-6">
+        <div className="bg-white rounded-xl border border-neutral-200 p-6 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
           <div className="flex items-center gap-2 mb-5">
-            <BookOpen className="w-5 h-5 text-brand-500" />
-            <h2 className="text-lg font-bold text-neutral-900">Pricebook</h2>
+            <BookOpen className="w-5 h-5 text-brand-500 dark:text-blue-300" />
+            <h2 className="text-lg font-bold text-neutral-900 dark:text-white">Pricebook</h2>
           </div>
           <PricebookManager />
         </div>
@@ -975,32 +975,32 @@ export function SettingsPage() {
         {/* Subscription Management */}
         <SubscriptionCard />
 
-        <div className="bg-white rounded-xl border border-neutral-200 p-6 mb-6">
+        <div className="bg-white rounded-xl border border-neutral-200 p-6 mb-6 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
           <div className="flex items-center gap-2 mb-4">
-            <CreditCard className="w-5 h-5 text-brand-500" />
-            <h2 className="text-lg font-bold text-neutral-900">Payment Processing</h2>
+            <CreditCard className="w-5 h-5 text-brand-500 dark:text-blue-300" />
+            <h2 className="text-lg font-bold text-neutral-900 dark:text-white">Payment Processing</h2>
           </div>
-          <p className="text-sm text-neutral-500 mb-4">
+          <p className="text-sm text-neutral-500 mb-4 dark:text-gray-400">
             Connect your Stripe account to accept payments via payment links.
           </p>
 
           {stripeLoading ? (
             <div className="animate-pulse">
-              <div className="h-10 bg-neutral-100 rounded-lg w-48" />
+              <div className="h-10 bg-neutral-100 rounded-lg w-48 dark:bg-white/10" />
             </div>
           ) : stripeConnected ? (
             <div className="flex items-center gap-3 flex-wrap">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-semibold">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-semibold dark:bg-green-500/20 dark:text-green-300">
                 <CheckCircle className="w-4 h-4" />
                 Connected
               </span>
               {maskedAccountId && (
-                <span className="text-sm text-neutral-400 font-mono">{maskedAccountId}</span>
+                <span className="text-sm text-neutral-400 font-mono dark:text-gray-500">{maskedAccountId}</span>
               )}
             </div>
           ) : stripeConnectUrl ? (
             <div className="space-y-3">
-              <p className="text-sm text-neutral-600">
+              <p className="text-sm text-neutral-600 dark:text-gray-300">
                 You'll be redirected to Stripe to complete setup.
               </p>
               <a
@@ -1012,7 +1012,7 @@ export function SettingsPage() {
                 <ExternalLink className="w-4 h-4" />
                 Continue to Stripe
               </a>
-              <p className="text-xs text-neutral-400 truncate max-w-md" title={stripeConnectUrl}>
+              <p className="text-xs text-neutral-400 truncate max-w-md dark:text-gray-500" title={stripeConnectUrl}>
                 {stripeConnectUrl}
               </p>
             </div>
@@ -1031,7 +1031,7 @@ export function SettingsPage() {
                 Connect Stripe
               </button>
               {stripeConnectError && (
-                <p className="text-sm text-red-600">{stripeConnectError}</p>
+                <p className="text-sm text-red-600 dark:text-red-300">{stripeConnectError}</p>
               )}
             </div>
           )}
@@ -1041,24 +1041,24 @@ export function SettingsPage() {
 
       {/* Integrations Tab */}
       {activeTab === 'integrations' && (
-        <div className="bg-white rounded-xl border border-neutral-200 p-6 mb-6">
+        <div className="bg-white rounded-xl border border-neutral-200 p-6 mb-6 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
           <div className="flex items-center gap-2 mb-4">
-            <Link2 className="w-5 h-5 text-brand-500" />
-            <h2 className="text-lg font-bold text-neutral-900">QuickBooks Online</h2>
+            <Link2 className="w-5 h-5 text-brand-500 dark:text-blue-300" />
+            <h2 className="text-lg font-bold text-neutral-900 dark:text-white">QuickBooks Online</h2>
           </div>
-          <p className="text-sm text-neutral-500 mb-5">
+          <p className="text-sm text-neutral-500 mb-5 dark:text-gray-400">
             Sync your invoices, customers, and expenses with QuickBooks Online.
           </p>
 
           {qbLoading ? (
             <div className="animate-pulse">
-              <div className="h-10 bg-neutral-100 rounded-lg w-48" />
+              <div className="h-10 bg-neutral-100 rounded-lg w-48 dark:bg-white/10" />
             </div>
           ) : qbConnected ? (
             <div className="space-y-6">
               {/* Connected badge */}
               <div className="flex items-center gap-3">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-semibold">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-semibold dark:bg-green-500/20 dark:text-green-300">
                   <CheckCircle className="w-4 h-4" />
                   Connected
                 </span>
@@ -1066,16 +1066,16 @@ export function SettingsPage() {
 
               {/* Sync preferences */}
               <div className="space-y-4">
-                <h3 className="text-sm font-semibold text-neutral-700">Sync Preferences</h3>
+                <h3 className="text-sm font-semibold text-neutral-700 dark:text-gray-200">Sync Preferences</h3>
 
                 <label className="flex items-center gap-3 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={displaySyncInvoices}
                     onChange={(e) => setSyncInvoices(e.target.checked)}
-                    className="w-4 h-4 rounded border-neutral-300 text-brand-500 focus:ring-brand-500"
+                    className="w-4 h-4 rounded border-neutral-300 text-brand-500 focus:ring-brand-500 dark:border-white/10 dark:text-blue-300 dark:focus:ring-blue-400"
                   />
-                  <span className="text-sm text-neutral-700">Sync Invoices</span>
+                  <span className="text-sm text-neutral-700 dark:text-gray-200">Sync Invoices</span>
                 </label>
 
                 <label className="flex items-center gap-3 cursor-pointer">
@@ -1083,9 +1083,9 @@ export function SettingsPage() {
                     type="checkbox"
                     checked={displaySyncCustomers}
                     onChange={(e) => setSyncCustomers(e.target.checked)}
-                    className="w-4 h-4 rounded border-neutral-300 text-brand-500 focus:ring-brand-500"
+                    className="w-4 h-4 rounded border-neutral-300 text-brand-500 focus:ring-brand-500 dark:border-white/10 dark:text-blue-300 dark:focus:ring-blue-400"
                   />
-                  <span className="text-sm text-neutral-700">Sync Customers</span>
+                  <span className="text-sm text-neutral-700 dark:text-gray-200">Sync Customers</span>
                 </label>
 
                 <label className="flex items-center gap-3 cursor-pointer">
@@ -1093,14 +1093,14 @@ export function SettingsPage() {
                     type="checkbox"
                     checked={displaySyncExpenses}
                     onChange={(e) => setSyncExpenses(e.target.checked)}
-                    className="w-4 h-4 rounded border-neutral-300 text-brand-500 focus:ring-brand-500"
+                    className="w-4 h-4 rounded border-neutral-300 text-brand-500 focus:ring-brand-500 dark:border-white/10 dark:text-blue-300 dark:focus:ring-blue-400"
                   />
-                  <span className="text-sm text-neutral-700">Sync Expenses</span>
+                  <span className="text-sm text-neutral-700 dark:text-gray-200">Sync Expenses</span>
                 </label>
 
                 {/* Invoicing provider */}
                 <div className="pt-2">
-                  <h3 className="text-sm font-semibold text-neutral-700 mb-2">Invoicing Provider</h3>
+                  <h3 className="text-sm font-semibold text-neutral-700 mb-2 dark:text-gray-200">Invoicing Provider</h3>
                   <div className="flex gap-4">
                     <label className="flex items-center gap-2 cursor-pointer">
                       <input
@@ -1109,9 +1109,9 @@ export function SettingsPage() {
                         value="stripe"
                         checked={displayInvoicingProvider === 'stripe'}
                         onChange={() => setInvoicingProvider('stripe')}
-                        className="w-4 h-4 border-neutral-300 text-brand-500 focus:ring-brand-500"
+                        className="w-4 h-4 border-neutral-300 text-brand-500 focus:ring-brand-500 dark:border-white/10 dark:text-blue-300 dark:focus:ring-blue-400"
                       />
-                      <span className="text-sm text-neutral-700">Stripe</span>
+                      <span className="text-sm text-neutral-700 dark:text-gray-200">Stripe</span>
                     </label>
                     <label className="flex items-center gap-2 cursor-pointer">
                       <input
@@ -1120,9 +1120,9 @@ export function SettingsPage() {
                         value="quickbooks"
                         checked={displayInvoicingProvider === 'quickbooks'}
                         onChange={() => setInvoicingProvider('quickbooks')}
-                        className="w-4 h-4 border-neutral-300 text-brand-500 focus:ring-brand-500"
+                        className="w-4 h-4 border-neutral-300 text-brand-500 focus:ring-brand-500 dark:border-white/10 dark:text-blue-300 dark:focus:ring-blue-400"
                       />
-                      <span className="text-sm text-neutral-700">QuickBooks</span>
+                      <span className="text-sm text-neutral-700 dark:text-gray-200">QuickBooks</span>
                     </label>
                   </div>
                 </div>
@@ -1153,14 +1153,14 @@ export function SettingsPage() {
                 {!confirmDisconnect ? (
                   <button
                     onClick={() => setConfirmDisconnect(true)}
-                    className="inline-flex items-center gap-2 px-4 py-2 border border-red-300 text-red-600 font-semibold rounded-lg hover:bg-red-50 transition text-sm"
+                    className="inline-flex items-center gap-2 px-4 py-2 border border-red-300 text-red-600 font-semibold rounded-lg hover:bg-red-50 transition text-sm dark:text-red-300"
                   >
                     <Unplug className="w-4 h-4" />
                     Disconnect
                   </button>
                 ) : (
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-red-600">Are you sure?</span>
+                    <span className="text-sm text-red-600 dark:text-red-300">Are you sure?</span>
                     <button
                       onClick={() => qbDisconnectMutation.mutate()}
                       disabled={qbDisconnectMutation.isPending}
@@ -1170,7 +1170,7 @@ export function SettingsPage() {
                     </button>
                     <button
                       onClick={() => setConfirmDisconnect(false)}
-                      className="px-3 py-1.5 border border-neutral-300 text-neutral-600 font-semibold rounded-lg hover:bg-neutral-50 transition text-sm"
+                      className="px-3 py-1.5 border border-neutral-300 text-neutral-600 font-semibold rounded-lg hover:bg-neutral-50 transition text-sm dark:border-white/10 dark:text-gray-300 dark:hover:bg-white/10"
                     >
                       Cancel
                     </button>
@@ -1190,7 +1190,7 @@ export function SettingsPage() {
             </div>
           ) : qbAuthUrl ? (
             <div className="space-y-3">
-              <p className="text-sm text-neutral-600">
+              <p className="text-sm text-neutral-600 dark:text-gray-300">
                 You'll be redirected to QuickBooks to authorize FlowBoss.
               </p>
               <a
@@ -1202,7 +1202,7 @@ export function SettingsPage() {
                 <ExternalLink className="w-4 h-4" />
                 Continue to QuickBooks
               </a>
-              <p className="text-xs text-neutral-400 truncate max-w-md" title={qbAuthUrl}>
+              <p className="text-xs text-neutral-400 truncate max-w-md dark:text-gray-500" title={qbAuthUrl}>
                 {qbAuthUrl}
               </p>
             </div>
@@ -1220,10 +1220,10 @@ export function SettingsPage() {
                 )}
                 Connect QuickBooks
               </button>
-              <p className="text-xs text-neutral-400">
+              <p className="text-xs text-neutral-400 dark:text-gray-500">
                 You'll be redirected to QuickBooks to authorize.
               </p>
-              {qbError && <p className="text-sm text-red-600">{qbError}</p>}
+              {qbError && <p className="text-sm text-red-600 dark:text-red-300">{qbError}</p>}
             </div>
           )}
         </div>
@@ -1231,7 +1231,7 @@ export function SettingsPage() {
 
       {/* Team Tab */}
       {activeTab === 'team' && (
-        <div className="bg-white rounded-xl border border-neutral-200 p-6">
+        <div className="bg-white rounded-xl border border-neutral-200 p-6 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
           <TeamManager />
         </div>
       )}

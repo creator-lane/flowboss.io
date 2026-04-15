@@ -237,24 +237,24 @@ export function SubProfilePage() {
     <div className="p-4 lg:p-6 max-w-4xl">
       {/* Breadcrumbs */}
       <div className="flex items-center gap-1.5 text-sm mb-4">
-        <Link to="/dashboard/projects" className="text-gray-500 hover:text-gray-700 transition-colors">
+        <Link to="/dashboard/projects" className="text-gray-500 hover:text-gray-700 transition-colors dark:text-gray-400 dark:hover:text-gray-200">
           Projects
         </Link>
-        <ChevronRight className="w-3.5 h-3.5 text-gray-400" />
-        <span className="text-gray-900 font-medium truncate">{subProfile.businessName}</span>
+        <ChevronRight className="w-3.5 h-3.5 text-gray-400 dark:text-gray-500" />
+        <span className="text-gray-900 font-medium truncate dark:text-white">{subProfile.businessName}</span>
       </div>
 
       {/* Back */}
       <button
         onClick={() => navigate(-1)}
-        className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 mb-6 transition-colors"
+        className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 mb-6 transition-colors dark:text-gray-400 dark:hover:text-gray-200"
       >
         <ArrowLeft className="w-4 h-4" />
         Back
       </button>
 
       {/* Profile Header */}
-      <div className="bg-white rounded-2xl border border-gray-200 p-6 mb-6">
+      <div className="bg-white rounded-2xl border border-gray-200 p-6 mb-6 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
         <div className="flex items-start gap-4">
           {/* Avatar */}
           <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center flex-shrink-0">
@@ -263,9 +263,9 @@ export function SubProfilePage() {
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-3 mb-1">
-              <h1 className="text-2xl font-bold text-gray-900">{subProfile.businessName}</h1>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{subProfile.businessName}</h1>
               {isPlaceholder && (
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-500/20">
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-500/20 dark:bg-amber-500/10 dark:text-amber-300">
                   Placeholder
                 </span>
               )}
@@ -274,13 +274,13 @@ export function SubProfilePage() {
             {/* Contact info */}
             <div className="flex flex-wrap items-center gap-4 mt-2">
               {subProfile.phone && (
-                <a href={`tel:${subProfile.phone}`} className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-brand-600 transition-colors">
+                <a href={`tel:${subProfile.phone}`} className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-brand-600 transition-colors dark:text-gray-400">
                   <Phone className="w-3.5 h-3.5" />
                   {subProfile.phone}
                 </a>
               )}
               {subProfile.email && (
-                <a href={`mailto:${subProfile.email}`} className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-brand-600 transition-colors">
+                <a href={`mailto:${subProfile.email}`} className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-brand-600 transition-colors dark:text-gray-400">
                   <Mail className="w-3.5 h-3.5" />
                   {subProfile.email}
                 </a>
@@ -305,7 +305,7 @@ export function SubProfilePage() {
           {/* Rating */}
           {!isPlaceholder && score !== null && score !== undefined && totalRatings > 0 && (
             <div className="flex flex-col items-center gap-1 flex-shrink-0">
-              <div className="text-3xl font-bold text-gray-900">{score.toFixed(1)}</div>
+              <div className="text-3xl font-bold text-gray-900 dark:text-white">{score.toFixed(1)}</div>
               <div className="flex">
                 {[1, 2, 3, 4, 5].map((s) => (
                   <Star
@@ -314,7 +314,7 @@ export function SubProfilePage() {
                   />
                 ))}
               </div>
-              <span className="text-xs text-gray-400">{totalRatings} rating{totalRatings !== 1 ? 's' : ''}</span>
+              <span className="text-xs text-gray-400 dark:text-gray-500">{totalRatings} rating{totalRatings !== 1 ? 's' : ''}</span>
             </div>
           )}
         </div>
@@ -322,28 +322,28 @@ export function SubProfilePage() {
 
       {/* Stats Row */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white rounded-xl border border-gray-200 p-4">
-          <p className="text-xs text-gray-400 font-medium uppercase tracking-wider mb-1">Projects</p>
-          <p className="text-2xl font-bold text-gray-900">{subProfile.projects.length}</p>
+        <div className="bg-white rounded-xl border border-gray-200 p-4 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
+          <p className="text-xs text-gray-400 font-medium uppercase tracking-wider mb-1 dark:text-gray-500">Projects</p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-white">{subProfile.projects.length}</p>
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-4">
-          <p className="text-xs text-gray-400 font-medium uppercase tracking-wider mb-1">Active Trades</p>
-          <p className="text-2xl font-bold text-gray-900">{subProfile.trades.length}</p>
+        <div className="bg-white rounded-xl border border-gray-200 p-4 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
+          <p className="text-xs text-gray-400 font-medium uppercase tracking-wider mb-1 dark:text-gray-500">Active Trades</p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-white">{subProfile.trades.length}</p>
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-4">
-          <p className="text-xs text-gray-400 font-medium uppercase tracking-wider mb-1">Completion</p>
-          <p className="text-2xl font-bold text-gray-900">{subProfile.completionRate}%</p>
+        <div className="bg-white rounded-xl border border-gray-200 p-4 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
+          <p className="text-xs text-gray-400 font-medium uppercase tracking-wider mb-1 dark:text-gray-500">Completion</p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-white">{subProfile.completionRate}%</p>
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-4">
-          <p className="text-xs text-gray-400 font-medium uppercase tracking-wider mb-1">Total Budget</p>
-          <p className="text-2xl font-bold text-gray-900">{formatCurrency(subProfile.totalBudget)}</p>
+        <div className="bg-white rounded-xl border border-gray-200 p-4 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
+          <p className="text-xs text-gray-400 font-medium uppercase tracking-wider mb-1 dark:text-gray-500">Total Budget</p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-white">{formatCurrency(subProfile.totalBudget)}</p>
         </div>
       </div>
 
       {/* Rating Breakdown (real subs only) */}
       {!isPlaceholder && breakdown && totalRatings > 0 && (
-        <div className="bg-white rounded-2xl border border-gray-200 p-6 mb-6">
-          <h2 className="text-sm font-bold text-gray-900 mb-4">FlowBoss Score Breakdown</h2>
+        <div className="bg-white rounded-2xl border border-gray-200 p-6 mb-6 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
+          <h2 className="text-sm font-bold text-gray-900 mb-4 dark:text-white">FlowBoss Score Breakdown</h2>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {[
               { label: 'Quality', value: breakdown.quality, weight: '35%' },
@@ -363,12 +363,12 @@ export function SubProfilePage() {
                       strokeLinecap="round"
                     />
                   </svg>
-                  <span className="absolute inset-0 flex items-center justify-center text-sm font-bold text-gray-900">
+                  <span className="absolute inset-0 flex items-center justify-center text-sm font-bold text-gray-900 dark:text-white">
                     {item.value?.toFixed(1)}
                   </span>
                 </div>
-                <p className="text-xs font-semibold text-gray-700">{item.label}</p>
-                <p className="text-[10px] text-gray-400">{item.weight} weight</p>
+                <p className="text-xs font-semibold text-gray-700 dark:text-gray-200">{item.label}</p>
+                <p className="text-[10px] text-gray-400 dark:text-gray-500">{item.weight} weight</p>
               </div>
             ))}
           </div>
@@ -376,8 +376,8 @@ export function SubProfilePage() {
       )}
 
       {/* Projects & Trades */}
-      <div className="bg-white rounded-2xl border border-gray-200 p-6">
-        <h2 className="text-sm font-bold text-gray-900 mb-4">Assigned Trades</h2>
+      <div className="bg-white rounded-2xl border border-gray-200 p-6 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
+        <h2 className="text-sm font-bold text-gray-900 mb-4 dark:text-white">Assigned Trades</h2>
         <div className="space-y-3">
           {subProfile.trades.map(({ trade, project }) => {
             const tasks = trade.tasks || [];
@@ -391,20 +391,20 @@ export function SubProfilePage() {
               <Link
                 key={trade.id}
                 to={`/dashboard/projects/${project.id}`}
-                className="flex items-center gap-4 p-4 rounded-xl border border-gray-100 hover:border-gray-300 hover:shadow-sm transition-all group"
+                className="flex items-center gap-4 p-4 rounded-xl border border-gray-100 hover:border-gray-300 hover:shadow-sm transition-all group dark:border-white/10"
               >
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
                     <span className={`px-2 py-0.5 rounded text-xs font-semibold ${TRADE_COLORS[trade.trade] || 'bg-gray-100 text-gray-600'}`}>
                       {trade.trade}
                     </span>
-                    <span className="flex items-center gap-1 text-[11px] text-gray-400">
+                    <span className="flex items-center gap-1 text-[11px] text-gray-400 dark:text-gray-500">
                       <span className={`w-1.5 h-1.5 rounded-full ${STATUS_DOT[trade.status] || 'bg-gray-400'}`} />
                       {STATUS_LABEL[trade.status] || 'Not Started'}
                     </span>
                   </div>
-                  <p className="text-sm font-medium text-gray-700 truncate">{project.name}</p>
-                  <div className="flex items-center gap-3 mt-1.5 text-xs text-gray-400">
+                  <p className="text-sm font-medium text-gray-700 truncate dark:text-gray-200">{project.name}</p>
+                  <div className="flex items-center gap-3 mt-1.5 text-xs text-gray-400 dark:text-gray-500">
                     <span>{done}/{tasks.length} tasks</span>
                     {laborCost > 0 && <span>{formatCurrency(laborCost)} labor</span>}
                   </div>
@@ -422,7 +422,7 @@ export function SubProfilePage() {
                       strokeLinecap="round"
                     />
                   </svg>
-                  <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-gray-700">
+                  <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-gray-700 dark:text-gray-200">
                     {progress}%
                   </span>
                 </div>
@@ -433,7 +433,7 @@ export function SubProfilePage() {
           })}
 
           {subProfile.trades.length === 0 && (
-            <div className="text-center py-8 text-gray-400 text-sm">
+            <div className="text-center py-8 text-gray-400 text-sm dark:text-gray-500">
               No trades assigned to this sub yet.
             </div>
           )}
@@ -442,13 +442,13 @@ export function SubProfilePage() {
 
       {/* Project History */}
       {projectHistory.length > 0 && (
-        <div className="bg-white rounded-2xl border border-gray-200 p-6 mt-6">
+        <div className="bg-white rounded-2xl border border-gray-200 p-6 mt-6 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
           <div className="flex items-center justify-between mb-5">
             <div className="flex items-center gap-2">
-              <Clock className="w-5 h-5 text-brand-500" />
-              <h2 className="text-sm font-bold text-gray-900">Project History</h2>
+              <Clock className="w-5 h-5 text-brand-500 dark:text-blue-300" />
+              <h2 className="text-sm font-bold text-gray-900 dark:text-white">Project History</h2>
             </div>
-            <div className="flex items-center gap-4 text-xs text-gray-400">
+            <div className="flex items-center gap-4 text-xs text-gray-400 dark:text-gray-500">
               <span>{historyStats.projectCount} project{historyStats.projectCount !== 1 ? 's' : ''}</span>
               <span>{historyStats.completedTrades} trade{historyStats.completedTrades !== 1 ? 's' : ''} completed</span>
               {historyStats.averageRating !== null && (
@@ -463,7 +463,7 @@ export function SubProfilePage() {
           {/* Timeline */}
           <div className="relative">
             {/* Vertical line */}
-            <div className="absolute left-[15px] top-2 bottom-2 w-px bg-gray-200" />
+            <div className="absolute left-[15px] top-2 bottom-2 w-px bg-gray-200 dark:bg-white/10" />
 
             <div className="space-y-0">
               {projectHistory.map((entry, idx) => {
@@ -485,22 +485,22 @@ export function SubProfilePage() {
 
                     <Link
                       to={`/dashboard/projects/${project.id}`}
-                      className="block p-4 rounded-xl border border-gray-100 hover:border-gray-300 hover:shadow-sm transition-all group"
+                      className="block p-4 rounded-xl border border-gray-100 hover:border-gray-300 hover:shadow-sm transition-all group dark:border-white/10"
                     >
                       <div className="flex items-start justify-between gap-3 mb-2">
                         <div className="min-w-0">
-                          <p className="text-sm font-semibold text-gray-900 group-hover:text-brand-600 transition-colors truncate">
+                          <p className="text-sm font-semibold text-gray-900 group-hover:text-brand-600 transition-colors truncate dark:text-white">
                             {project.name}
                           </p>
                           {(project.address || project.city) && (
-                            <p className="text-xs text-gray-400 mt-0.5 flex items-center gap-1">
+                            <p className="text-xs text-gray-400 mt-0.5 flex items-center gap-1 dark:text-gray-500">
                               <MapPin className="w-3 h-3" />
                               {[project.address, project.city, project.state].filter(Boolean).join(', ')}
                             </p>
                           )}
                         </div>
                         {startDate && (
-                          <span className="text-xs text-gray-400 whitespace-nowrap flex items-center gap-1">
+                          <span className="text-xs text-gray-400 whitespace-nowrap flex items-center gap-1 dark:text-gray-500">
                             <Calendar className="w-3 h-3" />
                             {startDate}
                           </span>
@@ -514,14 +514,14 @@ export function SubProfilePage() {
                             <span className={`px-2 py-0.5 rounded text-[11px] font-semibold ${TRADE_COLORS[trade.trade] || 'bg-gray-100 text-gray-600'}`}>
                               {trade.trade}
                             </span>
-                            <span className="flex items-center gap-0.5 text-[11px] text-gray-400">
+                            <span className="flex items-center gap-0.5 text-[11px] text-gray-400 dark:text-gray-500">
                               <span className={`w-1.5 h-1.5 rounded-full ${STATUS_DOT[trade.status] || 'bg-gray-400'}`} />
                               {STATUS_LABEL[trade.status] || 'Not Started'}
                             </span>
                             {rating && rating.overall && (
                               <span className="flex items-center gap-0.5 text-[11px]">
                                 <Star className="w-3 h-3 fill-current text-amber-400" />
-                                <span className="text-gray-600 font-medium">{rating.overall.toFixed(1)}</span>
+                                <span className="text-gray-600 font-medium dark:text-gray-300">{rating.overall.toFixed(1)}</span>
                               </span>
                             )}
                           </div>

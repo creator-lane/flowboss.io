@@ -111,7 +111,7 @@ function isInRange(dateStr: string | null | undefined, start: Date, end: Date): 
 // ── Skeleton components ───────────────────────────────────────────────
 function SkeletonCard({ className = '' }: { className?: string }) {
   return (
-    <div className={`bg-white rounded-xl border border-neutral-200 p-5 animate-pulse ${className}`}>
+    <div className={`bg-white rounded-xl border border-neutral-200 p-5 animate-pulse dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10${className} dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10`}>
       <div className="h-3 bg-neutral-200 rounded w-20 mb-3" />
       <div className="h-7 bg-neutral-200 rounded w-28" />
     </div>
@@ -120,9 +120,9 @@ function SkeletonCard({ className = '' }: { className?: string }) {
 
 function SkeletonSection({ className = '', height = 'h-48' }: { className?: string; height?: string }) {
   return (
-    <div className={`bg-white rounded-xl border border-neutral-200 p-5 animate-pulse ${className}`}>
+    <div className={`bg-white rounded-xl border border-neutral-200 p-5 animate-pulse dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10${className} dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10`}>
       <div className="h-3 bg-neutral-200 rounded w-32 mb-4" />
-      <div className={`bg-neutral-100 rounded ${height}`} />
+      <div className={`bg-neutral-100 rounded dark:bg-white/10${height} dark:bg-white/10`} />
     </div>
   );
 }
@@ -181,7 +181,7 @@ function BarChart({
             <div className="opacity-0 group-hover:opacity-100 absolute -top-8 bg-neutral-800 text-white text-[10px] px-2 py-1 rounded pointer-events-none whitespace-nowrap z-10 transition-opacity">
               {fmtCurrency(d.revenue)} / {fmtCurrency(d.expenses)}
             </div>
-            <span className="text-[10px] text-neutral-400 truncate w-full text-center leading-tight">
+            <span className="text-[10px] text-neutral-400 truncate w-full text-center leading-tight dark:text-gray-500">
               {d.label}
             </span>
           </div>
@@ -199,7 +199,7 @@ function DonutChart({
 }) {
   const navigate = useNavigate();
   const total = segments.reduce((s, seg) => s + seg.value, 0);
-  if (total === 0) return <p className="text-neutral-400 text-center py-6">No invoice data</p>;
+  if (total === 0) return <p className="text-neutral-400 text-center py-6 dark:text-gray-500">No invoice data</p>;
 
   let cumPct = 0;
   const gradientParts: string[] = [];
@@ -222,10 +222,10 @@ function DonutChart({
           }}
         />
         {/* Inner circle for donut hole */}
-        <div className="absolute inset-4 bg-white rounded-full flex items-center justify-center">
+        <div className="absolute inset-4 bg-white rounded-full flex items-center justify-center dark:bg-white/5 dark:backdrop-blur-sm">
           <div className="text-center">
-            <p className="text-lg font-extrabold text-neutral-900">{total}</p>
-            <p className="text-[10px] text-neutral-400 uppercase font-semibold">Invoices</p>
+            <p className="text-lg font-extrabold text-neutral-900 dark:text-white">{total}</p>
+            <p className="text-[10px] text-neutral-400 uppercase font-semibold dark:text-gray-500">Invoices</p>
           </div>
         </div>
       </div>
@@ -237,13 +237,13 @@ function DonutChart({
             <button
               key={seg.label}
               onClick={() => seg.path && navigate(seg.path)}
-              className="flex items-center gap-3 w-full text-left hover:bg-neutral-50 rounded-lg px-2 py-1.5 -mx-2 transition-colors"
+              className="flex items-center gap-3 w-full text-left hover:bg-neutral-50 rounded-lg px-2 py-1.5 -mx-2 transition-colors dark:hover:bg-white/10"
             >
               <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: seg.color }} />
-              <span className="flex-1 text-sm text-neutral-700 font-medium">{seg.label}</span>
-              <span className="text-sm font-semibold text-neutral-900">{seg.value}</span>
-              <span className="text-xs text-neutral-400 w-14 text-right">{fmtCurrency(seg.amount)}</span>
-              <span className="text-xs text-neutral-400 w-10 text-right">{pct}%</span>
+              <span className="flex-1 text-sm text-neutral-700 font-medium dark:text-gray-200">{seg.label}</span>
+              <span className="text-sm font-semibold text-neutral-900 dark:text-white">{seg.value}</span>
+              <span className="text-xs text-neutral-400 w-14 text-right dark:text-gray-500">{fmtCurrency(seg.amount)}</span>
+              <span className="text-xs text-neutral-400 w-10 text-right dark:text-gray-500">{pct}%</span>
             </button>
           );
         })}
@@ -266,10 +266,10 @@ function HorizontalBarChart({
         return (
           <div key={i}>
             <div className="flex justify-between text-sm mb-1">
-              <span className="text-neutral-700 font-medium truncate mr-2">{d.label}</span>
-              <span className="text-neutral-900 font-semibold shrink-0">{fmtCurrency(d.value)}</span>
+              <span className="text-neutral-700 font-medium truncate mr-2 dark:text-gray-200">{d.label}</span>
+              <span className="text-neutral-900 font-semibold shrink-0 dark:text-white">{fmtCurrency(d.value)}</span>
             </div>
-            <div className="h-2.5 bg-neutral-100 rounded-full overflow-hidden">
+            <div className="h-2.5 bg-neutral-100 rounded-full overflow-hidden dark:bg-white/10">
               <div
                 className="h-full bg-blue-500 rounded-full transition-all duration-500"
                 style={{ width: `${pct}%` }}
@@ -615,8 +615,8 @@ export function FinancialsPage() {
       {/* ── Header + Period selector ───────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-neutral-900">Financials</h1>
-          <p className="text-sm text-neutral-500 mt-0.5">Track revenue, expenses, and business health</p>
+          <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">Financials</h1>
+          <p className="text-sm text-neutral-500 mt-0.5 dark:text-gray-400">Track revenue, expenses, and business health</p>
         </div>
         <div className="flex items-center gap-3">
         <button
@@ -625,7 +625,7 @@ export function FinancialsPage() {
         >
           + Add Expense
         </button>
-        <div className="flex bg-neutral-100 rounded-lg p-1">
+        <div className="flex bg-neutral-100 rounded-lg p-1 dark:bg-white/10">
           {(['week', 'month', 'year'] as Period[]).map((p) => (
             <button
               key={p}
@@ -653,22 +653,22 @@ export function FinancialsPage() {
       ) : (
         <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
           {/* Revenue */}
-          <div className="bg-white rounded-xl border border-neutral-200 p-4 border-l-4 border-l-green-500">
+          <div className="bg-white rounded-xl border border-neutral-200 p-4 border-l-4 border-l-green-500 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
             <div className="flex items-center gap-1.5 mb-1">
               <DollarSign className="w-3.5 h-3.5 text-green-500" />
-              <span className="text-xs font-semibold text-neutral-500 uppercase tracking-wide">Revenue</span>
+              <span className="text-xs font-semibold text-neutral-500 uppercase tracking-wide dark:text-gray-400">Revenue</span>
             </div>
             <div className="flex items-baseline">
-              <p className="text-xl font-extrabold text-green-600">{fmtCurrency(revenue)}</p>
+              <p className="text-xl font-extrabold text-green-600 dark:text-green-300">{fmtCurrency(revenue)}</p>
               {prevPeriodStats && <TrendArrow current={revenue} previous={prevPeriodStats.revenue} />}
             </div>
           </div>
 
           {/* Expenses */}
-          <div className="bg-white rounded-xl border border-neutral-200 p-4 border-l-4 border-l-red-400">
+          <div className="bg-white rounded-xl border border-neutral-200 p-4 border-l-4 border-l-red-400 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
             <div className="flex items-center gap-1.5 mb-1">
               <TrendingDown className="w-3.5 h-3.5 text-red-400" />
-              <span className="text-xs font-semibold text-neutral-500 uppercase tracking-wide">Expenses</span>
+              <span className="text-xs font-semibold text-neutral-500 uppercase tracking-wide dark:text-gray-400">Expenses</span>
             </div>
             <div className="flex items-baseline">
               <p className="text-xl font-extrabold text-red-500">{fmtCurrency(expenses)}</p>
@@ -677,10 +677,10 @@ export function FinancialsPage() {
           </div>
 
           {/* Net Profit */}
-          <div className="bg-white rounded-xl border border-neutral-200 p-4 border-l-4 border-l-blue-500">
+          <div className="bg-white rounded-xl border border-neutral-200 p-4 border-l-4 border-l-blue-500 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
             <div className="flex items-center gap-1.5 mb-1">
               <TrendingUp className="w-3.5 h-3.5 text-blue-500" />
-              <span className="text-xs font-semibold text-neutral-500 uppercase tracking-wide">Net Profit</span>
+              <span className="text-xs font-semibold text-neutral-500 uppercase tracking-wide dark:text-gray-400">Net Profit</span>
             </div>
             <p className={`text-xl font-extrabold ${profit >= 0 ? 'text-green-600' : 'text-red-500'}`}>
               {fmtCurrency(profit)}
@@ -688,45 +688,45 @@ export function FinancialsPage() {
           </div>
 
           {/* Jobs Completed */}
-          <div className="bg-white rounded-xl border border-neutral-200 p-4 border-l-4 border-l-neutral-400">
+          <div className="bg-white rounded-xl border border-neutral-200 p-4 border-l-4 border-l-neutral-400 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
             <div className="flex items-center gap-1.5 mb-1">
-              <Briefcase className="w-3.5 h-3.5 text-neutral-500" />
-              <span className="text-xs font-semibold text-neutral-500 uppercase tracking-wide">Jobs Done</span>
+              <Briefcase className="w-3.5 h-3.5 text-neutral-500 dark:text-gray-400" />
+              <span className="text-xs font-semibold text-neutral-500 uppercase tracking-wide dark:text-gray-400">Jobs Done</span>
             </div>
             <div className="flex items-baseline">
-              <p className="text-xl font-extrabold text-neutral-900">{jobsCompleted}</p>
+              <p className="text-xl font-extrabold text-neutral-900 dark:text-white">{jobsCompleted}</p>
               {prevPeriodStats && <TrendArrow current={jobsCompleted} previous={prevPeriodStats.jobsCompleted} />}
             </div>
           </div>
 
           {/* Outstanding Balance */}
-          <div className="bg-white rounded-xl border border-neutral-200 p-4 border-l-4 border-l-amber-400">
+          <div className="bg-white rounded-xl border border-neutral-200 p-4 border-l-4 border-l-amber-400 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
             <div className="flex items-center gap-1.5 mb-1">
               <AlertCircle className="w-3.5 h-3.5 text-amber-500" />
-              <span className="text-xs font-semibold text-neutral-500 uppercase tracking-wide">Outstanding</span>
+              <span className="text-xs font-semibold text-neutral-500 uppercase tracking-wide dark:text-gray-400">Outstanding</span>
             </div>
-            <p className="text-xl font-extrabold text-amber-600">{fmtCurrency(outstanding)}</p>
+            <p className="text-xl font-extrabold text-amber-600 dark:text-amber-300">{fmtCurrency(outstanding)}</p>
           </div>
 
           {/* Avg Job Value */}
-          <div className="bg-white rounded-xl border border-neutral-200 p-4 border-l-4 border-l-purple-400">
+          <div className="bg-white rounded-xl border border-neutral-200 p-4 border-l-4 border-l-purple-400 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
             <div className="flex items-center gap-1.5 mb-1">
               <Receipt className="w-3.5 h-3.5 text-purple-500" />
-              <span className="text-xs font-semibold text-neutral-500 uppercase tracking-wide">Avg Job</span>
+              <span className="text-xs font-semibold text-neutral-500 uppercase tracking-wide dark:text-gray-400">Avg Job</span>
             </div>
-            <p className="text-xl font-extrabold text-purple-600">{fmtCurrency(avgJobValue)}</p>
+            <p className="text-xl font-extrabold text-purple-600 dark:text-purple-300">{fmtCurrency(avgJobValue)}</p>
           </div>
 
           {/* GC Contract Value (only shown when user has invited projects) */}
           {gcProjectRevenue && (
-            <div className="bg-white rounded-xl border border-neutral-200 p-4 border-l-4 border-l-violet-500">
+            <div className="bg-white rounded-xl border border-neutral-200 p-4 border-l-4 border-l-violet-500 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
               <div className="flex items-center gap-1.5 mb-1">
                 <HardHat className="w-3.5 h-3.5 text-violet-500" />
-                <span className="text-xs font-semibold text-neutral-500 uppercase tracking-wide">GC Contract Value</span>
+                <span className="text-xs font-semibold text-neutral-500 uppercase tracking-wide dark:text-gray-400">GC Contract Value</span>
               </div>
-              <p className="text-xl font-extrabold text-violet-600">{fmtCurrency(gcProjectRevenue.totalGcRevenue)}</p>
+              <p className="text-xl font-extrabold text-violet-600 dark:text-violet-300">{fmtCurrency(gcProjectRevenue.totalGcRevenue)}</p>
               {revenue > 0 && (
-                <p className="text-[10px] text-neutral-400 mt-0.5">
+                <p className="text-[10px] text-neutral-400 mt-0.5 dark:text-gray-500">
                   {gcProjectRevenue.gcPct.toFixed(0)}% of combined revenue
                 </p>
               )}
@@ -739,9 +739,9 @@ export function FinancialsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
         {/* ── Section 2: Revenue vs Expenses Chart ─────────────────────── */}
-        <div className="bg-white rounded-xl border border-neutral-200 p-5">
+        <div className="bg-white rounded-xl border border-neutral-200 p-5 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
           <div className="flex items-center justify-between mb-1">
-            <h2 className="text-xs font-bold text-neutral-500 uppercase tracking-wide flex items-center gap-1.5">
+            <h2 className="text-xs font-bold text-neutral-500 uppercase tracking-wide flex items-center gap-1.5 dark:text-gray-400">
               <BarChart3 className="w-3.5 h-3.5" />
               Revenue vs Expenses
             </h2>
@@ -751,7 +751,7 @@ export function FinancialsPage() {
             </div>
           </div>
           {chartsLoading ? (
-            <div className="h-48 bg-neutral-50 rounded animate-pulse mt-4" />
+            <div className="h-48 bg-neutral-50 rounded animate-pulse mt-4 dark:bg-white/[0.02]" />
           ) : barData.length > 0 ? (
             <BarChart data={barData} maxVal={barChartMax} />
           ) : (
@@ -767,13 +767,13 @@ export function FinancialsPage() {
         </div>
 
         {/* ── Section 3: Invoice Status Breakdown ──────────────────────── */}
-        <div className="bg-white rounded-xl border border-neutral-200 p-5">
-          <h2 className="text-xs font-bold text-neutral-500 uppercase tracking-wide flex items-center gap-1.5 mb-4">
+        <div className="bg-white rounded-xl border border-neutral-200 p-5 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
+          <h2 className="text-xs font-bold text-neutral-500 uppercase tracking-wide flex items-center gap-1.5 mb-4 dark:text-gray-400">
             <Layers className="w-3.5 h-3.5" />
             Invoice Breakdown
           </h2>
           {chartsLoading ? (
-            <div className="h-48 bg-neutral-50 rounded animate-pulse" />
+            <div className="h-48 bg-neutral-50 rounded animate-pulse dark:bg-white/[0.02]" />
           ) : (
             <DonutChart
               segments={[
@@ -787,8 +787,8 @@ export function FinancialsPage() {
         </div>
 
         {/* ── Section 4: Top Customers by Revenue ──────────────────────── */}
-        <div className="bg-white rounded-xl border border-neutral-200 p-5">
-          <h2 className="text-xs font-bold text-neutral-500 uppercase tracking-wide flex items-center gap-1.5 mb-4">
+        <div className="bg-white rounded-xl border border-neutral-200 p-5 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
+          <h2 className="text-xs font-bold text-neutral-500 uppercase tracking-wide flex items-center gap-1.5 mb-4 dark:text-gray-400">
             <Users className="w-3.5 h-3.5" />
             Top Customers by Revenue
           </h2>
@@ -797,7 +797,7 @@ export function FinancialsPage() {
               {Array.from({ length: 5 }).map((_, i) => (
                 <div key={i} className="flex gap-3">
                   <div className="h-4 bg-neutral-200 rounded flex-1" />
-                  <div className="h-4 bg-neutral-100 rounded w-16" />
+                  <div className="h-4 bg-neutral-100 rounded w-16 dark:bg-white/10" />
                 </div>
               ))}
             </div>
@@ -805,7 +805,7 @@ export function FinancialsPage() {
             <div className="overflow-x-auto -mx-2">
               <table className="w-full text-sm min-w-[400px]">
                 <thead>
-                  <tr className="text-left text-neutral-400 text-xs uppercase tracking-wide">
+                  <tr className="text-left text-neutral-400 text-xs uppercase tracking-wide dark:text-gray-500">
                     <th className="pb-2 pl-2 font-semibold">#</th>
                     <th className="pb-2 font-semibold">Customer</th>
                     <th className="pb-2 text-right font-semibold">Jobs</th>
@@ -815,7 +815,7 @@ export function FinancialsPage() {
                 </thead>
                 <tbody>
                   {topCustomers.map((c, i) => (
-                    <tr key={i} className="border-t border-neutral-100">
+                    <tr key={i} className="border-t border-neutral-100 dark:border-white/10">
                       <td className="py-2.5 pl-2">
                         <span className={`inline-flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-bold ${
                           i === 0 ? 'bg-amber-100 text-amber-700' : 'bg-neutral-100 text-neutral-500'
@@ -823,40 +823,40 @@ export function FinancialsPage() {
                           {i + 1}
                         </span>
                       </td>
-                      <td className="py-2.5 font-medium text-neutral-900">{c.name}</td>
-                      <td className="py-2.5 text-right text-neutral-600">{c.jobCount}</td>
-                      <td className="py-2.5 text-right font-semibold text-green-600">{fmtCurrency(c.revenue)}</td>
-                      <td className="py-2.5 text-right pr-2 text-neutral-600">{fmtCurrency(c.avgTicket)}</td>
+                      <td className="py-2.5 font-medium text-neutral-900 dark:text-white">{c.name}</td>
+                      <td className="py-2.5 text-right text-neutral-600 dark:text-gray-300">{c.jobCount}</td>
+                      <td className="py-2.5 text-right font-semibold text-green-600 dark:text-green-300">{fmtCurrency(c.revenue)}</td>
+                      <td className="py-2.5 text-right pr-2 text-neutral-600 dark:text-gray-300">{fmtCurrency(c.avgTicket)}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
           ) : (
-            <p className="text-neutral-400 text-center py-6 text-sm">No customer data yet</p>
+            <p className="text-neutral-400 text-center py-6 text-sm dark:text-gray-500">No customer data yet</p>
           )}
         </div>
 
         {/* ── Section 5: Revenue by Job Type ───────────────────────────── */}
-        <div className="bg-white rounded-xl border border-neutral-200 p-5">
-          <h2 className="text-xs font-bold text-neutral-500 uppercase tracking-wide flex items-center gap-1.5 mb-4">
+        <div className="bg-white rounded-xl border border-neutral-200 p-5 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
+          <h2 className="text-xs font-bold text-neutral-500 uppercase tracking-wide flex items-center gap-1.5 mb-4 dark:text-gray-400">
             <BarChart3 className="w-3.5 h-3.5" />
             Revenue by Service Type
           </h2>
           {chartsLoading ? (
-            <div className="h-48 bg-neutral-50 rounded animate-pulse" />
+            <div className="h-48 bg-neutral-50 rounded animate-pulse dark:bg-white/[0.02]" />
           ) : revenueByType.length > 0 ? (
             <HorizontalBarChart data={revenueByType} />
           ) : (
-            <p className="text-neutral-400 text-center py-6 text-sm">No line item data yet</p>
+            <p className="text-neutral-400 text-center py-6 text-sm dark:text-gray-500">No line item data yet</p>
           )}
         </div>
       </div>
 
       {/* ── Section 6: GC vs Direct Revenue Split ──────────────────────── */}
       {gcSplit && (
-        <div className="bg-white rounded-xl border border-neutral-200 p-5">
-          <h2 className="text-xs font-bold text-neutral-500 uppercase tracking-wide mb-4">
+        <div className="bg-white rounded-xl border border-neutral-200 p-5 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
+          <h2 className="text-xs font-bold text-neutral-500 uppercase tracking-wide mb-4 dark:text-gray-400">
             GC vs Direct Revenue
           </h2>
           <div className="space-y-3">
@@ -892,20 +892,20 @@ export function FinancialsPage() {
             </div>
             {/* Legend row */}
             <div className="grid grid-cols-2 gap-4">
-              <div className="flex items-center gap-3 bg-green-50 rounded-lg p-3 border border-green-100">
+              <div className="flex items-center gap-3 bg-green-50 rounded-lg p-3 border border-green-100 dark:bg-green-500/10">
                 <span className="w-3 h-3 rounded-full bg-green-500 shrink-0" />
                 <div>
-                  <p className="text-xs font-semibold text-neutral-500">Direct Work</p>
-                  <p className="text-lg font-extrabold text-green-600">{fmtCurrency(gcSplit.directRevenue)}</p>
-                  <p className="text-xs text-neutral-400">{gcSplit.directJobs} job{gcSplit.directJobs !== 1 ? 's' : ''}</p>
+                  <p className="text-xs font-semibold text-neutral-500 dark:text-gray-400">Direct Work</p>
+                  <p className="text-lg font-extrabold text-green-600 dark:text-green-300">{fmtCurrency(gcSplit.directRevenue)}</p>
+                  <p className="text-xs text-neutral-400 dark:text-gray-500">{gcSplit.directJobs} job{gcSplit.directJobs !== 1 ? 's' : ''}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-3 bg-blue-50 rounded-lg p-3 border border-blue-100">
+              <div className="flex items-center gap-3 bg-blue-50 rounded-lg p-3 border border-blue-100 dark:bg-blue-500/10">
                 <span className="w-3 h-3 rounded-full bg-blue-500 shrink-0" />
                 <div>
-                  <p className="text-xs font-semibold text-neutral-500">GC Referred</p>
-                  <p className="text-lg font-extrabold text-blue-600">{fmtCurrency(gcSplit.gcRevenue)}</p>
-                  <p className="text-xs text-neutral-400">{gcSplit.gcJobs} job{gcSplit.gcJobs !== 1 ? 's' : ''}</p>
+                  <p className="text-xs font-semibold text-neutral-500 dark:text-gray-400">GC Referred</p>
+                  <p className="text-lg font-extrabold text-blue-600 dark:text-blue-300">{fmtCurrency(gcSplit.gcRevenue)}</p>
+                  <p className="text-xs text-neutral-400 dark:text-gray-500">{gcSplit.gcJobs} job{gcSplit.gcJobs !== 1 ? 's' : ''}</p>
                 </div>
               </div>
             </div>
@@ -915,26 +915,26 @@ export function FinancialsPage() {
 
       {/* ── Section 6b: GC Project Revenue Breakdown ─────────────────── */}
       {gcProjectRevenue && (
-        <div className="bg-white rounded-xl border border-neutral-200 p-5">
-          <h2 className="text-xs font-bold text-neutral-500 uppercase tracking-wide flex items-center gap-1.5 mb-4">
+        <div className="bg-white rounded-xl border border-neutral-200 p-5 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
+          <h2 className="text-xs font-bold text-neutral-500 uppercase tracking-wide flex items-center gap-1.5 mb-4 dark:text-gray-400">
             <HardHat className="w-3.5 h-3.5 text-violet-500" />
             GC Project Revenue
-            <span className="text-[10px] font-normal text-neutral-400 normal-case tracking-normal ml-1">
+            <span className="text-[10px] font-normal text-neutral-400 normal-case tracking-normal ml-1 dark:text-gray-500">
               (Budgeted contract value from assigned trades)
             </span>
           </h2>
           <div className="space-y-4">
             {gcProjectRevenue.byProject.map((proj, pi) => (
-              <div key={pi} className="border border-neutral-100 rounded-lg overflow-hidden">
+              <div key={pi} className="border border-neutral-100 rounded-lg overflow-hidden dark:border-white/10">
                 {/* Project header */}
-                <div className="flex items-center justify-between bg-neutral-50 px-4 py-2.5">
+                <div className="flex items-center justify-between bg-neutral-50 px-4 py-2.5 dark:bg-white/[0.02]">
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold text-neutral-900 truncate">{proj.projectName}</p>
+                    <p className="text-sm font-semibold text-neutral-900 truncate dark:text-white">{proj.projectName}</p>
                     {proj.gcCompany && (
-                      <p className="text-xs text-neutral-400">{proj.gcCompany}</p>
+                      <p className="text-xs text-neutral-400 dark:text-gray-500">{proj.gcCompany}</p>
                     )}
                   </div>
-                  <p className="text-sm font-extrabold text-violet-600 shrink-0 ml-4">{fmtCurrency(proj.total)}</p>
+                  <p className="text-sm font-extrabold text-violet-600 shrink-0 ml-4 dark:text-violet-300">{fmtCurrency(proj.total)}</p>
                 </div>
                 {/* Trade rows */}
                 <div className="divide-y divide-neutral-100">
@@ -942,13 +942,13 @@ export function FinancialsPage() {
                     <div key={ti} className="flex items-center justify-between px-4 py-2 text-sm">
                       <div className="flex items-center gap-2 min-w-0">
                         <span className="w-1.5 h-1.5 rounded-full bg-violet-400 shrink-0" />
-                        <span className="text-neutral-700 font-medium truncate">{trade.trade}</span>
+                        <span className="text-neutral-700 font-medium truncate dark:text-gray-200">{trade.trade}</span>
                       </div>
                       <div className="flex items-center gap-4 shrink-0 ml-4">
-                        <span className="text-xs text-neutral-400">
+                        <span className="text-xs text-neutral-400 dark:text-gray-500">
                           {trade.hours} hrs &times; {fmtCurrency(trade.rate)}/hr
                         </span>
-                        <span className="font-semibold text-neutral-900 w-24 text-right">{fmtCurrency(trade.amount)}</span>
+                        <span className="font-semibold text-neutral-900 w-24 text-right dark:text-white">{fmtCurrency(trade.amount)}</span>
                       </div>
                     </div>
                   ))}
@@ -960,8 +960,8 @@ export function FinancialsPage() {
       )}
 
       {/* ── Section 7: Recent Activity ─────────────────────────────────── */}
-      <div className="bg-white rounded-xl border border-neutral-200 p-5">
-        <h2 className="text-xs font-bold text-neutral-500 uppercase tracking-wide flex items-center gap-1.5 mb-4">
+      <div className="bg-white rounded-xl border border-neutral-200 p-5 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
+        <h2 className="text-xs font-bold text-neutral-500 uppercase tracking-wide flex items-center gap-1.5 mb-4 dark:text-gray-400">
           <Clock className="w-3.5 h-3.5" />
           Recent Activity
         </h2>
@@ -972,7 +972,7 @@ export function FinancialsPage() {
                 <div className="w-8 h-8 bg-neutral-200 rounded-full" />
                 <div className="flex-1">
                   <div className="h-3 bg-neutral-200 rounded w-40 mb-2" />
-                  <div className="h-3 bg-neutral-100 rounded w-24" />
+                  <div className="h-3 bg-neutral-100 rounded w-24 dark:bg-white/10" />
                 </div>
                 <div className="h-4 bg-neutral-200 rounded w-20" />
               </div>
@@ -995,8 +995,8 @@ export function FinancialsPage() {
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-neutral-900 truncate">{item.description}</p>
-                    <p className="text-xs text-neutral-400">
+                    <p className="text-sm font-medium text-neutral-900 truncate dark:text-white">{item.description}</p>
+                    <p className="text-xs text-neutral-400 dark:text-gray-500">
                       {isPayment ? 'Payment' : 'Expense'}
                       {d ? ` \u00b7 ${format(d, 'MMM d, yyyy')}` : ''}
                     </p>
@@ -1009,7 +1009,7 @@ export function FinancialsPage() {
             })}
           </div>
         ) : (
-          <p className="text-neutral-400 text-center py-6 text-sm">No recent activity</p>
+          <p className="text-neutral-400 text-center py-6 text-sm dark:text-gray-500">No recent activity</p>
         )}
       </div>
     </div>

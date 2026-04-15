@@ -286,7 +286,7 @@ export function DashboardLayout() {
             <button
               type="button"
               onClick={() => setSidebarOpen(true)}
-              className="lg:hidden p-2 -ml-2 text-gray-500 hover:text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
+              className="lg:hidden p-2 -ml-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
             >
               <Menu className="w-5 h-5" />
             </button>
@@ -321,7 +321,7 @@ export function DashboardLayout() {
         {moreMenuOpen && (
           <>
             <div className="fixed inset-0 z-20" onClick={() => setMoreMenuOpen(false)} />
-            <div className="absolute bottom-16 right-2 z-30 bg-white dark:bg-gray-900 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 py-2 min-w-[180px]">
+            <div className="absolute bottom-16 right-2 z-30 bg-white dark:bg-gray-900 dark:border-white/10 rounded-xl shadow-xl dark:shadow-black/50 border border-gray-200 py-2 min-w-[180px]">
               {mobileOverflowItems.map(({ to, label, icon: Icon }) => (
                 <NavLink
                   key={to}
@@ -330,8 +330,8 @@ export function DashboardLayout() {
                   className={({ isActive }) =>
                     `flex items-center gap-3 px-4 py-2.5 text-sm transition-colors ${
                       isActive
-                        ? 'text-brand-600 bg-brand-50 font-medium'
-                        : 'text-gray-600 hover:bg-gray-50'
+                        ? 'text-brand-600 dark:text-blue-300 bg-brand-50 dark:bg-blue-500/20 font-medium'
+                        : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/10'
                     }`
                   }
                 >
@@ -351,8 +351,8 @@ export function DashboardLayout() {
               className={({ isActive }) =>
                 `flex flex-col items-center justify-center gap-0.5 flex-1 h-full text-xs transition-colors ${
                   isActive
-                    ? 'text-brand-500'
-                    : 'text-gray-400 hover:text-gray-600'
+                    ? 'text-brand-500 dark:text-blue-300'
+                    : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'
                 }`
               }
             >
@@ -364,7 +364,7 @@ export function DashboardLayout() {
             type="button"
             onClick={() => setMoreMenuOpen((v) => !v)}
             className={`flex flex-col items-center justify-center gap-0.5 flex-1 h-full text-xs transition-colors ${
-              moreMenuOpen ? 'text-brand-500' : 'text-gray-400 hover:text-gray-600'
+              moreMenuOpen ? 'text-brand-500 dark:text-blue-300' : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'
             }`}
           >
             <MoreHorizontal className="w-5 h-5" />

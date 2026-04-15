@@ -26,17 +26,17 @@ function useDebounce<T>(value: T, delay: number): T {
 
 function SkeletonCard() {
   return (
-    <div className="bg-white rounded-xl border border-neutral-200 p-5 animate-pulse">
+    <div className="bg-white rounded-xl border border-neutral-200 p-5 animate-pulse dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
       <div className="flex items-start gap-4">
         <div className="w-11 h-11 rounded-full bg-neutral-200" />
         <div className="flex-1 space-y-2">
           <div className="h-4 bg-neutral-200 rounded w-36" />
-          <div className="h-3 bg-neutral-100 rounded w-28" />
-          <div className="h-3 bg-neutral-100 rounded w-40" />
+          <div className="h-3 bg-neutral-100 rounded w-28 dark:bg-white/10" />
+          <div className="h-3 bg-neutral-100 rounded w-40 dark:bg-white/10" />
         </div>
         <div className="space-y-2 text-right">
-          <div className="h-3 bg-neutral-100 rounded w-14 ml-auto" />
-          <div className="h-3 bg-neutral-100 rounded w-16 ml-auto" />
+          <div className="h-3 bg-neutral-100 rounded w-14 ml-auto dark:bg-white/10" />
+          <div className="h-3 bg-neutral-100 rounded w-16 ml-auto dark:bg-white/10" />
         </div>
       </div>
     </div>
@@ -64,14 +64,14 @@ export function CustomersPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-neutral-900">Customers</h1>
-          <p className="text-sm text-neutral-500 mt-1">
+          <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">Customers</h1>
+          <p className="text-sm text-neutral-500 mt-1 dark:text-gray-400">
             {!isLoading && `${customers.length} customer${customers.length !== 1 ? 's' : ''}`}
           </p>
         </div>
         <button
           onClick={() => setShowCreateModal(true)}
-          className="flex items-center gap-2 px-4 py-2.5 bg-brand-500 text-white rounded-lg text-sm font-semibold hover:bg-brand-600 transition-colors shadow-sm"
+          className="flex items-center gap-2 px-4 py-2.5 bg-brand-500 text-white rounded-lg text-sm font-semibold hover:bg-brand-600 transition-colors shadow-sm dark:shadow-black/30"
         >
           <Plus className="w-4 h-4" />
           Add Customer
@@ -82,18 +82,18 @@ export function CustomersPage() {
 
       {/* Search */}
       <div className="relative max-w-md mb-6">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400 dark:text-gray-500" />
         <input
           type="text"
           placeholder="Search by name, phone, or email..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full pl-10 pr-9 py-2.5 bg-white border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent placeholder:text-neutral-400"
+          className="w-full pl-10 pr-9 py-2.5 bg-white border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent placeholder:text-neutral-400 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10 dark:focus:ring-blue-400"
         />
         {search && (
           <button
             onClick={() => setSearch('')}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 dark:text-gray-500"
           >
             <X className="w-4 h-4" />
           </button>
@@ -102,8 +102,8 @@ export function CustomersPage() {
 
       {/* Error state */}
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-          <p className="text-sm text-red-700">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 dark:bg-red-500/10 dark:border-red-500/30">
+          <p className="text-sm text-red-700 dark:text-red-300">
             Failed to load customers. Please try again.
           </p>
         </div>
@@ -140,12 +140,12 @@ export function CustomersPage() {
                 onClick={() =>
                   navigate(`/dashboard/customers/${customer.id}`)
                 }
-                className="bg-white rounded-xl border border-neutral-200 p-5 hover:border-brand-300 hover:shadow-lg hover:shadow-gray-200/50 hover:-translate-y-0.5 transition-all duration-200 text-left w-full group"
+                className="bg-white rounded-xl border border-neutral-200 p-5 hover:border-brand-300 hover:shadow-lg hover:shadow-gray-200/50 hover:-translate-y-0.5 transition-all duration-200 text-left w-full group dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10"
               >
                 <div className="flex items-start gap-4">
                   {/* Avatar */}
-                  <div className="w-11 h-11 rounded-full bg-brand-50 flex items-center justify-center flex-shrink-0 group-hover:bg-brand-100 transition-colors">
-                    <span className="text-sm font-bold text-brand-600">
+                  <div className="w-11 h-11 rounded-full bg-brand-50 flex items-center justify-center flex-shrink-0 group-hover:bg-brand-100 transition-colors dark:bg-blue-500/10">
+                    <span className="text-sm font-bold text-brand-600 dark:text-blue-300">
                       {customer.firstName?.[0] || '?'}
                       {customer.lastName?.[0] || ''}
                     </span>
@@ -153,21 +153,21 @@ export function CustomersPage() {
 
                   {/* Info */}
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-neutral-900 truncate">
+                    <p className="text-sm font-semibold text-neutral-900 truncate dark:text-white">
                       {customer.firstName} {customer.lastName}
                     </p>
                     {customer.phone && (
                       <div className="flex items-center gap-1.5 mt-1">
-                        <Phone className="w-3 h-3 text-neutral-400 flex-shrink-0" />
-                        <span className="text-xs text-neutral-500 truncate">
+                        <Phone className="w-3 h-3 text-neutral-400 flex-shrink-0 dark:text-gray-500" />
+                        <span className="text-xs text-neutral-500 truncate dark:text-gray-400">
                           {customer.phone}
                         </span>
                       </div>
                     )}
                     {property && (
                       <div className="flex items-center gap-1.5 mt-0.5">
-                        <MapPin className="w-3 h-3 text-neutral-400 flex-shrink-0" />
-                        <span className="text-xs text-neutral-400 truncate">
+                        <MapPin className="w-3 h-3 text-neutral-400 flex-shrink-0 dark:text-gray-500" />
+                        <span className="text-xs text-neutral-400 truncate dark:text-gray-500">
                           {property.city}
                           {property.state ? `, ${property.state}` : ''}
                         </span>
@@ -177,14 +177,14 @@ export function CustomersPage() {
 
                   {/* Meta */}
                   <div className="flex flex-col items-end gap-1 flex-shrink-0">
-                    <div className="flex items-center gap-1 text-xs text-neutral-500">
+                    <div className="flex items-center gap-1 text-xs text-neutral-500 dark:text-gray-400">
                       <Briefcase className="w-3 h-3" />
                       <span className="font-medium">
                         {jobCount} job{jobCount !== 1 ? 's' : ''}
                       </span>
                     </div>
                     {balance > 0 && (
-                      <div className="flex items-center gap-1 text-xs text-red-600 font-semibold">
+                      <div className="flex items-center gap-1 text-xs text-red-600 font-semibold dark:text-red-300">
                         <DollarSign className="w-3 h-3" />
                         <span>${balance.toFixed(0)} due</span>
                       </div>
@@ -202,10 +202,10 @@ export function CustomersPage() {
         debouncedSearch ? (
           <div className="text-center py-16">
             <Users className="w-12 h-12 text-neutral-300 mx-auto mb-3" />
-            <p className="text-base font-medium text-neutral-500">
+            <p className="text-base font-medium text-neutral-500 dark:text-gray-400">
               No customers match your search
             </p>
-            <p className="text-sm text-neutral-400 mt-1">
+            <p className="text-sm text-neutral-400 mt-1 dark:text-gray-500">
               Try a different search term
             </p>
           </div>

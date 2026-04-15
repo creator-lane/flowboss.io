@@ -213,8 +213,8 @@ export function GCProjectDetailPage() {
   if (!project) {
     return (
       <div className="p-6 text-center">
-        <p className="text-gray-500">Project not found.</p>
-        <button onClick={() => navigate('/dashboard/projects')} className="mt-4 text-brand-600 hover:underline text-sm">
+        <p className="text-gray-500 dark:text-gray-400">Project not found.</p>
+        <button onClick={() => navigate('/dashboard/projects')} className="mt-4 text-brand-600 hover:underline text-sm dark:text-blue-300">
           Back to Projects
         </button>
       </div>
@@ -225,11 +225,11 @@ export function GCProjectDetailPage() {
     <div className="p-4 lg:p-6 max-w-full">
       {/* Breadcrumbs */}
       <div className="flex items-center gap-1.5 text-sm mb-4">
-        <Link to="/dashboard/projects" className="text-gray-500 hover:text-gray-700 transition-colors">
+        <Link to="/dashboard/projects" className="text-gray-500 hover:text-gray-700 transition-colors dark:text-gray-400 dark:hover:text-gray-200">
           Projects
         </Link>
-        <ChevronRight className="w-3.5 h-3.5 text-gray-400" />
-        <span className="text-gray-900 font-medium truncate max-w-[200px]">{project.name}</span>
+        <ChevronRight className="w-3.5 h-3.5 text-gray-400 dark:text-gray-500" />
+        <span className="text-gray-900 font-medium truncate max-w-[200px] dark:text-white">{project.name}</span>
       </div>
 
       {/* Header */}
@@ -237,17 +237,17 @@ export function GCProjectDetailPage() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-3 mb-1">
-              <h1 className="text-2xl font-bold text-gray-900">{project.name}</h1>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{project.name}</h1>
               <ProjectStatusDropdown projectId={id!} currentStatus={project.status} />
               <button
                 onClick={() => setShowEditProject(true)}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-white/10"
               >
                 <Pencil className="w-3.5 h-3.5" />
                 Edit
               </button>
             </div>
-            <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
+            <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
               {(project.city || project.state) && (
                 <span className="flex items-center gap-1">
                   <MapPin className="w-3.5 h-3.5" />
@@ -281,14 +281,14 @@ export function GCProjectDetailPage() {
 
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           {/* Segmented control */}
-          <div className="inline-flex items-center bg-gray-100 rounded-lg p-1" data-tour="view-toggle">
+          <div className="inline-flex items-center bg-gray-100 rounded-lg p-1 dark:bg-white/10" data-tour="view-toggle">
             <button
               onClick={() => setViewMode('visual')}
               className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
                 viewMode === 'visual'
                   ? 'bg-white text-gray-900 shadow-sm'
                   : 'text-gray-500 hover:text-gray-700'
-              }`}
+              } dark:text-white`}
             >
               <Share2 className="w-4 h-4" />
               Visual
@@ -299,7 +299,7 @@ export function GCProjectDetailPage() {
                 viewMode === 'board'
                   ? 'bg-white text-gray-900 shadow-sm'
                   : 'text-gray-500 hover:text-gray-700'
-              }`}
+              } dark:text-white`}
             >
               <LayoutDashboard className="w-4 h-4" />
               Board
@@ -310,7 +310,7 @@ export function GCProjectDetailPage() {
                 viewMode === 'timeline'
                   ? 'bg-white text-gray-900 shadow-sm'
                   : 'text-gray-500 hover:text-gray-700'
-              }`}
+              } dark:text-white`}
             >
               <GanttChart className="w-4 h-4" />
               Timeline
@@ -318,15 +318,15 @@ export function GCProjectDetailPage() {
           </div>
 
           {/* Progress pill */}
-          <div className="flex items-center gap-3 text-sm text-gray-500">
+          <div className="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
             <span>{doneTasks}/{totalTasks} tasks</span>
-            <div className="w-32 h-2 bg-gray-100 rounded-full overflow-hidden">
+            <div className="w-32 h-2 bg-gray-100 rounded-full overflow-hidden dark:bg-white/10">
               <div
                 className="h-full bg-brand-500 rounded-full transition-all duration-500"
                 style={{ width: `${overallProgress}%` }}
               />
             </div>
-            <span className="font-medium text-gray-700">{overallProgress}%</span>
+            <span className="font-medium text-gray-700 dark:text-gray-200">{overallProgress}%</span>
             <Tooltip text="Weighted completion based on labor hours per trade" />
           </div>
         </div>
@@ -357,12 +357,12 @@ export function GCProjectDetailPage() {
 
           {/* Quick Add Trade Popup (Visual View) */}
           {showAddTradeVisual && (
-            <div className="absolute top-4 right-4 z-30 bg-white rounded-xl border border-gray-200 shadow-lg p-4 w-64">
-              <h3 className="font-medium text-sm text-gray-900 mb-3">Add Scope</h3>
+            <div className="absolute top-4 right-4 z-30 bg-white rounded-xl border border-gray-200 shadow-lg p-4 w-64 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
+              <h3 className="font-medium text-sm text-gray-900 mb-3 dark:text-white">Add Scope</h3>
               <select
                 value={addTradeValue}
                 onChange={(e) => setAddTradeValue(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white mb-3 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white mb-3 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none dark:border-white/10 dark:bg-white/5 dark:backdrop-blur-sm dark:focus:ring-blue-400 dark:focus:border-blue-400"
               >
                 <option value="">Select scope...</option>
                 {TRADE_OPTIONS.map((t) => (
@@ -372,7 +372,7 @@ export function GCProjectDetailPage() {
               <div className="flex gap-2">
                 <button
                   onClick={() => { setShowAddTradeVisual(false); setAddTradeValue(''); }}
-                  className="flex-1 px-3 py-2 text-xs font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                  className="flex-1 px-3 py-2 text-xs font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors dark:text-gray-300 dark:bg-white/10 dark:hover:bg-white/10"
                 >
                   Cancel
                 </button>
@@ -486,40 +486,40 @@ function BudgetBar({ trades, budget }: { trades: any[]; budget?: number }) {
     'bg-green-500';
 
   return (
-    <div className="mt-4 bg-white border border-gray-200 rounded-lg px-4 py-3">
+    <div className="mt-4 bg-white border border-gray-200 rounded-lg px-4 py-3 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
       <div className="flex flex-wrap items-center gap-x-6 gap-y-1 text-sm mb-2">
         <span className="flex items-center gap-1.5">
-          <DollarSign className="w-3.5 h-3.5 text-gray-400" />
-          <span className="text-gray-500">Budget:</span>
-          <span className="font-semibold text-gray-900">{formatCurrency(projectBudget)}</span>
+          <DollarSign className="w-3.5 h-3.5 text-gray-400 dark:text-gray-500" />
+          <span className="text-gray-500 dark:text-gray-400">Budget:</span>
+          <span className="font-semibold text-gray-900 dark:text-white">{formatCurrency(projectBudget)}</span>
         </span>
         {totalLabor > 0 && (
           <span>
-            <span className="text-gray-500">Labor:</span>{' '}
-            <span className="font-medium text-gray-700">{formatCurrency(totalLabor)}</span>
+            <span className="text-gray-500 dark:text-gray-400">Labor:</span>{' '}
+            <span className="font-medium text-gray-700 dark:text-gray-200">{formatCurrency(totalLabor)}</span>
           </span>
         )}
         {totalMaterials > 0 && (
           <span>
-            <span className="text-gray-500">Materials:</span>{' '}
-            <span className="font-medium text-gray-700">{formatCurrency(totalMaterials)}</span>
+            <span className="text-gray-500 dark:text-gray-400">Materials:</span>{' '}
+            <span className="font-medium text-gray-700 dark:text-gray-200">{formatCurrency(totalMaterials)}</span>
           </span>
         )}
         {margin > 0 && (
           <span>
-            <span className="text-gray-500">Margin:</span>{' '}
-            <span className="font-medium text-green-600">{margin}%</span>
+            <span className="text-gray-500 dark:text-gray-400">Margin:</span>{' '}
+            <span className="font-medium text-green-600 dark:text-green-300">{margin}%</span>
           </span>
         )}
       </div>
       <div className="flex items-center gap-3">
-        <div className="flex-1 h-2.5 bg-gray-100 rounded-full overflow-hidden">
+        <div className="flex-1 h-2.5 bg-gray-100 rounded-full overflow-hidden dark:bg-white/10">
           <div
             className={`h-full rounded-full transition-all duration-500 ${barColor}`}
             style={{ width: `${Math.min(pct, 100)}%` }}
           />
         </div>
-        <span className="text-xs font-medium text-gray-500 w-12 text-right">{pct}% allocated</span>
+        <span className="text-xs font-medium text-gray-500 w-12 text-right dark:text-gray-400">{pct}% allocated</span>
         <Tooltip text="Total allocated vs budgeted across all trades" />
       </div>
     </div>
@@ -596,7 +596,7 @@ function HubSpokeDiagram({
   return (
     <div
       ref={containerRef}
-      className="relative bg-gradient-to-br from-slate-50 via-white to-gray-50 rounded-2xl border border-gray-200 overflow-hidden"
+      className="relative bg-gradient-to-br from-slate-50 via-white to-gray-50 rounded-2xl border border-gray-200 overflow-hidden dark:border-white/10"
       style={{ height: dimensions.height }}
     >
       {/* Subtle dot pattern */}
@@ -668,7 +668,7 @@ function HubSpokeDiagram({
 
           {/* Inner content */}
           <div className="absolute inset-[5px] rounded-full bg-gradient-to-br from-white to-slate-50 flex flex-col items-center justify-center overflow-hidden">
-            <span className="text-xs font-bold text-gray-900 text-center leading-tight px-2 max-w-[100px] truncate">
+            <span className="text-xs font-bold text-gray-900 text-center leading-tight px-2 max-w-[100px] truncate dark:text-white">
               {project.name}
             </span>
             <div className={`mt-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-semibold ${statusCfg.bg} ${statusCfg.text}`}>
@@ -695,10 +695,10 @@ function HubSpokeDiagram({
       {/* Empty state */}
       {trades.length === 0 && (
         <div className="absolute left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-3" style={{ top: centerY + 100 }}>
-          <p className="text-gray-400 text-sm">What scopes of work are on this job?</p>
+          <p className="text-gray-400 text-sm dark:text-gray-500">What scopes of work are on this job?</p>
           <button
             onClick={onAddTrade}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-brand-500 text-white text-sm font-medium rounded-lg hover:bg-brand-600 transition-colors shadow-sm"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-brand-500 text-white text-sm font-medium rounded-lg hover:bg-brand-600 transition-colors shadow-sm dark:shadow-black/30"
           >
             <Plus className="w-4 h-4" />
             Add Scope
@@ -711,7 +711,7 @@ function HubSpokeDiagram({
         <button
           onClick={onAddTrade}
           title="Add scope"
-          className="absolute z-20 w-8 h-8 flex items-center justify-center bg-white border border-gray-200 text-gray-400 rounded-full hover:bg-gray-50 hover:border-brand-300 hover:text-brand-500 transition-colors shadow-sm"
+          className="absolute z-20 w-8 h-8 flex items-center justify-center bg-white border border-gray-200 text-gray-400 rounded-full hover:bg-gray-50 hover:border-brand-300 hover:text-brand-500 transition-colors shadow-sm dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10 dark:text-gray-500 dark:hover:bg-white/10 dark:shadow-black/30"
           style={{ right: 16, bottom: 16 }}
         >
           <Plus className="w-4 h-4" />
@@ -773,12 +773,12 @@ function TradeNode({
             <div className="w-7 h-7 rounded-lg flex items-center justify-center text-sm" style={{ backgroundColor: `${accent}15` }}>
               {emoji}
             </div>
-            <span className="text-[13px] font-bold text-gray-900 truncate">{trade.trade}</span>
+            <span className="text-[13px] font-bold text-gray-900 truncate dark:text-white">{trade.trade}</span>
           </div>
 
           {/* Sub name or unassigned */}
           {subName ? (
-            <p className="text-[11px] text-gray-500 truncate mb-1.5 pl-9">{subName}</p>
+            <p className="text-[11px] text-gray-500 truncate mb-1.5 pl-9 dark:text-gray-400">{subName}</p>
           ) : (
             <p className="text-[11px] text-red-400 font-semibold mb-1.5 pl-9">⊘ Unassigned</p>
           )}
@@ -786,18 +786,18 @@ function TradeNode({
           {/* Status dot + label */}
           <div className="flex items-center gap-1.5 pl-9">
             <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${statusCfg.dot}`} />
-            <span className="text-[10px] text-gray-400">{statusCfg.label}</span>
+            <span className="text-[10px] text-gray-400 dark:text-gray-500">{statusCfg.label}</span>
           </div>
 
           {/* Task progress with % */}
           <div className="mt-2 pl-9">
             <div className="flex items-center justify-between mb-0.5">
-              <span className="text-[10px] text-gray-400">{total > 0 ? `${done}/${total}` : 'No tasks'}</span>
+              <span className="text-[10px] text-gray-400 dark:text-gray-500">{total > 0 ? `${done}/${total}` : 'No tasks'}</span>
               {total > 0 && (
                 <span className="text-[10px] font-bold" style={{ color: accent }}>{Math.round(progress)}%</span>
               )}
             </div>
-            <div className="h-1 bg-gray-100 rounded-full overflow-hidden">
+            <div className="h-1 bg-gray-100 rounded-full overflow-hidden dark:bg-white/10">
               <div
                 className="h-full rounded-full transition-all duration-500"
                 style={{ width: `${total > 0 ? progress : 0}%`, backgroundColor: accent }}
@@ -910,22 +910,22 @@ function ZoneDetailPanel({
 
       {/* Panel */}
       <div
-        className="fixed right-0 top-0 bottom-0 w-full max-w-md bg-white shadow-2xl z-50 overflow-y-auto"
+        className="fixed right-0 top-0 bottom-0 w-full max-w-md bg-white shadow-2xl z-50 overflow-y-auto dark:bg-white/5 dark:backdrop-blur-sm"
         style={{ animation: 'slideInRight 0.25s ease-out' }}
       >
         {/* Header */}
-        <div className="sticky top-0 bg-white z-10 border-b border-gray-100">
+        <div className="sticky top-0 bg-white z-10 border-b border-gray-100 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
           <div className="flex items-center justify-between p-4">
             <div className="flex items-center gap-2 min-w-0">
               <span className="text-xl">{zoneEmoji}</span>
               <div className="min-w-0">
-                <h2 className="text-lg font-bold text-gray-900 truncate">{zoneName}</h2>
-                <p className="text-xs text-gray-400">{zoneTrades.length} trade{zoneTrades.length !== 1 ? 's' : ''}</p>
+                <h2 className="text-lg font-bold text-gray-900 truncate dark:text-white">{zoneName}</h2>
+                <p className="text-xs text-gray-400 dark:text-gray-500">{zoneTrades.length} trade{zoneTrades.length !== 1 ? 's' : ''}</p>
               </div>
             </div>
             <button
               onClick={onClose}
-              className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0"
+              className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0 dark:hover:bg-white/10 dark:text-gray-500 dark:hover:text-gray-300"
             >
               <X className="w-5 h-5" />
             </button>
@@ -934,10 +934,10 @@ function ZoneDetailPanel({
           {/* Zone progress bar */}
           <div className="px-4 pb-3">
             <div className="flex items-center justify-between text-xs mb-1.5">
-              <span className="text-gray-500">{zoneStats.doneTasks}/{zoneStats.totalTasks} tasks complete</span>
+              <span className="text-gray-500 dark:text-gray-400">{zoneStats.doneTasks}/{zoneStats.totalTasks} tasks complete</span>
               <span className="font-bold" style={{ color: zoneAccent }}>{zoneStats.progress}%</span>
             </div>
-            <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+            <div className="h-2 bg-gray-100 rounded-full overflow-hidden dark:bg-white/10">
               <div
                 className="h-full rounded-full transition-all duration-500"
                 style={{ width: `${zoneStats.progress}%`, backgroundColor: zoneAccent }}
@@ -950,10 +950,10 @@ function ZoneDetailPanel({
 
         {/* Compact / Expanded Toggle */}
         <div className="px-4 pt-3 pb-1 flex items-center justify-between">
-          <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Trades</span>
+          <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider dark:text-gray-500">Trades</span>
           <button
             onClick={() => setExpanded(!expanded)}
-            className="flex items-center gap-1 text-[11px] font-medium text-brand-600 hover:text-brand-700 transition-colors"
+            className="flex items-center gap-1 text-[11px] font-medium text-brand-600 hover:text-brand-700 transition-colors dark:text-blue-300"
           >
             {expanded ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
             {expanded ? 'Compact' : 'Expand'}
@@ -963,7 +963,7 @@ function ZoneDetailPanel({
         {/* Trades List */}
         <div className="p-4 pt-2 space-y-3">
           {zoneTrades.length === 0 && (
-            <div className="text-center py-8 text-gray-400 text-sm">No scopes in this zone yet</div>
+            <div className="text-center py-8 text-gray-400 text-sm dark:text-gray-500">No scopes in this zone yet</div>
           )}
 
           {zoneTrades.map((trade: any) => {
@@ -993,7 +993,7 @@ function ZoneDetailPanel({
             return (
               <div
                 key={trade.id}
-                className="bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-gray-300 transition-colors"
+                className="bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-gray-300 transition-colors dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10"
                 style={{ borderTop: `3px solid ${accent}` }}
               >
                 <div className="p-3">
@@ -1001,7 +1001,7 @@ function ZoneDetailPanel({
                   <div className="flex items-center justify-between mb-1.5">
                     <div className="flex items-center gap-2 min-w-0">
                       <span className="text-sm">{emoji}</span>
-                      <span className="text-sm font-semibold text-gray-900 truncate">{trade.trade}</span>
+                      <span className="text-sm font-semibold text-gray-900 truncate dark:text-white">{trade.trade}</span>
                     </div>
                     <span className={`flex items-center gap-1.5 text-[11px] font-medium px-2 py-0.5 rounded-full ${
                       trade.status === 'completed' ? 'bg-green-100 text-green-700' :
@@ -1021,12 +1021,12 @@ function ZoneDetailPanel({
                       return subProfileLink ? (
                         <button
                           onClick={(e) => { e.stopPropagation(); navigateToSub(`/dashboard/subs/${subProfileLink}`); }}
-                          className="text-brand-600 hover:text-brand-700 font-medium hover:underline transition-colors"
+                          className="text-brand-600 hover:text-brand-700 font-medium hover:underline transition-colors dark:text-blue-300"
                         >
                           {subName}
                         </button>
                       ) : (
-                        <span className="text-gray-500">{subName}</span>
+                        <span className="text-gray-500 dark:text-gray-400">{subName}</span>
                       );
                     })() : (
                       <span className="text-red-400 font-medium">Unassigned</span>
@@ -1035,21 +1035,21 @@ function ZoneDetailPanel({
 
                   {/* Progress bar (always shown) */}
                   <div className="flex items-center gap-2 mb-1">
-                    <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                    <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden dark:bg-white/10">
                       <div
                         className="h-full rounded-full transition-all duration-500"
                         style={{ width: `${tradeProgress}%`, backgroundColor: accent }}
                       />
                     </div>
-                    <span className="text-[10px] text-gray-400 w-16 text-right">{tradeDone}/{tasks.length} tasks</span>
+                    <span className="text-[10px] text-gray-400 w-16 text-right dark:text-gray-500">{tradeDone}/{tasks.length} tasks</span>
                     <span className="text-[10px] font-bold w-8 text-right" style={{ color: accent }}>{tradeProgress}%</span>
                   </div>
 
                   {/* Expanded details */}
                   {expanded && (
-                    <div className="mt-2 pt-2 border-t border-gray-100 space-y-1.5">
+                    <div className="mt-2 pt-2 border-t border-gray-100 space-y-1.5 dark:border-white/10">
                       {tradeBudget > 0 && (
-                        <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                        <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
                           <DollarSign className="w-3 h-3" />
                           <span>{formatCurrency(tradeBudget)} budget</span>
                           {laborCost > 0 && <span className="text-gray-300">|</span>}
@@ -1059,7 +1059,7 @@ function ZoneDetailPanel({
                         </div>
                       )}
                       {(trade.startDate || trade.endDate) && (
-                        <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                        <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
                           <Calendar className="w-3 h-3" />
                           <span>{formatDate(trade.startDate)}{trade.startDate && trade.endDate ? ' - ' : ''}{formatDate(trade.endDate)}</span>
                         </div>
@@ -1070,11 +1070,11 @@ function ZoneDetailPanel({
                           {tasks.map((task: any) => (
                             <div key={task.id} className="flex items-center gap-1.5 text-[11px]">
                               {task.done ? (
-                                <CheckSquare className="w-3 h-3 text-brand-500 flex-shrink-0" />
+                                <CheckSquare className="w-3 h-3 text-brand-500 flex-shrink-0 dark:text-blue-300" />
                               ) : (
                                 <Square className="w-3 h-3 text-gray-300 flex-shrink-0" />
                               )}
-                              <span className={task.done ? 'text-gray-400 line-through' : 'text-gray-600'}>{task.name}</span>
+                              <span className={task.done ? 'text-gray-400 line-through dark:text-gray-500' : 'text-gray-600 dark:text-gray-300'}>{task.name}</span>
                             </div>
                           ))}
                         </div>
@@ -1083,10 +1083,10 @@ function ZoneDetailPanel({
                   )}
 
                   {/* Actions */}
-                  <div className="flex items-center gap-3 mt-3 pt-2.5 border-t border-gray-100">
+                  <div className="flex items-center gap-3 mt-3 pt-2.5 border-t border-gray-100 dark:border-white/10">
                     <button
                       onClick={() => onSelectTrade(trade.id)}
-                      className="flex items-center gap-1.5 text-sm font-semibold text-brand-600 hover:text-brand-700 transition-colors"
+                      className="flex items-center gap-1.5 text-sm font-semibold text-brand-600 hover:text-brand-700 transition-colors dark:text-blue-300"
                     >
                       <ChevronRight className="w-4 h-4" />
                       View Details
@@ -1103,7 +1103,7 @@ function ZoneDetailPanel({
                     {canRate && (
                       <button
                         onClick={() => onSelectTrade(trade.id)}
-                        className="flex items-center gap-1.5 text-sm font-semibold text-amber-600 hover:text-amber-700 transition-colors ml-auto"
+                        className="flex items-center gap-1.5 text-sm font-semibold text-amber-600 hover:text-amber-700 transition-colors ml-auto dark:text-amber-300"
                       >
                         <Star className="w-4 h-4" />
                         Rate
@@ -1118,23 +1118,23 @@ function ZoneDetailPanel({
 
         {/* Zone Budget Summary */}
         {(zoneStats.allocated > 0) && (
-          <div className="mx-4 mb-4 bg-gray-50 rounded-xl p-4 border border-gray-100">
-            <h4 className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Zone Budget</h4>
+          <div className="mx-4 mb-4 bg-gray-50 rounded-xl p-4 border border-gray-100 dark:bg-white/[0.02] dark:border-white/10">
+            <h4 className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2 dark:text-gray-500">Zone Budget</h4>
             <div className="space-y-1.5">
               <div className="flex justify-between text-sm">
-                <span className="text-gray-500">Total</span>
-                <span className="font-semibold text-gray-900">{formatCurrency(zoneStats.allocated)}</span>
+                <span className="text-gray-500 dark:text-gray-400">Total</span>
+                <span className="font-semibold text-gray-900 dark:text-white">{formatCurrency(zoneStats.allocated)}</span>
               </div>
               {zoneStats.totalLabor > 0 && (
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Labor</span>
-                  <span className="font-medium text-gray-700">{formatCurrency(zoneStats.totalLabor)}</span>
+                  <span className="text-gray-500 dark:text-gray-400">Labor</span>
+                  <span className="font-medium text-gray-700 dark:text-gray-200">{formatCurrency(zoneStats.totalLabor)}</span>
                 </div>
               )}
               {zoneStats.totalMaterials > 0 && (
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Materials</span>
-                  <span className="font-medium text-gray-700">{formatCurrency(zoneStats.totalMaterials)}</span>
+                  <span className="text-gray-500 dark:text-gray-400">Materials</span>
+                  <span className="font-medium text-gray-700 dark:text-gray-200">{formatCurrency(zoneStats.totalMaterials)}</span>
                 </div>
               )}
             </div>
@@ -1324,16 +1324,16 @@ function TradeDetailPanelInner({
 
       {/* Panel */}
       <div
-        className="fixed right-0 top-0 bottom-0 w-full max-w-md bg-white shadow-2xl z-50 overflow-y-auto"
+        className="fixed right-0 top-0 bottom-0 w-full max-w-md bg-white shadow-2xl z-50 overflow-y-auto dark:bg-white/5 dark:backdrop-blur-sm"
         style={{ animation: 'slideInRight 0.25s ease-out' }}
       >
         {/* Header */}
-        <div className="sticky top-0 bg-white z-10 border-b border-gray-100">
+        <div className="sticky top-0 bg-white z-10 border-b border-gray-100 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
           {/* Back button row */}
           {onBack && (
             <button
               onClick={onBack}
-              className="flex items-center gap-1.5 px-4 pt-3 pb-1 text-xs font-medium text-brand-600 hover:text-brand-700 transition-colors"
+              className="flex items-center gap-1.5 px-4 pt-3 pb-1 text-xs font-medium text-brand-600 hover:text-brand-700 transition-colors dark:text-blue-300"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
               Back to Zone
@@ -1342,22 +1342,22 @@ function TradeDetailPanelInner({
           <div className="flex items-center justify-between p-4 pt-2">
             <div className="flex items-center gap-2 min-w-0">
               <span className="text-lg">{emoji}</span>
-              <h2 className="text-lg font-bold text-gray-900 truncate">{trade.trade}</h2>
+              <h2 className="text-lg font-bold text-gray-900 truncate dark:text-white">{trade.trade}</h2>
               {subName && subProfileId && (
                 <button
                   onClick={() => navigateToSub(`/dashboard/subs/${subProfileId}`)}
-                  className="text-sm text-brand-600 hover:text-brand-700 truncate hidden sm:inline transition-colors hover:underline"
+                  className="text-sm text-brand-600 hover:text-brand-700 truncate hidden sm:inline transition-colors hover:underline dark:text-blue-300"
                 >
                   - {subName}
                 </button>
               )}
               {subName && !subProfileId && (
-                <span className="text-sm text-gray-400 truncate hidden sm:inline">- {subName}</span>
+                <span className="text-sm text-gray-400 truncate hidden sm:inline dark:text-gray-500">- {subName}</span>
               )}
             </div>
             <button
               onClick={onClose}
-              className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0"
+              className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0 dark:hover:bg-white/10 dark:text-gray-500 dark:hover:text-gray-300"
             >
               <X className="w-5 h-5" />
             </button>
@@ -1368,28 +1368,28 @@ function TradeDetailPanelInner({
         <div className="p-4 space-y-5">
           {/* Status */}
           <div>
-            <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2 block">Status</label>
+            <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2 block dark:text-gray-500">Status</label>
             <div className="relative">
               <button
                 onClick={() => setStatusOpen(!statusOpen)}
-                className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-lg text-sm hover:bg-gray-50 transition-colors w-full"
+                className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-lg text-sm hover:bg-gray-50 transition-colors w-full dark:border-white/10 dark:hover:bg-white/10"
               >
                 <span className={`w-2.5 h-2.5 rounded-full ${statusCfg.dot}`} />
-                <span className="font-medium text-gray-700">{statusCfg.label}</span>
+                <span className="font-medium text-gray-700 dark:text-gray-200">{statusCfg.label}</span>
               </button>
               {statusOpen && (
                 <>
                   <div className="fixed inset-0 z-10" onClick={() => setStatusOpen(false)} />
-                  <div className="absolute left-0 top-full mt-1 z-20 bg-white rounded-lg shadow-lg border border-gray-200 py-1 w-full">
+                  <div className="absolute left-0 top-full mt-1 z-20 bg-white rounded-lg shadow-lg border border-gray-200 py-1 w-full dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
                     {TRADE_STATUSES.map((s) => {
                       const c = TRADE_STATUS[s];
                       return (
                         <button
                           key={s}
                           onClick={() => updateTradeStatus.mutate(s)}
-                          className={`flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-gray-50 transition-colors ${
+                          className={`flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-gray-50 transition-colors dark:hover:bg-white/10${
                             s === trade.status ? 'font-semibold bg-gray-50' : ''
-                          }`}
+                          } dark:hover:bg-white/10`}
                         >
                           <span className={`w-2.5 h-2.5 rounded-full ${c.dot}`} />
                           {c.label}
@@ -1404,35 +1404,35 @@ function TradeDetailPanelInner({
 
           {/* Subcontractor */}
           <div>
-            <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2 block">Subcontractor</label>
+            <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2 block dark:text-gray-500">Subcontractor</label>
             {subName ? (
-              <div className="bg-gray-50 rounded-lg p-3">
+              <div className="bg-gray-50 rounded-lg p-3 dark:bg-white/[0.02]">
                 {subProfileId ? (
                   <button
                     onClick={() => navigateToSub(`/dashboard/subs/${subProfileId}`)}
-                    className="font-medium text-brand-600 hover:text-brand-700 text-sm hover:underline transition-colors"
+                    className="font-medium text-brand-600 hover:text-brand-700 text-sm hover:underline transition-colors dark:text-blue-300"
                   >
                     {subName}
                   </button>
                 ) : (
-                  <p className="font-medium text-gray-900 text-sm">{subName}</p>
+                  <p className="font-medium text-gray-900 text-sm dark:text-white">{subName}</p>
                 )}
                 {trade.assignedEmail && (
-                  <div className="flex items-center gap-1.5 mt-1 text-xs text-gray-500">
+                  <div className="flex items-center gap-1.5 mt-1 text-xs text-gray-500 dark:text-gray-400">
                     <Mail className="w-3 h-3" /> {trade.assignedEmail}
                   </div>
                 )}
                 {trade.assignedPhone && (
-                  <div className="flex items-center gap-1.5 mt-0.5 text-xs text-gray-500">
+                  <div className="flex items-center gap-1.5 mt-0.5 text-xs text-gray-500 dark:text-gray-400">
                     <Phone className="w-3 h-3" /> {trade.assignedPhone}
                   </div>
                 )}
                 {/* Rating section */}
                 {canRate && (
-                  <div className="mt-2 pt-2 border-t border-gray-200">
+                  <div className="mt-2 pt-2 border-t border-gray-200 dark:border-white/10">
                     <button
                       onClick={() => setShowRateModal(true)}
-                      className="flex items-center gap-1.5 text-xs font-medium text-amber-600 hover:text-amber-700 transition-colors"
+                      className="flex items-center gap-1.5 text-xs font-medium text-amber-600 hover:text-amber-700 transition-colors dark:text-amber-300"
                     >
                       <Star className="w-3.5 h-3.5" />
                       Rate Performance
@@ -1450,7 +1450,7 @@ function TradeDetailPanelInner({
                         <span className={`text-xs font-semibold ${subScore >= 4 ? 'text-green-600' : subScore >= 3 ? 'text-amber-500' : 'text-red-500'}`}>
                           {subScore.toFixed(1)}
                         </span>
-                        <span className="text-[10px] text-gray-400">({totalRatings})</span>
+                        <span className="text-[10px] text-gray-400 dark:text-gray-500">({totalRatings})</span>
                       </div>
                     )}
                   </div>
@@ -1459,7 +1459,7 @@ function TradeDetailPanelInner({
             ) : (
               <button
                 onClick={() => onInviteSub?.(trade.id, trade.trade)}
-                className="flex items-center gap-2 w-full px-3 py-3 border-2 border-dashed border-gray-200 rounded-lg text-sm text-brand-600 font-medium hover:border-brand-300 hover:bg-brand-50/50 transition-all"
+                className="flex items-center gap-2 w-full px-3 py-3 border-2 border-dashed border-gray-200 rounded-lg text-sm text-brand-600 font-medium hover:border-brand-300 hover:bg-brand-50/50 transition-all dark:border-white/10 dark:text-blue-300"
               >
                 <UserPlus className="w-4 h-4" />
                 Invite Sub
@@ -1472,9 +1472,9 @@ function TradeDetailPanelInner({
 
           {/* Schedule */}
           {(trade.startDate || trade.endDate) && (
-            <div className="bg-gray-50 rounded-lg p-3">
-              <label className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Schedule</label>
-              <p className="text-sm font-medium text-gray-700 mt-0.5">
+            <div className="bg-gray-50 rounded-lg p-3 dark:bg-white/[0.02]">
+              <label className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider dark:text-gray-500">Schedule</label>
+              <p className="text-sm font-medium text-gray-700 mt-0.5 dark:text-gray-200">
                 {formatDate(trade.startDate)}{trade.startDate && trade.endDate ? ' - ' : ''}{formatDate(trade.endDate)}
               </p>
             </div>
@@ -1483,13 +1483,13 @@ function TradeDetailPanelInner({
           {/* Tasks */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
+              <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider dark:text-gray-500">
                 Tasks ({doneTasks}/{tasks.length})
               </label>
             </div>
 
             {tasks.length > 0 && (
-              <div className="h-2 bg-gray-100 rounded-full overflow-hidden mb-3">
+              <div className="h-2 bg-gray-100 rounded-full overflow-hidden mb-3 dark:bg-white/10">
                 <div
                   className="h-full rounded-full transition-all duration-500"
                   style={{
@@ -1504,14 +1504,14 @@ function TradeDetailPanelInner({
               {tasks.map((task: any) => (
                 <label
                   key={task.id}
-                  className="flex items-start gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors group"
+                  className="flex items-start gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors group dark:hover:bg-white/10"
                 >
                   <button
                     onClick={() => toggleTask.mutate({ taskId: task.id, done: !task.done })}
                     className="flex-shrink-0 mt-0.5"
                   >
                     {task.done ? (
-                      <CheckSquare className="w-[18px] h-[18px] text-brand-500" />
+                      <CheckSquare className="w-[18px] h-[18px] text-brand-500 dark:text-blue-300" />
                     ) : (
                       <Square className="w-[18px] h-[18px] text-gray-300 group-hover:text-gray-400 transition-colors" />
                     )}
@@ -1533,12 +1533,12 @@ function TradeDetailPanelInner({
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && newTask.trim()) addTask.mutate(newTask.trim());
                 }}
-                className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
+                className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none dark:border-white/10 dark:focus:ring-blue-400 dark:focus:border-blue-400"
               />
               <button
                 onClick={() => newTask.trim() && addTask.mutate(newTask.trim())}
                 disabled={!newTask.trim() || addTask.isPending}
-                className="p-2 text-brand-600 hover:bg-brand-50 rounded-lg transition-colors disabled:opacity-40"
+                className="p-2 text-brand-600 hover:bg-brand-50 rounded-lg transition-colors disabled:opacity-40 dark:text-blue-300 dark:hover:bg-blue-500/20"
               >
                 <Plus className="w-4 h-4" />
               </button>
@@ -1551,18 +1551,18 @@ function TradeDetailPanelInner({
           {/* Trade messages */}
           {tradeMessages.length > 0 && (
             <div>
-              <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1">
+              <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1 dark:text-gray-500">
                 <MessageSquare className="w-3 h-3" />
                 Messages ({tradeMessages.length})
               </label>
               <div className="space-y-2 max-h-48 overflow-y-auto">
                 {tradeMessages.map((m: any) => (
-                  <div key={m.id} className="bg-gray-50 rounded-lg p-2.5">
+                  <div key={m.id} className="bg-gray-50 rounded-lg p-2.5 dark:bg-white/[0.02]">
                     <div className="flex items-center gap-1.5 mb-0.5">
-                      <span className="text-xs font-medium text-gray-700">{m.sender?.businessName || 'Unknown'}</span>
-                      <span className="text-[10px] text-gray-400">{formatTime(m.createdAt)}</span>
+                      <span className="text-xs font-medium text-gray-700 dark:text-gray-200">{m.sender?.businessName || 'Unknown'}</span>
+                      <span className="text-[10px] text-gray-400 dark:text-gray-500">{formatTime(m.createdAt)}</span>
                     </div>
-                    <p className="text-xs text-gray-600">{m.message}</p>
+                    <p className="text-xs text-gray-600 dark:text-gray-300">{m.message}</p>
                   </div>
                 ))}
               </div>
@@ -1571,8 +1571,8 @@ function TradeDetailPanelInner({
 
           {/* Notes */}
           <div>
-            <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2 block">Notes</label>
-            <div className="bg-gray-50 rounded-lg p-3 text-sm text-gray-400 italic min-h-[48px]">
+            <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2 block dark:text-gray-500">Notes</label>
+            <div className="bg-gray-50 rounded-lg p-3 text-sm text-gray-400 italic min-h-[48px] dark:bg-white/[0.02] dark:text-gray-500">
               {trade.notes || 'No notes for this trade.'}
             </div>
           </div>
@@ -1644,52 +1644,52 @@ function TradeBudgetEditor({ trade, projectId }: { trade: any; projectId: string
 
   return (
     <div>
-      <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2 block">
+      <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2 block dark:text-gray-500">
         Budget & Labor
       </label>
-      <div className="bg-gray-50 rounded-lg p-3 space-y-2.5">
+      <div className="bg-gray-50 rounded-lg p-3 space-y-2.5 dark:bg-white/[0.02]">
         <div className="grid grid-cols-2 gap-2">
           <div>
-            <label className="text-[10px] text-gray-400 font-medium">Labor Hours</label>
+            <label className="text-[10px] text-gray-400 font-medium dark:text-gray-500">Labor Hours</label>
             <input
               type="number"
               value={laborHours}
               onChange={(e) => setLaborHours(e.target.value)}
               onBlur={handleBlur}
               placeholder="0"
-              className="w-full mt-0.5 px-2 py-1.5 text-sm border border-gray-200 rounded-md focus:ring-1 focus:ring-brand-500 focus:border-brand-500 outline-none bg-white"
+              className="w-full mt-0.5 px-2 py-1.5 text-sm border border-gray-200 rounded-md focus:ring-1 focus:ring-brand-500 focus:border-brand-500 outline-none bg-white dark:border-white/10 dark:focus:ring-blue-400 dark:focus:border-blue-400 dark:bg-white/5 dark:backdrop-blur-sm"
             />
           </div>
           <div>
-            <label className="text-[10px] text-gray-400 font-medium">Rate $/hr</label>
+            <label className="text-[10px] text-gray-400 font-medium dark:text-gray-500">Rate $/hr</label>
             <input
               type="number"
               value={laborRate}
               onChange={(e) => setLaborRate(e.target.value)}
               onBlur={handleBlur}
               placeholder="0"
-              className="w-full mt-0.5 px-2 py-1.5 text-sm border border-gray-200 rounded-md focus:ring-1 focus:ring-brand-500 focus:border-brand-500 outline-none bg-white"
+              className="w-full mt-0.5 px-2 py-1.5 text-sm border border-gray-200 rounded-md focus:ring-1 focus:ring-brand-500 focus:border-brand-500 outline-none bg-white dark:border-white/10 dark:focus:ring-blue-400 dark:focus:border-blue-400 dark:bg-white/5 dark:backdrop-blur-sm"
             />
           </div>
         </div>
         <div className="flex items-center justify-between text-xs">
-          <span className="text-gray-400">Labor Cost</span>
-          <span className="font-medium text-gray-700">{formatCurrency(laborCost)}</span>
+          <span className="text-gray-400 dark:text-gray-500">Labor Cost</span>
+          <span className="font-medium text-gray-700 dark:text-gray-200">{formatCurrency(laborCost)}</span>
         </div>
         <div>
-          <label className="text-[10px] text-gray-400 font-medium">Materials Budget</label>
+          <label className="text-[10px] text-gray-400 font-medium dark:text-gray-500">Materials Budget</label>
           <input
             type="number"
             value={materialsBudget}
             onChange={(e) => setMaterialsBudget(e.target.value)}
             onBlur={handleBlur}
             placeholder="0"
-            className="w-full mt-0.5 px-2 py-1.5 text-sm border border-gray-200 rounded-md focus:ring-1 focus:ring-brand-500 focus:border-brand-500 outline-none bg-white"
+            className="w-full mt-0.5 px-2 py-1.5 text-sm border border-gray-200 rounded-md focus:ring-1 focus:ring-brand-500 focus:border-brand-500 outline-none bg-white dark:border-white/10 dark:focus:ring-blue-400 dark:focus:border-blue-400 dark:bg-white/5 dark:backdrop-blur-sm"
           />
         </div>
-        <div className="flex items-center justify-between text-xs pt-1.5 border-t border-gray-200">
-          <span className="font-semibold text-gray-600">Trade Total</span>
-          <span className="font-bold text-gray-900">{formatCurrency(tradeTotal)}</span>
+        <div className="flex items-center justify-between text-xs pt-1.5 border-t border-gray-200 dark:border-white/10">
+          <span className="font-semibold text-gray-600 dark:text-gray-300">Trade Total</span>
+          <span className="font-bold text-gray-900 dark:text-white">{formatCurrency(tradeTotal)}</span>
         </div>
       </div>
     </div>
@@ -1756,12 +1756,12 @@ function TradeMaterialsSection({ tradeId, projectId }: { tradeId: string; projec
   return (
     <div>
       <div className="flex items-center justify-between mb-2">
-        <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider flex items-center gap-1">
+        <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider flex items-center gap-1 dark:text-gray-500">
           <Package className="w-3 h-3" />
           Materials
         </label>
         {materialsTotal > 0 && (
-          <span className="text-xs font-semibold text-gray-700">{formatCurrency(materialsTotal)}</span>
+          <span className="text-xs font-semibold text-gray-700 dark:text-gray-200">{formatCurrency(materialsTotal)}</span>
         )}
       </div>
 
@@ -1782,13 +1782,13 @@ function TradeMaterialsSection({ tradeId, projectId }: { tradeId: string; projec
       )}
 
       {/* Add material row */}
-      <div className="bg-gray-50 rounded-lg p-2.5 space-y-2">
+      <div className="bg-gray-50 rounded-lg p-2.5 space-y-2 dark:bg-white/[0.02]">
         <input
           type="text"
           placeholder="Material name..."
           value={newName}
           onChange={(e) => setNewName(e.target.value)}
-          className="w-full px-2 py-1.5 text-xs border border-gray-200 rounded-md focus:ring-1 focus:ring-brand-500 focus:border-brand-500 outline-none bg-white"
+          className="w-full px-2 py-1.5 text-xs border border-gray-200 rounded-md focus:ring-1 focus:ring-brand-500 focus:border-brand-500 outline-none bg-white dark:border-white/10 dark:focus:ring-blue-400 dark:focus:border-blue-400 dark:bg-white/5 dark:backdrop-blur-sm"
         />
         <div className="flex gap-1.5">
           <input
@@ -1796,12 +1796,12 @@ function TradeMaterialsSection({ tradeId, projectId }: { tradeId: string; projec
             placeholder="Qty"
             value={newQty}
             onChange={(e) => setNewQty(e.target.value)}
-            className="w-16 px-2 py-1.5 text-xs border border-gray-200 rounded-md focus:ring-1 focus:ring-brand-500 focus:border-brand-500 outline-none bg-white"
+            className="w-16 px-2 py-1.5 text-xs border border-gray-200 rounded-md focus:ring-1 focus:ring-brand-500 focus:border-brand-500 outline-none bg-white dark:border-white/10 dark:focus:ring-blue-400 dark:focus:border-blue-400 dark:bg-white/5 dark:backdrop-blur-sm"
           />
           <select
             value={newUnit}
             onChange={(e) => setNewUnit(e.target.value)}
-            className="px-1.5 py-1.5 text-xs border border-gray-200 rounded-md focus:ring-1 focus:ring-brand-500 focus:border-brand-500 outline-none bg-white"
+            className="px-1.5 py-1.5 text-xs border border-gray-200 rounded-md focus:ring-1 focus:ring-brand-500 focus:border-brand-500 outline-none bg-white dark:border-white/10 dark:focus:ring-blue-400 dark:focus:border-blue-400 dark:bg-white/5 dark:backdrop-blur-sm"
           >
             {MATERIAL_UNITS.map((u) => (
               <option key={u} value={u}>{u}</option>
@@ -1812,7 +1812,7 @@ function TradeMaterialsSection({ tradeId, projectId }: { tradeId: string; projec
             placeholder="$/unit"
             value={newCost}
             onChange={(e) => setNewCost(e.target.value)}
-            className="w-20 px-2 py-1.5 text-xs border border-gray-200 rounded-md focus:ring-1 focus:ring-brand-500 focus:border-brand-500 outline-none bg-white"
+            className="w-20 px-2 py-1.5 text-xs border border-gray-200 rounded-md focus:ring-1 focus:ring-brand-500 focus:border-brand-500 outline-none bg-white dark:border-white/10 dark:focus:ring-blue-400 dark:focus:border-blue-400 dark:bg-white/5 dark:backdrop-blur-sm"
           />
           <button
             onClick={handleAdd}
@@ -1838,7 +1838,7 @@ function MaterialRow({
 }) {
   const total = (material.quantity || 0) * (material.unit_cost || 0);
   return (
-    <div className="flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-gray-50 group text-xs">
+    <div className="flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-gray-50 group text-xs dark:hover:bg-white/10">
       <button onClick={() => onTogglePurchased(!material.purchased)} className="flex-shrink-0">
         {material.purchased ? (
           <CheckSquare className="w-4 h-4 text-green-500" />
@@ -1849,11 +1849,11 @@ function MaterialRow({
       <span className={`flex-1 truncate font-medium ${material.purchased ? 'text-gray-400 line-through' : 'text-gray-700'}`}>
         {material.name}
       </span>
-      <span className="text-gray-400 flex-shrink-0">
+      <span className="text-gray-400 flex-shrink-0 dark:text-gray-500">
         {material.quantity} {material.unit}
       </span>
-      <span className="text-gray-400 flex-shrink-0">@${material.unit_cost}</span>
-      <span className="font-semibold text-gray-700 flex-shrink-0">{formatCurrency(total)}</span>
+      <span className="text-gray-400 flex-shrink-0 dark:text-gray-500">@${material.unit_cost}</span>
+      <span className="font-semibold text-gray-700 flex-shrink-0 dark:text-gray-200">{formatCurrency(total)}</span>
       <button
         onClick={onDelete}
         className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-600 transition-all flex-shrink-0"
@@ -1921,12 +1921,12 @@ function EditGCProjectModal({ project, projectId, onClose }: { project: any; pro
       <div className="fixed inset-0 bg-black/40 backdrop-blur-[2px] z-50" onClick={onClose} />
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
         <div
-          className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto"
+          className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto dark:bg-white/5 dark:backdrop-blur-sm"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="flex items-center justify-between p-5 border-b border-gray-100">
-            <h2 className="text-lg font-bold text-gray-900">Edit Project</h2>
-            <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors">
+          <div className="flex items-center justify-between p-5 border-b border-gray-100 dark:border-white/10">
+            <h2 className="text-lg font-bold text-gray-900 dark:text-white">Edit Project</h2>
+            <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors dark:hover:bg-white/10 dark:text-gray-500 dark:hover:text-gray-300">
               <X className="w-5 h-5" />
             </button>
           </div>
@@ -1934,64 +1934,64 @@ function EditGCProjectModal({ project, projectId, onClose }: { project: any; pro
           <div className="p-5 space-y-4">
             {/* Project Name */}
             <div>
-              <label className="text-xs font-medium text-gray-600 mb-1 block">Project Name</label>
+              <label className="text-xs font-medium text-gray-600 mb-1 block dark:text-gray-300">Project Name</label>
               <input
                 type="text"
                 value={form.name}
                 onChange={(e) => set('name', e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
+                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none dark:border-white/10 dark:focus:ring-blue-400 dark:focus:border-blue-400"
               />
             </div>
 
             {/* Customer */}
             <div>
-              <label className="text-xs font-medium text-gray-600 mb-1 block">Customer Name</label>
+              <label className="text-xs font-medium text-gray-600 mb-1 block dark:text-gray-300">Customer Name</label>
               <input
                 type="text"
                 value={form.customerName}
                 onChange={(e) => set('customerName', e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
+                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none dark:border-white/10 dark:focus:ring-blue-400 dark:focus:border-blue-400"
               />
             </div>
 
             {/* Address */}
             <div>
-              <label className="text-xs font-medium text-gray-600 mb-1 block">Address</label>
+              <label className="text-xs font-medium text-gray-600 mb-1 block dark:text-gray-300">Address</label>
               <input
                 type="text"
                 value={form.address}
                 onChange={(e) => set('address', e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
+                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none dark:border-white/10 dark:focus:ring-blue-400 dark:focus:border-blue-400"
               />
             </div>
 
             {/* City / State / Zip */}
             <div className="grid grid-cols-3 gap-3">
               <div>
-                <label className="text-xs font-medium text-gray-600 mb-1 block">City</label>
+                <label className="text-xs font-medium text-gray-600 mb-1 block dark:text-gray-300">City</label>
                 <input
                   type="text"
                   value={form.city}
                   onChange={(e) => set('city', e.target.value)}
-                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none dark:border-white/10 dark:focus:ring-blue-400 dark:focus:border-blue-400"
                 />
               </div>
               <div>
-                <label className="text-xs font-medium text-gray-600 mb-1 block">State</label>
+                <label className="text-xs font-medium text-gray-600 mb-1 block dark:text-gray-300">State</label>
                 <input
                   type="text"
                   value={form.state}
                   onChange={(e) => set('state', e.target.value)}
-                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none dark:border-white/10 dark:focus:ring-blue-400 dark:focus:border-blue-400"
                 />
               </div>
               <div>
-                <label className="text-xs font-medium text-gray-600 mb-1 block">Zip</label>
+                <label className="text-xs font-medium text-gray-600 mb-1 block dark:text-gray-300">Zip</label>
                 <input
                   type="text"
                   value={form.zip}
                   onChange={(e) => set('zip', e.target.value)}
-                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none dark:border-white/10 dark:focus:ring-blue-400 dark:focus:border-blue-400"
                 />
               </div>
             </div>
@@ -1999,32 +1999,32 @@ function EditGCProjectModal({ project, projectId, onClose }: { project: any; pro
             {/* Dates */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-xs font-medium text-gray-600 mb-1 block">Start Date</label>
+                <label className="text-xs font-medium text-gray-600 mb-1 block dark:text-gray-300">Start Date</label>
                 <input
                   type="date"
                   value={form.startDate ? form.startDate.slice(0, 10) : ''}
                   onChange={(e) => set('startDate', e.target.value)}
-                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none dark:border-white/10 dark:focus:ring-blue-400 dark:focus:border-blue-400"
                 />
               </div>
               <div>
-                <label className="text-xs font-medium text-gray-600 mb-1 block">Target End Date</label>
+                <label className="text-xs font-medium text-gray-600 mb-1 block dark:text-gray-300">Target End Date</label>
                 <input
                   type="date"
                   value={form.targetEndDate ? form.targetEndDate.slice(0, 10) : ''}
                   onChange={(e) => set('targetEndDate', e.target.value)}
-                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none dark:border-white/10 dark:focus:ring-blue-400 dark:focus:border-blue-400"
                 />
               </div>
             </div>
 
             {/* Status */}
             <div>
-              <label className="text-xs font-medium text-gray-600 mb-1 block">Status</label>
+              <label className="text-xs font-medium text-gray-600 mb-1 block dark:text-gray-300">Status</label>
               <select
                 value={form.status}
                 onChange={(e) => set('status', e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none bg-white"
+                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none bg-white dark:border-white/10 dark:focus:ring-blue-400 dark:focus:border-blue-400 dark:bg-white/5 dark:backdrop-blur-sm"
               >
                 {PROJECT_STATUSES.map((s) => (
                   <option key={s} value={s}>{STATUS_CONFIG[s]?.label || s}</option>
@@ -2035,42 +2035,42 @@ function EditGCProjectModal({ project, projectId, onClose }: { project: any; pro
             {/* Budget / Overhead / Profit */}
             <div className="grid grid-cols-3 gap-3">
               <div>
-                <label className="text-xs font-medium text-gray-600 mb-1 block">Budget ($)</label>
+                <label className="text-xs font-medium text-gray-600 mb-1 block dark:text-gray-300">Budget ($)</label>
                 <input
                   type="number"
                   value={form.budget}
                   onChange={(e) => set('budget', e.target.value)}
                   placeholder="0"
-                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none dark:border-white/10 dark:focus:ring-blue-400 dark:focus:border-blue-400"
                 />
               </div>
               <div>
-                <label className="text-xs font-medium text-gray-600 mb-1 block">Overhead %</label>
+                <label className="text-xs font-medium text-gray-600 mb-1 block dark:text-gray-300">Overhead %</label>
                 <input
                   type="number"
                   value={form.overheadPercent}
                   onChange={(e) => set('overheadPercent', e.target.value)}
                   placeholder="0"
-                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none dark:border-white/10 dark:focus:ring-blue-400 dark:focus:border-blue-400"
                 />
               </div>
               <div>
-                <label className="text-xs font-medium text-gray-600 mb-1 block">Profit %</label>
+                <label className="text-xs font-medium text-gray-600 mb-1 block dark:text-gray-300">Profit %</label>
                 <input
                   type="number"
                   value={form.profitPercent}
                   onChange={(e) => set('profitPercent', e.target.value)}
                   placeholder="0"
-                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none dark:border-white/10 dark:focus:ring-blue-400 dark:focus:border-blue-400"
                 />
               </div>
             </div>
           </div>
 
-          <div className="flex justify-end gap-2 p-5 border-t border-gray-100">
+          <div className="flex justify-end gap-2 p-5 border-t border-gray-100 dark:border-white/10">
             <button
               onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+              className="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors dark:text-gray-300 dark:bg-white/10 dark:hover:bg-white/10"
             >
               Cancel
             </button>
@@ -2121,16 +2121,16 @@ function ProjectStatusDropdown({ projectId, currentStatus }: { projectId: string
       {open && (
         <>
           <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-          <div className="absolute left-0 top-full mt-1 z-20 bg-white rounded-lg shadow-lg border border-gray-200 py-1 min-w-[140px]">
+          <div className="absolute left-0 top-full mt-1 z-20 bg-white rounded-lg shadow-lg border border-gray-200 py-1 min-w-[140px] dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
             {PROJECT_STATUSES.map((s) => {
               const c = STATUS_CONFIG[s];
               return (
                 <button
                   key={s}
                   onClick={() => updateStatus.mutate(s)}
-                  className={`flex items-center gap-2 w-full px-3 py-2 text-xs hover:bg-gray-50 transition-colors ${
+                  className={`flex items-center gap-2 w-full px-3 py-2 text-xs hover:bg-gray-50 transition-colors dark:hover:bg-white/10${
                     s === currentStatus ? 'font-semibold' : ''
-                  }`}
+                  } dark:hover:bg-white/10`}
                 >
                   <span className={`w-2 h-2 rounded-full ${c.dot}`} />
                   {c.label}
@@ -2209,14 +2209,14 @@ function TradeColumn({ trade, projectId, onInviteSub }: { trade: any; projectId:
   });
 
   return (
-    <div className={`w-72 flex-shrink-0 bg-white rounded-xl border border-gray-200 border-t-4 ${topColor} shadow-sm flex flex-col`}>
+    <div className={`w-72 flex-shrink-0 bg-white rounded-xl border border-gray-200 border-t-4 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10${topColor} shadow-sm flex flex-col dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10 dark:shadow-black/30`}>
       <div className="p-4 pb-3">
         <div className="flex items-center justify-between mb-1">
-          <h3 className="font-semibold text-gray-900 text-sm">{trade.trade}</h3>
+          <h3 className="font-semibold text-gray-900 text-sm dark:text-white">{trade.trade}</h3>
           <div className="relative">
             <button
               onClick={() => setStatusOpen(!statusOpen)}
-              className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700"
+              className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
             >
               <span className={`w-2 h-2 rounded-full ${statusCfg.dot}`} />
               {statusCfg.label}
@@ -2224,16 +2224,16 @@ function TradeColumn({ trade, projectId, onInviteSub }: { trade: any; projectId:
             {statusOpen && (
               <>
                 <div className="fixed inset-0 z-10" onClick={() => setStatusOpen(false)} />
-                <div className="absolute right-0 top-full mt-1 z-20 bg-white rounded-lg shadow-lg border border-gray-200 py-1 min-w-[130px]">
+                <div className="absolute right-0 top-full mt-1 z-20 bg-white rounded-lg shadow-lg border border-gray-200 py-1 min-w-[130px] dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
                   {TRADE_STATUSES.map((s) => {
                     const c = TRADE_STATUS[s];
                     return (
                       <button
                         key={s}
                         onClick={() => updateTradeStatus.mutate(s)}
-                        className={`flex items-center gap-2 w-full px-3 py-1.5 text-xs hover:bg-gray-50 transition-colors ${
+                        className={`flex items-center gap-2 w-full px-3 py-1.5 text-xs hover:bg-gray-50 transition-colors dark:hover:bg-white/10${
                           s === trade.status ? 'font-semibold' : ''
-                        }`}
+                        } dark:hover:bg-white/10`}
                       >
                         <span className={`w-2 h-2 rounded-full ${c.dot}`} />
                         {c.label}
@@ -2246,13 +2246,13 @@ function TradeColumn({ trade, projectId, onInviteSub }: { trade: any; projectId:
           </div>
         </div>
 
-        <div className="text-xs text-gray-500 mb-2">
+        <div className="text-xs text-gray-500 mb-2 dark:text-gray-400">
           {trade.assignedUserId || trade.assignedOrgId ? (
-            <span className="text-gray-700 font-medium">Assigned</span>
+            <span className="text-gray-700 font-medium dark:text-gray-200">Assigned</span>
           ) : (
             <button
               onClick={() => onInviteSub?.(trade.id, trade.trade)}
-              className="flex items-center gap-1 text-brand-600 hover:text-brand-700 font-medium"
+              className="flex items-center gap-1 text-brand-600 hover:text-brand-700 font-medium dark:text-blue-300"
             >
               <UserPlus className="w-3 h-3" />
               Invite Sub
@@ -2262,10 +2262,10 @@ function TradeColumn({ trade, projectId, onInviteSub }: { trade: any; projectId:
 
         {tradeTotal > 0 && (
           <div className="mb-1">
-            <div className="flex items-center justify-between text-xs text-gray-400 mb-1">
+            <div className="flex items-center justify-between text-xs text-gray-400 mb-1 dark:text-gray-500">
               <span>{tradeDone}/{tradeTotal} tasks</span>
             </div>
-            <div className="h-1 bg-gray-100 rounded-full overflow-hidden">
+            <div className="h-1 bg-gray-100 rounded-full overflow-hidden dark:bg-white/10">
               <div
                 className="h-full bg-brand-500 rounded-full transition-all"
                 style={{ width: `${tradeTotal > 0 ? (tradeDone / tradeTotal) * 100 : 0}%` }}
@@ -2283,7 +2283,7 @@ function TradeColumn({ trade, projectId, onInviteSub }: { trade: any; projectId:
               className="flex-shrink-0 mt-0.5"
             >
               {task.done ? (
-                <CheckSquare className="w-4 h-4 text-brand-500" />
+                <CheckSquare className="w-4 h-4 text-brand-500 dark:text-blue-300" />
               ) : (
                 <Square className="w-4 h-4 text-gray-300 group-hover:text-gray-400" />
               )}
@@ -2305,12 +2305,12 @@ function TradeColumn({ trade, projectId, onInviteSub }: { trade: any; projectId:
             onKeyDown={(e) => {
               if (e.key === 'Enter' && newTask.trim()) addTask.mutate(newTask.trim());
             }}
-            className="flex-1 px-2 py-1.5 text-xs border border-gray-200 rounded-lg focus:ring-1 focus:ring-brand-500 focus:border-brand-500 outline-none"
+            className="flex-1 px-2 py-1.5 text-xs border border-gray-200 rounded-lg focus:ring-1 focus:ring-brand-500 focus:border-brand-500 outline-none dark:border-white/10 dark:focus:ring-blue-400 dark:focus:border-blue-400"
           />
           <button
             onClick={() => newTask.trim() && addTask.mutate(newTask.trim())}
             disabled={!newTask.trim() || addTask.isPending}
-            className="px-2 py-1.5 text-xs font-medium text-brand-600 hover:bg-brand-50 rounded-lg transition-colors disabled:opacity-40"
+            className="px-2 py-1.5 text-xs font-medium text-brand-600 hover:bg-brand-50 rounded-lg transition-colors disabled:opacity-40 dark:text-blue-300 dark:hover:bg-blue-500/20"
           >
             <Plus className="w-3.5 h-3.5" />
           </button>
@@ -2320,8 +2320,8 @@ function TradeColumn({ trade, projectId, onInviteSub }: { trade: any; projectId:
       {/* Materials summary */}
       <BoardMaterialsSummary tradeId={trade.id} />
 
-      <div className="px-4 py-3 border-t border-gray-100 text-xs text-gray-400 space-y-0.5">
-        {trade.budget && <div className="font-medium text-gray-600">{formatCurrency(trade.budget)}</div>}
+      <div className="px-4 py-3 border-t border-gray-100 text-xs text-gray-400 space-y-0.5 dark:border-white/10 dark:text-gray-500">
+        {trade.budget && <div className="font-medium text-gray-600 dark:text-gray-300">{formatCurrency(trade.budget)}</div>}
         {(trade.startDate || trade.endDate) && (
           <div>
             {formatDate(trade.startDate)} {trade.startDate && trade.endDate ? ' - ' : ''} {formatDate(trade.endDate)}
@@ -2348,10 +2348,10 @@ function BoardMaterialsSummary({ tradeId }: { tradeId: string }) {
   const total = materials.reduce((s: number, m: any) => s + (m.total_cost || (m.quantity * m.unit_cost) || 0), 0);
 
   return (
-    <div className="px-4 py-2 border-t border-gray-100">
+    <div className="px-4 py-2 border-t border-gray-100 dark:border-white/10">
       <button
         onClick={() => setExpanded(!expanded)}
-        className="flex items-center justify-between w-full text-xs text-gray-500 hover:text-gray-700 transition-colors"
+        className="flex items-center justify-between w-full text-xs text-gray-500 hover:text-gray-700 transition-colors dark:text-gray-400 dark:hover:text-gray-200"
       >
         <span className="flex items-center gap-1">
           <Package className="w-3 h-3" />
@@ -2362,11 +2362,11 @@ function BoardMaterialsSummary({ tradeId }: { tradeId: string }) {
       {expanded && (
         <div className="mt-1.5 space-y-0.5">
           {materials.map((m: any) => (
-            <div key={m.id} className="flex items-center justify-between text-[11px] text-gray-500 py-0.5">
+            <div key={m.id} className="flex items-center justify-between text-[11px] text-gray-500 py-0.5 dark:text-gray-400">
               <span className={`truncate flex-1 ${m.purchased ? 'line-through text-gray-400' : ''}`}>
                 {m.purchased ? '\u2713 ' : ''}{m.name}
               </span>
-              <span className="ml-2 flex-shrink-0 font-medium text-gray-600">
+              <span className="ml-2 flex-shrink-0 font-medium text-gray-600 dark:text-gray-300">
                 {formatCurrency((m.quantity || 0) * (m.unit_cost || 0))}
               </span>
             </div>
@@ -2399,7 +2399,7 @@ function AddTradeColumn({ projectId }: { projectId: string }) {
     return (
       <button
         onClick={() => setOpen(true)}
-        className="w-72 flex-shrink-0 rounded-xl border-2 border-dashed border-gray-200 flex items-center justify-center gap-2 text-sm text-gray-400 hover:text-gray-600 hover:border-gray-300 transition-colors min-h-[200px]"
+        className="w-72 flex-shrink-0 rounded-xl border-2 border-dashed border-gray-200 flex items-center justify-center gap-2 text-sm text-gray-400 hover:text-gray-600 hover:border-gray-300 transition-colors min-h-[200px] dark:border-white/10 dark:text-gray-500 dark:hover:text-gray-300"
       >
         <Plus className="w-5 h-5" />
         Add Scope
@@ -2408,12 +2408,12 @@ function AddTradeColumn({ projectId }: { projectId: string }) {
   }
 
   return (
-    <div className="w-72 flex-shrink-0 bg-white rounded-xl border border-gray-200 p-4">
-      <h3 className="font-medium text-sm text-gray-900 mb-3">Add Scope</h3>
+    <div className="w-72 flex-shrink-0 bg-white rounded-xl border border-gray-200 p-4 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
+      <h3 className="font-medium text-sm text-gray-900 mb-3 dark:text-white">Add Scope</h3>
       <select
         value={selectedTrade}
         onChange={(e) => setSelectedTrade(e.target.value)}
-        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white mb-3 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
+        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white mb-3 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none dark:border-white/10 dark:bg-white/5 dark:backdrop-blur-sm dark:focus:ring-blue-400 dark:focus:border-blue-400"
       >
         <option value="">Select scope...</option>
         {TRADE_OPTIONS.map((t) => (
@@ -2423,7 +2423,7 @@ function AddTradeColumn({ projectId }: { projectId: string }) {
       <div className="flex gap-2">
         <button
           onClick={() => { setOpen(false); setSelectedTrade(''); }}
-          className="flex-1 px-3 py-2 text-xs font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+          className="flex-1 px-3 py-2 text-xs font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors dark:text-gray-300 dark:bg-white/10 dark:hover:bg-white/10"
         >
           Cancel
         </button>
@@ -2494,12 +2494,12 @@ function ProjectBanner({ projectId, project }: { projectId: string; project: any
             <div className="flex-1 min-w-0">
               <p className={`text-sm font-medium ${cfg.textColor}`}>{bannerMessage}</p>
               {bannerUpdatedAt && (
-                <p className="text-xs text-gray-400 mt-1">{formatTime(bannerUpdatedAt)}</p>
+                <p className="text-xs text-gray-400 mt-1 dark:text-gray-500">{formatTime(bannerUpdatedAt)}</p>
               )}
             </div>
             <button
               onClick={() => { setIsEditing(true); setBannerText(bannerMessage); setBannerType(currentType); }}
-              className="text-xs text-gray-500 hover:text-gray-700 font-medium flex-shrink-0 px-2 py-1 rounded hover:bg-white/50 transition-colors"
+              className="text-xs text-gray-500 hover:text-gray-700 font-medium flex-shrink-0 px-2 py-1 rounded hover:bg-white/50 transition-colors dark:text-gray-400 dark:hover:text-gray-200"
             >
               Edit
             </button>
@@ -2513,11 +2513,11 @@ function ProjectBanner({ projectId, project }: { projectId: string; project: any
   if (isEditing) {
     return (
       <div className="mb-5">
-        <div className="bg-white rounded-xl border border-gray-200 p-4">
+        <div className="bg-white rounded-xl border border-gray-200 p-4 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
           <div className="flex items-center gap-2 mb-3">
-            <Megaphone className="w-4 h-4 text-gray-400" />
-            <h3 className="text-sm font-semibold text-gray-900">Set Project Banner</h3>
-            <span className="text-xs text-gray-400">All subs will see this</span>
+            <Megaphone className="w-4 h-4 text-gray-400 dark:text-gray-500" />
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Set Project Banner</h3>
+            <span className="text-xs text-gray-400 dark:text-gray-500">All subs will see this</span>
           </div>
 
           {/* Type selector */}
@@ -2548,7 +2548,7 @@ function ProjectBanner({ projectId, project }: { projectId: string; project: any
             value={bannerText}
             onChange={(e) => setBannerText(e.target.value)}
             rows={2}
-            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none resize-none mb-3"
+            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none resize-none mb-3 dark:border-white/10 dark:focus:ring-blue-400 dark:focus:border-blue-400"
             autoFocus
           />
 
@@ -2564,7 +2564,7 @@ function ProjectBanner({ projectId, project }: { projectId: string; project: any
             )}
             <button
               onClick={() => { setIsEditing(false); setBannerText(''); }}
-              className="px-3 py-1.5 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+              className="px-3 py-1.5 text-sm text-gray-500 hover:text-gray-700 transition-colors dark:text-gray-400 dark:hover:text-gray-200"
             >
               Cancel
             </button>
@@ -2586,7 +2586,7 @@ function ProjectBanner({ projectId, project }: { projectId: string; project: any
     <div className="mb-5">
       <button
         onClick={() => setIsEditing(true)}
-        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-white/10"
       >
         <Plus className="w-3.5 h-3.5" />
         Set Project Banner

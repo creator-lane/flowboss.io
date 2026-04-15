@@ -66,11 +66,11 @@ function Section({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-      <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
+      <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-white/10">
         <div className="flex items-center gap-2">
-          <Icon className="w-4 h-4 text-neutral-400" />
-          <h2 className="text-sm font-semibold text-neutral-900">{title}</h2>
+          <Icon className="w-4 h-4 text-neutral-400 dark:text-gray-500" />
+          <h2 className="text-sm font-semibold text-neutral-900 dark:text-white">{title}</h2>
         </div>
         {action}
       </div>
@@ -258,10 +258,10 @@ export function JobDetailPage() {
     return (
       <div className="p-4 sm:p-6 lg:p-8 max-w-4xl mx-auto">
         <div className="animate-pulse space-y-6">
-          <div className="h-6 bg-gray-200 rounded w-32" />
-          <div className="h-8 bg-gray-200 rounded w-64" />
-          <div className="h-40 bg-gray-100 rounded-xl" />
-          <div className="h-40 bg-gray-100 rounded-xl" />
+          <div className="h-6 bg-gray-200 rounded w-32 dark:bg-white/10" />
+          <div className="h-8 bg-gray-200 rounded w-64 dark:bg-white/10" />
+          <div className="h-40 bg-gray-100 rounded-xl dark:bg-white/10" />
+          <div className="h-40 bg-gray-100 rounded-xl dark:bg-white/10" />
         </div>
       </div>
     );
@@ -272,10 +272,10 @@ export function JobDetailPage() {
       <div className="p-4 sm:p-6 lg:p-8 max-w-4xl mx-auto">
         <div className="text-center py-20">
           <AlertTriangle className="w-10 h-10 text-neutral-300 mx-auto mb-3" />
-          <p className="text-lg font-medium text-neutral-500">Job not found</p>
+          <p className="text-lg font-medium text-neutral-500 dark:text-gray-400">Job not found</p>
           <Link
             to="/dashboard/schedule"
-            className="text-sm text-brand-500 hover:text-brand-600 mt-2 inline-block"
+            className="text-sm text-brand-500 hover:text-brand-600 mt-2 inline-block dark:text-blue-300"
           >
             Back to schedule
           </Link>
@@ -290,7 +290,7 @@ export function JobDetailPage() {
       <button
         type="button"
         onClick={() => navigate(-1)}
-        className="inline-flex items-center gap-1.5 text-sm text-neutral-500 hover:text-neutral-700 transition-colors"
+        className="inline-flex items-center gap-1.5 text-sm text-neutral-500 hover:text-neutral-700 transition-colors dark:text-gray-400"
       >
         <ArrowLeft className="w-4 h-4" />
         Back
@@ -298,22 +298,22 @@ export function JobDetailPage() {
 
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-neutral-900">{customerName}</h1>
+        <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">{customerName}</h1>
         {address && (
-          <p className="text-sm text-neutral-500 mt-1 flex items-center gap-1.5">
-            <MapPin className="w-4 h-4 text-neutral-400" />
+          <p className="text-sm text-neutral-500 mt-1 flex items-center gap-1.5 dark:text-gray-400">
+            <MapPin className="w-4 h-4 text-neutral-400 dark:text-gray-500" />
             {address}
           </p>
         )}
         {job.description && (
-          <p className="text-sm text-neutral-400 mt-1">{job.description}</p>
+          <p className="text-sm text-neutral-400 mt-1 dark:text-gray-500">{job.description}</p>
         )}
       </div>
 
       {/* Status section */}
-      <div className="bg-white rounded-xl border border-gray-200 p-5">
+      <div className="bg-white rounded-xl border border-gray-200 p-5 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-sm font-semibold text-neutral-900">Status</h2>
+          <h2 className="text-sm font-semibold text-neutral-900 dark:text-white">Status</h2>
           {(() => {
             const cfg = STATUS_BADGE[job.status] || STATUS_BADGE.SCHEDULED;
             const Icon = STATUS_ICONS[job.status] || CalendarDays;
@@ -350,7 +350,7 @@ export function JobDetailPage() {
                       : isNext
                         ? 'bg-brand-50 text-brand-600 hover:bg-brand-100 border border-brand-200'
                         : 'bg-gray-50 text-neutral-300 cursor-not-allowed'
-                }`}
+                } dark:text-blue-300`}
               >
                 <StIcon className="w-3.5 h-3.5" />
                 {STATUS_LABELS[s]}
@@ -362,7 +362,7 @@ export function JobDetailPage() {
           })}
         </div>
         {statusMutation.isPending && (
-          <p className="text-xs text-neutral-400 mt-2">Updating status...</p>
+          <p className="text-xs text-neutral-400 mt-2 dark:text-gray-500">Updating status...</p>
         )}
       </div>
 
@@ -376,7 +376,7 @@ export function JobDetailPage() {
               <button
                 type="button"
                 onClick={initScheduleEdit}
-                className="p-1.5 rounded-md hover:bg-gray-100 text-neutral-400 hover:text-neutral-600 transition-colors"
+                className="p-1.5 rounded-md hover:bg-gray-100 text-neutral-400 hover:text-neutral-600 transition-colors dark:hover:bg-white/10 dark:text-gray-500"
                 aria-label="Edit schedule"
               >
                 <Pencil className="w-3.5 h-3.5" />
@@ -387,31 +387,31 @@ export function JobDetailPage() {
           {editingSchedule ? (
             <div className="space-y-3">
               <div>
-                <label className="text-xs text-neutral-400 uppercase tracking-wider mb-1 block">Date</label>
+                <label className="text-xs text-neutral-400 uppercase tracking-wider mb-1 block dark:text-gray-500">Date</label>
                 <input
                   type="date"
                   value={scheduleDate}
                   onChange={(e) => setScheduleDate(e.target.value)}
-                  className="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 outline-none"
+                  className="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 outline-none dark:border-white/10 dark:focus:ring-blue-400"
                 />
               </div>
               <div className="flex gap-4">
                 <div className="flex-1">
-                  <label className="text-xs text-neutral-400 uppercase tracking-wider mb-1 block">Start Time</label>
+                  <label className="text-xs text-neutral-400 uppercase tracking-wider mb-1 block dark:text-gray-500">Start Time</label>
                   <input
                     type="time"
                     value={scheduleStartTime}
                     onChange={(e) => setScheduleStartTime(e.target.value)}
-                    className="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 outline-none"
+                    className="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 outline-none dark:border-white/10 dark:focus:ring-blue-400"
                   />
                 </div>
                 <div className="flex-1">
-                  <label className="text-xs text-neutral-400 uppercase tracking-wider mb-1 block">End Time</label>
+                  <label className="text-xs text-neutral-400 uppercase tracking-wider mb-1 block dark:text-gray-500">End Time</label>
                   <input
                     type="time"
                     value={scheduleEndTime}
                     onChange={(e) => setScheduleEndTime(e.target.value)}
-                    className="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 outline-none"
+                    className="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 outline-none dark:border-white/10 dark:focus:ring-blue-400"
                   />
                 </div>
               </div>
@@ -432,7 +432,7 @@ export function JobDetailPage() {
                 <button
                   type="button"
                   onClick={() => setEditingSchedule(false)}
-                  className="px-3 py-1.5 text-sm font-medium text-neutral-600 rounded-lg hover:bg-neutral-100 transition"
+                  className="px-3 py-1.5 text-sm font-medium text-neutral-600 rounded-lg hover:bg-neutral-100 transition dark:text-gray-300 dark:hover:bg-white/10"
                 >
                   Cancel
                 </button>
@@ -441,21 +441,21 @@ export function JobDetailPage() {
           ) : (
             <div className="space-y-3">
               <div>
-                <p className="text-xs text-neutral-400 uppercase tracking-wider mb-1">Date</p>
-                <p className="text-sm font-medium text-neutral-900">
+                <p className="text-xs text-neutral-400 uppercase tracking-wider mb-1 dark:text-gray-500">Date</p>
+                <p className="text-sm font-medium text-neutral-900 dark:text-white">
                   {formatDateTime(job.scheduledStart || job.scheduled_start)}
                 </p>
               </div>
               <div className="flex gap-6">
                 <div>
-                  <p className="text-xs text-neutral-400 uppercase tracking-wider mb-1">Start</p>
-                  <p className="text-sm font-medium text-neutral-700">
+                  <p className="text-xs text-neutral-400 uppercase tracking-wider mb-1 dark:text-gray-500">Start</p>
+                  <p className="text-sm font-medium text-neutral-700 dark:text-gray-200">
                     {formatTime(job.scheduledStart || job.scheduled_start) || '-'}
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-neutral-400 uppercase tracking-wider mb-1">End</p>
-                  <p className="text-sm font-medium text-neutral-700">
+                  <p className="text-xs text-neutral-400 uppercase tracking-wider mb-1 dark:text-gray-500">End</p>
+                  <p className="text-sm font-medium text-neutral-700 dark:text-gray-200">
                     {formatTime(job.scheduledEnd || job.scheduled_end) || '-'}
                   </p>
                 </div>
@@ -472,18 +472,18 @@ export function JobDetailPage() {
                 <Link
                   key={inv.id}
                   to={`/dashboard/invoices/${inv.id}`}
-                  className="flex items-center justify-between p-3 rounded-lg border border-gray-100 hover:bg-gray-50 transition-colors"
+                  className="flex items-center justify-between p-3 rounded-lg border border-gray-100 hover:bg-gray-50 transition-colors dark:border-white/10 dark:hover:bg-white/10"
                 >
                   <div>
-                    <p className="text-sm font-medium text-neutral-900">
+                    <p className="text-sm font-medium text-neutral-900 dark:text-white">
                       Invoice #{inv.invoiceNumber || inv.invoice_number || '-'}
                     </p>
-                    <p className="text-xs text-neutral-400">
+                    <p className="text-xs text-neutral-400 dark:text-gray-500">
                       {inv.status?.toUpperCase() || 'DRAFT'}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-semibold text-neutral-700">
+                    <span className="text-sm font-semibold text-neutral-700 dark:text-gray-200">
                       {formatCurrency(Number(inv.total || 0))}
                     </span>
                     <ChevronRight className="w-4 h-4 text-neutral-300" />
@@ -493,11 +493,11 @@ export function JobDetailPage() {
             </div>
           ) : (
             <div className="text-center py-4">
-              <p className="text-sm text-neutral-400 mb-3">No invoices for this job yet.</p>
+              <p className="text-sm text-neutral-400 mb-3 dark:text-gray-500">No invoices for this job yet.</p>
               <button
                 type="button"
                 onClick={() => setShowCreateInvoice(true)}
-                className="inline-flex items-center gap-1.5 px-4 py-2 bg-brand-50 text-brand-600 rounded-lg text-sm font-medium hover:bg-brand-100 transition-colors"
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-brand-50 text-brand-600 rounded-lg text-sm font-medium hover:bg-brand-100 transition-colors dark:bg-blue-500/10 dark:text-blue-300"
               >
                 <Plus className="w-4 h-4" />
                 Create Invoice
@@ -528,10 +528,10 @@ export function JobDetailPage() {
           }}
           placeholder="Add notes about this job..."
           rows={4}
-          className="w-full rounded-lg border border-gray-200 px-4 py-3 text-sm text-neutral-700 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent resize-y"
+          className="w-full rounded-lg border border-gray-200 px-4 py-3 text-sm text-neutral-700 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent resize-y dark:border-white/10 dark:text-gray-200 dark:focus:ring-blue-400"
         />
         {notesMutation.isPending && (
-          <p className="text-xs text-neutral-400 mt-1">Saving...</p>
+          <p className="text-xs text-neutral-400 mt-1 dark:text-gray-500">Saving...</p>
         )}
         {notesMutation.isSuccess && (
           <p className="text-xs text-status-completed mt-1">Saved</p>
@@ -545,7 +545,7 @@ export function JobDetailPage() {
             {photos.map((photo: any) => (
               <div
                 key={photo.id}
-                className="aspect-square rounded-lg overflow-hidden bg-gray-100"
+                className="aspect-square rounded-lg overflow-hidden bg-gray-100 dark:bg-white/10"
               >
                 <img
                   src={photo.url || photo.publicUrl || photo.public_url}
@@ -565,7 +565,7 @@ export function JobDetailPage() {
           type="button"
           onClick={() => duplicateMutation.mutate()}
           disabled={duplicateMutation.isPending}
-          className="inline-flex items-center gap-2 px-4 py-2.5 border border-neutral-200 text-neutral-700 rounded-lg text-sm font-medium hover:bg-neutral-50 transition-colors disabled:opacity-50"
+          className="inline-flex items-center gap-2 px-4 py-2.5 border border-neutral-200 text-neutral-700 rounded-lg text-sm font-medium hover:bg-neutral-50 transition-colors disabled:opacity-50 dark:border-white/10 dark:text-gray-200 dark:hover:bg-white/10"
         >
           {duplicateMutation.isPending ? (
             <Loader2 className="w-4 h-4 animate-spin" />
@@ -578,7 +578,7 @@ export function JobDetailPage() {
           type="button"
           onClick={handleDelete}
           disabled={deleteMutation.isPending}
-          className="inline-flex items-center gap-2 px-4 py-2.5 border border-red-200 text-red-600 rounded-lg text-sm font-medium hover:bg-red-50 transition-colors disabled:opacity-50"
+          className="inline-flex items-center gap-2 px-4 py-2.5 border border-red-200 text-red-600 rounded-lg text-sm font-medium hover:bg-red-50 transition-colors disabled:opacity-50 dark:border-red-500/30 dark:text-red-300"
         >
           <Trash2 className="w-4 h-4" />
           {deleteMutation.isPending ? 'Deleting...' : 'Delete Job'}

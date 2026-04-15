@@ -99,8 +99,8 @@ function StepTrade({
 }) {
   return (
     <div>
-      <h2 className="text-2xl font-bold text-gray-900 text-center mb-2">What's your trade?</h2>
-      <p className="text-gray-500 text-center mb-8">Select the trade that best describes your business.</p>
+      <h2 className="text-2xl font-bold text-gray-900 text-center mb-2 dark:text-white">What's your trade?</h2>
+      <p className="text-gray-500 text-center mb-8 dark:text-gray-400">Select the trade that best describes your business.</p>
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         {TRADES.map((t) => (
           <button
@@ -111,10 +111,10 @@ function StepTrade({
               data.trade === t.id
                 ? 'border-brand-500 bg-brand-50 ring-2 ring-brand-500'
                 : 'border-gray-200 hover:border-gray-300 bg-white'
-            }`}
+            } dark:bg-blue-500/10`}
           >
             <span className="text-2xl">{t.emoji}</span>
-            <span className="text-sm font-medium text-gray-900">{t.label}</span>
+            <span className="text-sm font-medium text-gray-900 dark:text-white">{t.label}</span>
           </button>
         ))}
       </div>
@@ -124,7 +124,7 @@ function StepTrade({
           placeholder="Enter your trade..."
           value={data.customTrade}
           onChange={(e) => onChange({ customTrade: e.target.value })}
-          className="mt-4 w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+          className="mt-4 w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:border-white/10 dark:focus:ring-blue-400 dark:focus:border-blue-400"
           autoFocus
         />
       )}
@@ -141,8 +141,8 @@ function StepTeamSize({
 }) {
   return (
     <div>
-      <h2 className="text-2xl font-bold text-gray-900 text-center mb-2">How big is your team?</h2>
-      <p className="text-gray-500 text-center mb-8">This helps us tailor the experience for you.</p>
+      <h2 className="text-2xl font-bold text-gray-900 text-center mb-2 dark:text-white">How big is your team?</h2>
+      <p className="text-gray-500 text-center mb-8 dark:text-gray-400">This helps us tailor the experience for you.</p>
       <div className="grid grid-cols-2 gap-4">
         {TEAM_SIZES.map((ts) => {
           const Icon = ts.icon;
@@ -155,10 +155,10 @@ function StepTeamSize({
                 data.teamSize === ts.id
                   ? 'border-brand-500 bg-brand-50 ring-2 ring-brand-500'
                   : 'border-gray-200 hover:border-gray-300 bg-white'
-              }`}
+              } dark:bg-blue-500/10`}
             >
               <Icon className={`w-8 h-8 ${data.teamSize === ts.id ? 'text-brand-500' : 'text-gray-400'}`} />
-              <span className="text-sm font-medium text-gray-900">{ts.label}</span>
+              <span className="text-sm font-medium text-gray-900 dark:text-white">{ts.label}</span>
             </button>
           );
         })}
@@ -176,11 +176,11 @@ function StepBusinessInfo({
 }) {
   return (
     <div>
-      <h2 className="text-2xl font-bold text-gray-900 text-center mb-2">Tell us about your business</h2>
-      <p className="text-gray-500 text-center mb-8">We'll use this to set up your account.</p>
+      <h2 className="text-2xl font-bold text-gray-900 text-center mb-2 dark:text-white">Tell us about your business</h2>
+      <p className="text-gray-500 text-center mb-8 dark:text-gray-400">We'll use this to set up your account.</p>
       <div className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-200">
             Business Name <span className="text-red-500">*</span>
           </label>
           <input
@@ -189,24 +189,24 @@ function StepBusinessInfo({
             value={data.businessName}
             onChange={(e) => onChange({ businessName: e.target.value })}
             placeholder="Acme Plumbing LLC"
-            className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+            className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:border-white/10 dark:focus:ring-blue-400 dark:focus:border-blue-400"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Phone Number <span className="text-gray-400">(optional)</span>
+          <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-200">
+            Phone Number <span className="text-gray-400 dark:text-gray-500">(optional)</span>
           </label>
           <input
             type="tel"
             value={data.phone}
             onChange={(e) => onChange({ phone: e.target.value })}
             placeholder="(555) 123-4567"
-            className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+            className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:border-white/10 dark:focus:ring-blue-400 dark:focus:border-blue-400"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Zip Code <span className="text-gray-400">(optional)</span>
+          <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-200">
+            Zip Code <span className="text-gray-400 dark:text-gray-500">(optional)</span>
           </label>
           <input
             type="text"
@@ -214,7 +214,7 @@ function StepBusinessInfo({
             onChange={(e) => onChange({ zip: e.target.value })}
             placeholder="90210"
             maxLength={10}
-            className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+            className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:border-white/10 dark:focus:ring-blue-400 dark:focus:border-blue-400"
           />
         </div>
       </div>
@@ -231,8 +231,8 @@ function StepGCRole({
 }) {
   return (
     <div>
-      <h2 className="text-2xl font-bold text-gray-900 text-center mb-2">How do you work with GCs?</h2>
-      <p className="text-gray-500 text-center mb-8">This helps us show you the right tools.</p>
+      <h2 className="text-2xl font-bold text-gray-900 text-center mb-2 dark:text-white">How do you work with GCs?</h2>
+      <p className="text-gray-500 text-center mb-8 dark:text-gray-400">This helps us show you the right tools.</p>
       <div className="space-y-3">
         {BUSINESS_ROLES.map((role) => (
           <button
@@ -243,10 +243,10 @@ function StepGCRole({
               data.businessRole === role.id
                 ? 'border-brand-500 bg-brand-50 ring-2 ring-brand-500'
                 : 'border-gray-200 hover:border-gray-300 bg-white'
-            }`}
+            } dark:bg-blue-500/10`}
           >
-            <div className="font-semibold text-gray-900">{role.label}</div>
-            <div className="text-sm text-gray-500 mt-1">{role.desc}</div>
+            <div className="font-semibold text-gray-900 dark:text-white">{role.label}</div>
+            <div className="text-sm text-gray-500 mt-1 dark:text-gray-400">{role.desc}</div>
           </button>
         ))}
       </div>
@@ -272,8 +272,8 @@ function StepPriorities({
 
   return (
     <div>
-      <h2 className="text-2xl font-bold text-gray-900 text-center mb-2">What matters most to you?</h2>
-      <p className="text-gray-500 text-center mb-8">Pick up to 3. This helps us personalize your experience.</p>
+      <h2 className="text-2xl font-bold text-gray-900 text-center mb-2 dark:text-white">What matters most to you?</h2>
+      <p className="text-gray-500 text-center mb-8 dark:text-gray-400">Pick up to 3. This helps us personalize your experience.</p>
       <div className="space-y-3">
         {PRIORITIES.map((p) => {
           const selected = data.priorities.includes(p);
@@ -286,7 +286,7 @@ function StepPriorities({
                 selected
                   ? 'border-brand-500 bg-brand-50 ring-2 ring-brand-500'
                   : 'border-gray-200 hover:border-gray-300 bg-white'
-              }`}
+              } dark:bg-blue-500/10`}
             >
               <div
                 className={`w-5 h-5 rounded flex items-center justify-center flex-shrink-0 ${
@@ -295,7 +295,7 @@ function StepPriorities({
               >
                 {selected && <Check className="w-3.5 h-3.5 text-white" />}
               </div>
-              <span className="text-sm font-medium text-gray-900">{p}</span>
+              <span className="text-sm font-medium text-gray-900 dark:text-white">{p}</span>
             </button>
           );
         })}
@@ -311,45 +311,45 @@ function StepComplete({ data }: { data: OnboardingData }) {
 
   return (
     <div className="text-center">
-      <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-        <Check className="w-8 h-8 text-green-600" />
+      <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 dark:bg-green-500/20">
+        <Check className="w-8 h-8 text-green-600 dark:text-green-300" />
       </div>
-      <h2 className="text-2xl font-bold text-gray-900 mb-2">You're all set!</h2>
-      <p className="text-gray-500 mb-8">Here's a summary of your setup.</p>
+      <h2 className="text-2xl font-bold text-gray-900 mb-2 dark:text-white">You're all set!</h2>
+      <p className="text-gray-500 mb-8 dark:text-gray-400">Here's a summary of your setup.</p>
 
-      <div className="bg-gray-50 rounded-xl p-6 text-left space-y-3 mb-6">
+      <div className="bg-gray-50 rounded-xl p-6 text-left space-y-3 mb-6 dark:bg-white/[0.02]">
         <div className="flex justify-between text-sm">
-          <span className="text-gray-500">Trade</span>
-          <span className="font-medium text-gray-900">{tradeName}</span>
+          <span className="text-gray-500 dark:text-gray-400">Trade</span>
+          <span className="font-medium text-gray-900 dark:text-white">{tradeName}</span>
         </div>
         <div className="flex justify-between text-sm">
-          <span className="text-gray-500">Team Size</span>
-          <span className="font-medium text-gray-900">{teamLabel}</span>
+          <span className="text-gray-500 dark:text-gray-400">Team Size</span>
+          <span className="font-medium text-gray-900 dark:text-white">{teamLabel}</span>
         </div>
         <div className="flex justify-between text-sm">
-          <span className="text-gray-500">Business</span>
-          <span className="font-medium text-gray-900">{data.businessName}</span>
+          <span className="text-gray-500 dark:text-gray-400">Business</span>
+          <span className="font-medium text-gray-900 dark:text-white">{data.businessName}</span>
         </div>
         {data.phone && (
           <div className="flex justify-between text-sm">
-            <span className="text-gray-500">Phone</span>
-            <span className="font-medium text-gray-900">{data.phone}</span>
+            <span className="text-gray-500 dark:text-gray-400">Phone</span>
+            <span className="font-medium text-gray-900 dark:text-white">{data.phone}</span>
           </div>
         )}
         {data.zip && (
           <div className="flex justify-between text-sm">
-            <span className="text-gray-500">Zip</span>
-            <span className="font-medium text-gray-900">{data.zip}</span>
+            <span className="text-gray-500 dark:text-gray-400">Zip</span>
+            <span className="font-medium text-gray-900 dark:text-white">{data.zip}</span>
           </div>
         )}
         <div className="flex justify-between text-sm">
-          <span className="text-gray-500">GC Role</span>
-          <span className="font-medium text-gray-900">{roleLabel}</span>
+          <span className="text-gray-500 dark:text-gray-400">GC Role</span>
+          <span className="font-medium text-gray-900 dark:text-white">{roleLabel}</span>
         </div>
         {data.priorities.length > 0 && (
           <div className="flex justify-between text-sm">
-            <span className="text-gray-500 flex-shrink-0">Priorities</span>
-            <span className="font-medium text-gray-900 text-right">{data.priorities.join(', ')}</span>
+            <span className="text-gray-500 flex-shrink-0 dark:text-gray-400">Priorities</span>
+            <span className="font-medium text-gray-900 text-right dark:text-white">{data.priorities.join(', ')}</span>
           </div>
         )}
       </div>
@@ -507,7 +507,7 @@ export function Onboarding() {
   // Loading states
   if (authLoading || checkingProfile) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-white/10">
         <div className="w-8 h-8 border-4 border-brand-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
@@ -523,14 +523,14 @@ export function Onboarding() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col">
+    <div className="min-h-screen bg-gray-100 flex flex-col dark:bg-white/10">
       {/* Header */}
       <div className="pt-8 pb-4 flex justify-center">
         <div className="flex items-center gap-2">
           <div className="w-10 h-10 bg-brand-500 rounded-xl flex items-center justify-center">
             <Wrench className="w-5 h-5 text-white" />
           </div>
-          <span className="text-xl font-bold text-gray-900">FlowBoss</span>
+          <span className="text-xl font-bold text-gray-900 dark:text-white">FlowBoss</span>
         </div>
       </div>
 
@@ -546,7 +546,7 @@ export function Onboarding() {
             />
           ))}
         </div>
-        <div className="text-xs text-gray-400 text-center mt-2">
+        <div className="text-xs text-gray-400 text-center mt-2 dark:text-gray-500">
           Step {step + 1} of {TOTAL_STEPS}
         </div>
       </div>
@@ -554,7 +554,7 @@ export function Onboarding() {
       {/* Card */}
       <div className="flex-1 flex items-start justify-center px-4 pb-12">
         <div className="w-full max-w-2xl">
-          <div className="bg-white rounded-2xl shadow-lg p-8">{stepContent[step]}</div>
+          <div className="bg-white rounded-2xl shadow-lg p-8 dark:bg-white/5 dark:backdrop-blur-sm">{stepContent[step]}</div>
 
           {/* Navigation buttons */}
           <div className="flex items-center justify-between mt-6">
@@ -565,7 +565,7 @@ export function Onboarding() {
                 step === 0
                   ? 'invisible'
                   : 'text-gray-600 hover:text-gray-900 hover:bg-white'
-              }`}
+              } dark:hover:text-white`}
             >
               <ArrowLeft className="w-4 h-4" />
               Back

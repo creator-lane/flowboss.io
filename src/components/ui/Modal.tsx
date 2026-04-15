@@ -43,21 +43,21 @@ export function Modal({ open, onClose, title, children, size = 'md' }: ModalProp
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-backdrop-fade-in"
+        className="absolute inset-0 bg-black/40 dark:bg-black/70 backdrop-blur-sm animate-backdrop-fade-in"
         onClick={onClose}
       />
 
       {/* Panel */}
       <div
-        className={`relative bg-white rounded-2xl shadow-xl w-full ${SIZE_MAP[size]} max-h-[90vh] flex flex-col animate-modal-fade-in`}
+        className={`relative bg-white dark:bg-gray-900 dark:border dark:border-white/10 rounded-2xl shadow-xl dark:shadow-black/50 w-full ${SIZE_MAP[size]} max-h-[90vh] flex flex-col animate-modal-fade-in`}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-neutral-900">{title}</h2>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-white/10">
+          <h2 className="text-lg font-semibold text-neutral-900 dark:text-white">{title}</h2>
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-lg text-neutral-400 hover:text-neutral-600 hover:bg-gray-100 transition-colors"
+            className="p-1.5 rounded-lg text-neutral-400 hover:text-neutral-600 hover:bg-gray-100 dark:text-gray-500 dark:hover:text-gray-200 dark:hover:bg-white/10 transition-colors"
             aria-label="Close"
           >
             <X className="w-5 h-5" />

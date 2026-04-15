@@ -153,9 +153,9 @@ export function SetupChecklist({
 
   return (
     <div
-      className={`bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm transition-all duration-300 ${
+      className={`bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm transition-all duration-300 dark:backdrop-blur-sm dark:shadow-black/30${
         fadingOut ? 'opacity-0 scale-95' : 'opacity-100 scale-100'
-      }`}
+      } dark:backdrop-blur-sm dark:shadow-black/30`}
     >
       {/* ── Header ─────────────────────────────────────────────── */}
       <div className="flex items-center justify-between px-5 pt-5 pb-3">
@@ -180,7 +180,7 @@ export function SetupChecklist({
         </div>
         <button
           onClick={handleDismiss}
-          className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:text-gray-300 dark:hover:bg-gray-800 transition-colors"
+          className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:text-gray-300 dark:hover:bg-gray-800 transition-colors dark:text-gray-500"
           aria-label="Dismiss setup checklist"
         >
           <X className="w-4 h-4" />
@@ -189,9 +189,9 @@ export function SetupChecklist({
 
       {/* ── Progress bar ───────────────────────────────────────── */}
       <div className="px-5 pb-4">
-        <div className="h-2 rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden">
+        <div className="h-2 rounded-full bg-gray-100 dark:bg-white/10 overflow-hidden">
           <div
-            className="h-full rounded-full bg-brand-500 transition-all duration-500 ease-out"
+            className="h-full rounded-full bg-brand-500 dark:bg-blue-400 transition-all duration-500 ease-out"
             style={{ width: `${pct}%` }}
           />
         </div>

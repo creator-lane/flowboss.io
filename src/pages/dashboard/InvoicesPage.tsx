@@ -54,14 +54,14 @@ function SummaryCard({
   valueColor?: string;
 }) {
   return (
-    <div className="bg-white rounded-xl border border-neutral-200 p-5 flex items-center gap-4">
+    <div className="bg-white rounded-xl border border-neutral-200 p-5 flex items-center gap-4 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
       <div
         className={`w-10 h-10 rounded-lg flex items-center justify-center ${iconBg}`}
       >
         <Icon className="w-5 h-5 text-white" />
       </div>
       <div>
-        <p className="text-xs font-medium text-neutral-500 uppercase tracking-wide">
+        <p className="text-xs font-medium text-neutral-500 uppercase tracking-wide dark:text-gray-400">
           {title}
         </p>
         <p
@@ -69,7 +69,7 @@ function SummaryCard({
         >
           {value}
         </p>
-        <p className="text-xs text-neutral-400">{subtitle}</p>
+        <p className="text-xs text-neutral-400 dark:text-gray-500">{subtitle}</p>
       </div>
     </div>
   );
@@ -145,8 +145,8 @@ export function InvoicesPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-neutral-900">Invoices</h1>
-          <p className="text-sm text-neutral-500 mt-1">
+          <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">Invoices</h1>
+          <p className="text-sm text-neutral-500 mt-1 dark:text-gray-400">
             {!isLoading && `${invoices.length} total invoices`}
           </p>
         </div>
@@ -158,7 +158,7 @@ export function InvoicesPage() {
         >
           <button
             onClick={() => setShowCreateModal(true)}
-            className="flex items-center gap-2 px-4 py-2.5 bg-brand-500 text-white rounded-lg text-sm font-semibold hover:bg-brand-600 transition-colors shadow-sm"
+            className="flex items-center gap-2 px-4 py-2.5 bg-brand-500 text-white rounded-lg text-sm font-semibold hover:bg-brand-600 transition-colors shadow-sm dark:shadow-black/30"
           >
             <Plus className="w-4 h-4" />
             Create Invoice
@@ -203,7 +203,7 @@ export function InvoicesPage() {
               filter === tab.key
                 ? 'bg-brand-500 text-white'
                 : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
-            }`}
+            } dark:text-gray-300`}
           >
             {tab.label}
             {tab.count > 0 && (
@@ -223,31 +223,31 @@ export function InvoicesPage() {
 
       {/* Error */}
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-          <p className="text-sm text-red-700">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 dark:bg-red-500/10 dark:border-red-500/30">
+          <p className="text-sm text-red-700 dark:text-red-300">
             Failed to load invoices. Please try again.
           </p>
         </div>
       )}
 
       {/* Desktop table */}
-      <div className="bg-white rounded-xl border border-neutral-200 overflow-hidden hidden md:block">
+      <div className="bg-white rounded-xl border border-neutral-200 overflow-hidden hidden md:block dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
         <table className="w-full">
           <thead>
-            <tr className="border-b border-neutral-200 bg-neutral-50">
-              <th className="text-left px-6 py-3 text-xs font-semibold text-neutral-500 uppercase">
+            <tr className="border-b border-neutral-200 bg-neutral-50 dark:border-white/10 dark:bg-white/[0.02]">
+              <th className="text-left px-6 py-3 text-xs font-semibold text-neutral-500 uppercase dark:text-gray-400">
                 Invoice #
               </th>
-              <th className="text-left px-6 py-3 text-xs font-semibold text-neutral-500 uppercase">
+              <th className="text-left px-6 py-3 text-xs font-semibold text-neutral-500 uppercase dark:text-gray-400">
                 Customer
               </th>
-              <th className="text-left px-6 py-3 text-xs font-semibold text-neutral-500 uppercase">
+              <th className="text-left px-6 py-3 text-xs font-semibold text-neutral-500 uppercase dark:text-gray-400">
                 Amount
               </th>
-              <th className="text-left px-6 py-3 text-xs font-semibold text-neutral-500 uppercase">
+              <th className="text-left px-6 py-3 text-xs font-semibold text-neutral-500 uppercase dark:text-gray-400">
                 Status
               </th>
-              <th className="text-left px-6 py-3 text-xs font-semibold text-neutral-500 uppercase">
+              <th className="text-left px-6 py-3 text-xs font-semibold text-neutral-500 uppercase dark:text-gray-400">
                 Due Date
               </th>
             </tr>
@@ -272,19 +272,19 @@ export function InvoicesPage() {
                       onClick={() =>
                         navigate(`/dashboard/invoices/${inv.id}`)
                       }
-                      className={`hover:bg-neutral-50 cursor-pointer transition-colors ${style.row || ''}`}
+                      className={`hover:bg-neutral-50 cursor-pointer transition-colors dark:hover:bg-white/10${style.row || ''} dark:hover:bg-white/10`}
                     >
                       <td className="px-6 py-4">
-                        <span className="text-sm font-medium text-brand-600">
+                        <span className="text-sm font-medium text-brand-600 dark:text-blue-300">
                           {inv.invoiceNumber ||
                             inv.invoice_number ||
                             inv.id?.slice(0, 8)}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-sm text-neutral-900">
+                      <td className="px-6 py-4 text-sm text-neutral-900 dark:text-white">
                         {inv.customer?.firstName} {inv.customer?.lastName}
                       </td>
-                      <td className="px-6 py-4 text-sm font-semibold text-neutral-900">
+                      <td className="px-6 py-4 text-sm font-semibold text-neutral-900 dark:text-white">
                         {formatCurrency(Number(inv.total || 0))}
                       </td>
                       <td className="px-6 py-4">
@@ -295,7 +295,7 @@ export function InvoicesPage() {
                           {status.replace(/_/g, ' ')}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-sm text-neutral-500">
+                      <td className="px-6 py-4 text-sm text-neutral-500 dark:text-gray-400">
                         {dueDate
                           ? format(new Date(dueDate), 'MMM d, yyyy')
                           : '--'}
@@ -324,10 +324,10 @@ export function InvoicesPage() {
           ? Array.from({ length: 4 }).map((_, i) => (
               <div
                 key={i}
-                className="bg-white rounded-xl border border-neutral-200 p-4 animate-pulse"
+                className="bg-white rounded-xl border border-neutral-200 p-4 animate-pulse dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10"
               >
                 <div className="h-4 bg-neutral-200 rounded w-24 mb-2" />
-                <div className="h-3 bg-neutral-100 rounded w-36 mb-3" />
+                <div className="h-3 bg-neutral-100 rounded w-36 mb-3 dark:bg-white/10" />
                 <div className="h-5 bg-neutral-200 rounded w-20" />
               </div>
             ))
@@ -342,10 +342,10 @@ export function InvoicesPage() {
                   onClick={() =>
                     navigate(`/dashboard/invoices/${inv.id}`)
                   }
-                  className={`w-full text-left bg-white rounded-xl border border-neutral-200 p-4 hover:border-brand-300 hover:shadow-lg hover:shadow-gray-200/50 hover:-translate-y-0.5 transition-all duration-200 ${style.row || ''}`}
+                  className={`w-full text-left bg-white rounded-xl border border-neutral-200 p-4 hover:border-brand-300 hover:shadow-lg hover:shadow-gray-200/50 hover:-translate-y-0.5 transition-all duration-200 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10${style.row || ''} dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10`}
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-brand-600">
+                    <span className="text-sm font-medium text-brand-600 dark:text-blue-300">
                       {inv.invoiceNumber ||
                         inv.invoice_number ||
                         inv.id?.slice(0, 8)}
@@ -357,14 +357,14 @@ export function InvoicesPage() {
                       {status.replace(/_/g, ' ')}
                     </span>
                   </div>
-                  <p className="text-sm text-neutral-900 mb-1">
+                  <p className="text-sm text-neutral-900 mb-1 dark:text-white">
                     {inv.customer?.firstName} {inv.customer?.lastName}
                   </p>
                   <div className="flex items-center justify-between">
-                    <span className="text-base font-bold text-neutral-900">
+                    <span className="text-base font-bold text-neutral-900 dark:text-white">
                       {formatCurrency(Number(inv.total || 0))}
                     </span>
-                    <span className="text-xs text-neutral-400">
+                    <span className="text-xs text-neutral-400 dark:text-gray-500">
                       {dueDate
                         ? `Due ${format(new Date(dueDate), 'MMM d')}`
                         : ''}

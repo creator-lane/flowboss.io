@@ -135,10 +135,10 @@ export function GlobalSearch() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+        className="p-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg transition-colors"
         title="Search (Cmd+K)"
       >
-        <Search className="w-5 h-5 text-gray-400" />
+        <Search className="w-5 h-5 text-gray-400 dark:text-gray-500" />
       </button>
 
       {/* Expanded: search overlay */}
@@ -146,24 +146,24 @@ export function GlobalSearch() {
         <div className="fixed inset-0 z-50">
           {/* Backdrop */}
           <div
-            className="absolute inset-0 bg-black/20"
+            className="absolute inset-0 bg-black/20 dark:bg-black/70 backdrop-blur-sm"
             onClick={() => setOpen(false)}
           />
 
           {/* Search panel */}
-          <div className="absolute top-16 left-1/2 -translate-x-1/2 w-full max-w-lg bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden">
+          <div className="absolute top-16 left-1/2 -translate-x-1/2 w-full max-w-lg bg-white dark:bg-gray-900 dark:border-white/10 rounded-2xl shadow-2xl dark:shadow-black/50 border border-gray-200 overflow-hidden">
             {/* Input row */}
-            <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-100">
-              <Search className="w-5 h-5 text-gray-400 shrink-0" />
+            <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-100 dark:border-white/10">
+              <Search className="w-5 h-5 text-gray-400 dark:text-gray-500 shrink-0" />
               <input
                 ref={inputRef}
                 autoFocus
                 value={query}
                 onChange={(e) => handleChange(e.target.value)}
                 placeholder="Search jobs, customers, invoices, contractors..."
-                className="flex-1 text-sm outline-none bg-transparent"
+                className="flex-1 text-sm outline-none bg-transparent dark:text-white dark:placeholder:text-gray-500"
               />
-              <kbd className="text-[10px] text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded">
+              <kbd className="text-[10px] text-gray-400 dark:text-gray-400 bg-gray-100 dark:bg-white/10 px-1.5 py-0.5 rounded">
                 ESC
               </kbd>
             </div>
@@ -180,7 +180,7 @@ export function GlobalSearch() {
               {/* Customers */}
               {results.customers.length > 0 && (
                 <div>
-                  <div className="px-4 py-1.5 text-[10px] font-semibold text-gray-400 uppercase tracking-wide">
+                  <div className="px-4 py-1.5 text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide">
                     Customers
                   </div>
                   {results.customers.map((c: any) => (
@@ -188,11 +188,11 @@ export function GlobalSearch() {
                       key={c.id}
                       type="button"
                       onClick={() => goTo(`/dashboard/customers/${c.id}`)}
-                      className="flex items-center gap-3 px-4 py-2 hover:bg-gray-50 w-full text-left transition-colors"
+                      className="flex items-center gap-3 px-4 py-2 hover:bg-gray-50 dark:hover:bg-white/10 w-full text-left transition-colors"
                     >
                       <Users className="w-4 h-4 text-gray-400 shrink-0" />
                       <div className="min-w-0">
-                        <span className="text-sm text-gray-900">
+                        <span className="text-sm text-gray-900 dark:text-gray-100">
                           {c.firstName} {c.lastName}
                         </span>
                         {c.email && (
@@ -209,7 +209,7 @@ export function GlobalSearch() {
               {/* Jobs */}
               {results.jobs.length > 0 && (
                 <div>
-                  <div className="px-4 py-1.5 text-[10px] font-semibold text-gray-400 uppercase tracking-wide">
+                  <div className="px-4 py-1.5 text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide">
                     Jobs
                   </div>
                   {results.jobs.map((j: any) => (
@@ -217,11 +217,11 @@ export function GlobalSearch() {
                       key={j.id}
                       type="button"
                       onClick={() => goTo(`/dashboard/jobs/${j.id}`)}
-                      className="flex items-center gap-3 px-4 py-2 hover:bg-gray-50 w-full text-left transition-colors"
+                      className="flex items-center gap-3 px-4 py-2 hover:bg-gray-50 dark:hover:bg-white/10 w-full text-left transition-colors"
                     >
                       <Briefcase className="w-4 h-4 text-gray-400 shrink-0" />
                       <div className="min-w-0">
-                        <span className="text-sm text-gray-900 truncate block">
+                        <span className="text-sm text-gray-900 dark:text-gray-100 truncate block">
                           {j.description || 'Untitled Job'}
                         </span>
                         {j.customer && (
@@ -238,7 +238,7 @@ export function GlobalSearch() {
               {/* Invoices */}
               {results.invoices.length > 0 && (
                 <div>
-                  <div className="px-4 py-1.5 text-[10px] font-semibold text-gray-400 uppercase tracking-wide">
+                  <div className="px-4 py-1.5 text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide">
                     Invoices
                   </div>
                   {results.invoices.map((i: any) => (
@@ -246,11 +246,11 @@ export function GlobalSearch() {
                       key={i.id}
                       type="button"
                       onClick={() => goTo(`/dashboard/invoices/${i.id}`)}
-                      className="flex items-center gap-3 px-4 py-2 hover:bg-gray-50 w-full text-left transition-colors"
+                      className="flex items-center gap-3 px-4 py-2 hover:bg-gray-50 dark:hover:bg-white/10 w-full text-left transition-colors"
                     >
                       <FileText className="w-4 h-4 text-gray-400 shrink-0" />
                       <div className="min-w-0">
-                        <span className="text-sm text-gray-900">
+                        <span className="text-sm text-gray-900 dark:text-gray-100">
                           #{i.invoiceNumber}
                         </span>
                         {i.customer && (
@@ -267,7 +267,7 @@ export function GlobalSearch() {
               {/* Projects */}
               {results.projects.length > 0 && (
                 <div>
-                  <div className="px-4 py-1.5 text-[10px] font-semibold text-gray-400 uppercase tracking-wide">
+                  <div className="px-4 py-1.5 text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide">
                     Projects
                   </div>
                   {results.projects.map((p: any) => (
@@ -275,11 +275,11 @@ export function GlobalSearch() {
                       key={p.id}
                       type="button"
                       onClick={() => goTo(`/dashboard/projects/${p.id}`)}
-                      className="flex items-center gap-3 px-4 py-2 hover:bg-gray-50 w-full text-left transition-colors"
+                      className="flex items-center gap-3 px-4 py-2 hover:bg-gray-50 dark:hover:bg-white/10 w-full text-left transition-colors"
                     >
                       <FolderKanban className="w-4 h-4 text-gray-400 shrink-0" />
                       <div className="min-w-0">
-                        <span className="text-sm text-gray-900">
+                        <span className="text-sm text-gray-900 dark:text-gray-100">
                           {p.name}
                         </span>
                         {p.customerName && (
@@ -296,7 +296,7 @@ export function GlobalSearch() {
               {/* Contractors */}
               {results.contractors.length > 0 && (
                 <div>
-                  <div className="px-4 py-1.5 text-[10px] font-semibold text-gray-400 uppercase tracking-wide">
+                  <div className="px-4 py-1.5 text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide">
                     Contractors
                   </div>
                   {results.contractors.map((c: any) => (
@@ -304,11 +304,11 @@ export function GlobalSearch() {
                       key={c.id}
                       type="button"
                       onClick={() => goTo(`/dashboard/contractors/${c.id}`)}
-                      className="flex items-center gap-3 px-4 py-2 hover:bg-gray-50 w-full text-left transition-colors"
+                      className="flex items-center gap-3 px-4 py-2 hover:bg-gray-50 dark:hover:bg-white/10 w-full text-left transition-colors"
                     >
                       <HardHat className="w-4 h-4 text-gray-400 shrink-0" />
                       <div className="min-w-0">
-                        <span className="text-sm text-gray-900">
+                        <span className="text-sm text-gray-900 dark:text-gray-100">
                           {c.company_name || c.contact_name || 'Unnamed Contractor'}
                         </span>
                         {c.contact_name && c.company_name && (

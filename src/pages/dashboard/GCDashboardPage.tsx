@@ -74,10 +74,10 @@ function ProjectCard({ project, onClick, onDelete }: { project: any; onClick: ()
   return (
     <div
       onClick={onClick}
-      className="group bg-white rounded-xl border border-gray-200 p-5 hover:shadow-lg hover:shadow-gray-200/50 hover:-translate-y-0.5 hover:border-gray-300 transition-all duration-200 cursor-pointer"
+      className="group bg-white rounded-xl border border-gray-200 p-5 hover:shadow-lg hover:shadow-gray-200/50 hover:-translate-y-0.5 hover:border-gray-300 transition-all duration-200 cursor-pointer dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10"
     >
       <div className="flex items-start justify-between mb-3">
-        <h3 className="text-base font-semibold text-gray-900 line-clamp-1">{project.name}</h3>
+        <h3 className="text-base font-semibold text-gray-900 line-clamp-1 dark:text-white">{project.name}</h3>
         <div className="flex items-center gap-2">
           <StatusBadge status={project.status} />
           <button
@@ -91,7 +91,7 @@ function ProjectCard({ project, onClick, onDelete }: { project: any; onClick: ()
       </div>
 
       {(project.city || project.state) && (
-        <div className="flex items-center gap-1.5 text-sm text-gray-500 mb-3">
+        <div className="flex items-center gap-1.5 text-sm text-gray-500 mb-3 dark:text-gray-400">
           <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
           {[project.city, project.state].filter(Boolean).join(', ')}
         </div>
@@ -99,11 +99,11 @@ function ProjectCard({ project, onClick, onDelete }: { project: any; onClick: ()
 
       {/* Progress */}
       <div className="mb-3">
-        <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
+        <div className="flex items-center justify-between text-xs text-gray-500 mb-1 dark:text-gray-400">
           <span>{doneTasks} of {totalTasks} tasks</span>
           <span>{progress}%</span>
         </div>
-        <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+        <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden dark:bg-white/10">
           <div
             className="h-full bg-brand-500 rounded-full transition-all"
             style={{ width: `${progress}%` }}
@@ -125,7 +125,7 @@ function ProjectCard({ project, onClick, onDelete }: { project: any; onClick: ()
             </span>
           ))}
           {trades.length > 5 && (
-            <span className="px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-500">
+            <span className="px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-500 dark:bg-white/10 dark:text-gray-400">
               +{trades.length - 5}
             </span>
           )}
@@ -133,10 +133,10 @@ function ProjectCard({ project, onClick, onDelete }: { project: any; onClick: ()
       )}
 
       {/* Footer */}
-      <div className="flex items-center justify-between pt-3 border-t border-gray-100 text-xs text-gray-500">
+      <div className="flex items-center justify-between pt-3 border-t border-gray-100 text-xs text-gray-500 dark:border-white/10 dark:text-gray-400">
         <span>{assigned} of {trades.length} trades assigned</span>
         {project.budget && (
-          <span className="font-medium text-gray-700">{formatCurrency(project.budget)}</span>
+          <span className="font-medium text-gray-700 dark:text-gray-200">{formatCurrency(project.budget)}</span>
         )}
       </div>
     </div>
@@ -210,35 +210,35 @@ function InviteToProjectModal({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 p-6">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 dark:bg-black/70 backdrop-blur-sm">
+      <div className="bg-white dark:bg-gray-900 dark:border dark:border-white/10 rounded-2xl shadow-xl dark:shadow-black/50 w-full max-w-md mx-4 p-6">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-bold text-gray-900">Invite to Project</h3>
-          <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded-lg">
-            <X className="w-5 h-5 text-gray-400" />
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white">Invite to Project</h3>
+          <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded-lg dark:hover:bg-white/10">
+            <X className="w-5 h-5 text-gray-400 dark:text-gray-500" />
           </button>
         </div>
 
-        <p className="text-sm text-gray-500 mb-4">
-          Assign <span className="font-medium text-gray-700">{sub.businessName}</span> to a trade on one of your projects.
+        <p className="text-sm text-gray-500 mb-4 dark:text-gray-400">
+          Assign <span className="font-medium text-gray-700 dark:text-gray-200">{sub.businessName}</span> to a trade on one of your projects.
         </p>
 
         {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg">
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg dark:bg-red-500/10 dark:border-red-500/30 dark:text-red-300">
             {error}
           </div>
         )}
 
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Project</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-200">Project</label>
             <select
               value={selectedProjectId}
               onChange={(e) => {
                 setSelectedProjectId(e.target.value);
                 setSelectedTradeId('');
               }}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 bg-white"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 bg-white dark:border-white/10 dark:focus:ring-blue-400 dark:focus:border-blue-400 dark:bg-white/5 dark:backdrop-blur-sm"
             >
               <option value="">Select a project</option>
               {projects.map((p: any) => (
@@ -249,14 +249,14 @@ function InviteToProjectModal({
 
           {selectedProjectId && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Trade (unassigned only)</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-200">Trade (unassigned only)</label>
               {availableTrades.length === 0 ? (
-                <p className="text-sm text-gray-400 italic">All trades on this project are already assigned.</p>
+                <p className="text-sm text-gray-400 italic dark:text-gray-500">All trades on this project are already assigned.</p>
               ) : (
                 <select
                   value={selectedTradeId}
                   onChange={(e) => setSelectedTradeId(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 bg-white"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 bg-white dark:border-white/10 dark:focus:ring-blue-400 dark:focus:border-blue-400 dark:bg-white/5 dark:backdrop-blur-sm"
                 >
                   <option value="">Select a trade</option>
                   {availableTrades.map((t: any) => (
@@ -271,7 +271,7 @@ function InviteToProjectModal({
         <div className="flex items-center gap-3 mt-6">
           <button
             onClick={onClose}
-            className="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50"
+            className="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 dark:border-white/10 dark:text-gray-200 dark:hover:bg-white/10"
           >
             Cancel
           </button>
@@ -308,14 +308,14 @@ function SubCard({
   return (
     <div
       onClick={() => onViewProfile(sub)}
-      className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-lg hover:shadow-gray-200/50 hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group"
+      className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-lg hover:shadow-gray-200/50 hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10"
     >
       <div className="flex items-start justify-between mb-3">
         <div>
           <div className="flex items-center gap-2">
-            <h3 className="text-base font-semibold text-gray-900 group-hover:text-brand-600 transition-colors">{sub.businessName}</h3>
+            <h3 className="text-base font-semibold text-gray-900 group-hover:text-brand-600 transition-colors dark:text-white">{sub.businessName}</h3>
             {sub.isPlaceholder && (
-              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-50 text-amber-600 ring-1 ring-inset ring-amber-500/20">
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-50 text-amber-600 ring-1 ring-inset ring-amber-500/20 dark:bg-amber-500/10 dark:text-amber-300">
                 Placeholder
               </span>
             )}
@@ -325,19 +325,19 @@ function SubCard({
                 {score.toFixed(1)}
               </span>
             ) : !sub.isPlaceholder ? (
-              <span className="text-[10px] text-gray-400">No ratings</span>
+              <span className="text-[10px] text-gray-400 dark:text-gray-500">No ratings</span>
             ) : null}
           </div>
-          <p className="text-sm text-gray-500">{sub.tradePrimary}</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{sub.tradePrimary}</p>
         </div>
-        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700">
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300">
           <Briefcase className="w-3 h-3" />
           {sub.projectCount} project{sub.projectCount !== 1 ? 's' : ''}
         </span>
       </div>
 
       {sub.phone && (
-        <div className="flex items-center gap-1.5 text-sm text-gray-500 mb-3">
+        <div className="flex items-center gap-1.5 text-sm text-gray-500 mb-3 dark:text-gray-400">
           <Phone className="w-3.5 h-3.5 flex-shrink-0" />
           {sub.phone}
         </div>
@@ -361,15 +361,15 @@ function SubCard({
 
       {/* Projects list */}
       <div className="mb-3">
-        <p className="text-xs text-gray-400 mb-1">Projects</p>
+        <p className="text-xs text-gray-400 mb-1 dark:text-gray-500">Projects</p>
         <div className="flex flex-wrap gap-1">
           {sub.projects.slice(0, 3).map((p: any) => (
-            <span key={p.id} className="text-xs bg-gray-50 text-gray-600 px-2 py-0.5 rounded">
+            <span key={p.id} className="text-xs bg-gray-50 text-gray-600 px-2 py-0.5 rounded dark:bg-white/[0.02] dark:text-gray-300">
               {p.name}
             </span>
           ))}
           {sub.projects.length > 3 && (
-            <span className="text-xs text-gray-400 px-1">+{sub.projects.length - 3} more</span>
+            <span className="text-xs text-gray-400 px-1 dark:text-gray-500">+{sub.projects.length - 3} more</span>
           )}
         </div>
       </div>
@@ -377,13 +377,13 @@ function SubCard({
       <div className="flex gap-2">
         <button
           onClick={(e) => { e.stopPropagation(); onViewProfile(sub); }}
-          className="flex-1 flex items-center justify-center gap-2 px-3 py-2 border border-gray-200 rounded-lg text-sm font-medium text-brand-600 hover:bg-brand-50 hover:border-brand-300 transition-colors"
+          className="flex-1 flex items-center justify-center gap-2 px-3 py-2 border border-gray-200 rounded-lg text-sm font-medium text-brand-600 hover:bg-brand-50 hover:border-brand-300 transition-colors dark:border-white/10 dark:text-blue-300 dark:hover:bg-blue-500/20"
         >
           View Profile
         </button>
         <button
           onClick={(e) => { e.stopPropagation(); onInvite(sub); }}
-          className="flex-1 flex items-center justify-center gap-2 px-3 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-colors"
+          className="flex-1 flex items-center justify-center gap-2 px-3 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-colors dark:border-white/10 dark:text-gray-200 dark:hover:bg-white/10"
         >
           <UserPlus className="w-4 h-4" />
           Invite
@@ -810,19 +810,19 @@ export function GCDashboardPage() {
   }
 
   return (
-    <div className="p-4 lg:p-6 max-w-7xl mx-auto">
+    <div className="relative p-4 lg:p-6 max-w-7xl mx-auto dark:before:pointer-events-none dark:before:absolute dark:before:inset-0 dark:before:bg-[radial-gradient(circle_at_75%_10%,rgba(59,130,246,0.12),transparent_55%)] dark:before:-z-10">
       {/* Breadcrumb */}
-      <div className="text-sm text-gray-400 mb-4">
+      <div className="text-sm text-gray-400 mb-4 dark:text-gray-500">
         <span>{activeTab === 'projects' ? 'Projects' : 'My Subs'}</span>
       </div>
 
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
             {activeTab === 'projects' ? 'Projects' : 'My Subs'}
           </h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-gray-500 mt-1 dark:text-gray-400">
             {activeTab === 'projects'
               ? 'Manage your construction projects and trade assignments'
               : 'Your sub-contractor directory across all projects'}
@@ -833,7 +833,7 @@ export function GCDashboardPage() {
             <button
               onClick={() => loadDemoMutation.mutate()}
               disabled={loadDemoMutation.isPending}
-              className="flex items-center gap-2 px-3 py-2 border border-gray-200 text-gray-500 rounded-lg text-xs font-medium hover:bg-gray-50 transition-colors disabled:opacity-50"
+              className="flex items-center gap-2 px-3 py-2 border border-gray-200 text-gray-500 rounded-lg text-xs font-medium hover:bg-gray-50 transition-colors disabled:opacity-50 dark:border-white/10 dark:text-gray-400 dark:hover:bg-white/10"
             >
               <Zap className="w-3.5 h-3.5" />
               {loadDemoMutation.isPending ? (demoProgress || 'Loading...') : 'Load Demo Data'}
@@ -850,7 +850,7 @@ export function GCDashboardPage() {
       </div>
 
       {/* Tab Toggle */}
-      <div className="flex rounded-lg bg-gray-100 p-1 mb-6 max-w-xs">
+      <div className="flex rounded-lg bg-gray-100 p-1 mb-6 max-w-xs dark:bg-white/10">
         <button
           type="button"
           onClick={() => { setActiveTab('projects'); setSearch(''); }}
@@ -858,7 +858,7 @@ export function GCDashboardPage() {
             activeTab === 'projects'
               ? 'bg-white text-gray-900 shadow-sm'
               : 'text-gray-500 hover:text-gray-700'
-          }`}
+          } dark:text-white`}
         >
           <FolderKanban className="w-4 h-4" />
           Projects
@@ -870,7 +870,7 @@ export function GCDashboardPage() {
             activeTab === 'subs'
               ? 'bg-white text-gray-900 shadow-sm'
               : 'text-gray-500 hover:text-gray-700'
-          }`}
+          } dark:text-white`}
         >
           <Users className="w-4 h-4" />
           My Subs
@@ -882,55 +882,55 @@ export function GCDashboardPage() {
         <>
           {/* Stats */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <div className="bg-white rounded-xl border border-gray-200 p-4">
-              <div className="flex items-center gap-2 text-gray-500 text-xs font-medium mb-1">
+            <div className="bg-white rounded-xl border border-gray-200 p-4 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
+              <div className="flex items-center gap-2 text-gray-500 text-xs font-medium mb-1 dark:text-gray-400">
                 <FolderKanban className="w-3.5 h-3.5" />
                 Total Projects
               </div>
-              <p className="text-2xl font-bold text-gray-900">{totalProjects}</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{totalProjects}</p>
             </div>
-            <div className="bg-white rounded-xl border border-gray-200 p-4">
-              <div className="flex items-center gap-2 text-gray-500 text-xs font-medium mb-1">
+            <div className="bg-white rounded-xl border border-gray-200 p-4 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
+              <div className="flex items-center gap-2 text-gray-500 text-xs font-medium mb-1 dark:text-gray-400">
                 <Activity className="w-3.5 h-3.5" />
                 Active
               </div>
-              <p className="text-2xl font-bold text-blue-600">{activeProjects}</p>
+              <p className="text-2xl font-bold text-blue-600 dark:text-blue-300">{activeProjects}</p>
             </div>
-            <div className="bg-white rounded-xl border border-gray-200 p-4">
-              <div className="flex items-center gap-2 text-gray-500 text-xs font-medium mb-1">
+            <div className="bg-white rounded-xl border border-gray-200 p-4 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
+              <div className="flex items-center gap-2 text-gray-500 text-xs font-medium mb-1 dark:text-gray-400">
                 <DollarSign className="w-3.5 h-3.5" />
                 Total Budget
               </div>
-              <p className="text-2xl font-bold text-gray-900">{formatCurrency(totalBudget)}</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{formatCurrency(totalBudget)}</p>
             </div>
-            <div className="bg-white rounded-xl border border-gray-200 p-4">
-              <div className="flex items-center gap-2 text-gray-500 text-xs font-medium mb-1">
+            <div className="bg-white rounded-xl border border-gray-200 p-4 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
+              <div className="flex items-center gap-2 text-gray-500 text-xs font-medium mb-1 dark:text-gray-400">
                 <Users className="w-3.5 h-3.5" />
                 Trades Assigned
               </div>
-              <p className="text-2xl font-bold text-gray-900">
-                {assignedTrades} <span className="text-sm font-normal text-gray-400">/ {totalTrades}</span>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                {assignedTrades} <span className="text-sm font-normal text-gray-400 dark:text-gray-500">/ {totalTrades}</span>
               </p>
             </div>
           </div>
 
           {/* Search */}
           <div className="relative mb-6">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
             <input
               type="text"
               placeholder="Search projects..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
+              className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10 dark:focus:ring-blue-400 dark:focus:border-blue-400"
             />
           </div>
 
           {/* Invited Projects */}
           {invitedProjects.length > 0 && (
             <div className="mb-8">
-              <h2 className="text-lg font-bold text-gray-900 mb-1">Projects You're Invited To</h2>
-              <p className="text-sm text-gray-500 mb-4">Projects where you've been assigned as a sub-contractor.</p>
+              <h2 className="text-lg font-bold text-gray-900 mb-1 dark:text-white">Projects You're Invited To</h2>
+              <p className="text-sm text-gray-500 mb-4 dark:text-gray-400">Projects where you've been assigned as a sub-contractor.</p>
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                 {invitedProjects.map((project: any) => (
                   <ProjectCard
@@ -952,8 +952,8 @@ export function GCDashboardPage() {
           ) : filtered.length === 0 ? (
             <div className="text-center py-16">
               <FolderKanban className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-1">No projects yet</h3>
-              <p className="text-sm text-gray-500 mb-6">Create your first project to get started.</p>
+              <h3 className="text-lg font-medium text-gray-900 mb-1 dark:text-white">No projects yet</h3>
+              <p className="text-sm text-gray-500 mb-6 dark:text-gray-400">Create your first project to get started.</p>
               <div className="flex items-center justify-center gap-3">
                 <button
                   onClick={() => setShowCreate(true)}
@@ -965,7 +965,7 @@ export function GCDashboardPage() {
                 <button
                   onClick={() => loadDemoMutation.mutate()}
                   disabled={loadDemoMutation.isPending}
-                  className="inline-flex items-center gap-2 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors disabled:opacity-50"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors disabled:opacity-50 dark:border-white/10 dark:text-gray-200 dark:hover:bg-white/10"
                 >
                   <Zap className="w-4 h-4" />
                   {loadDemoMutation.isPending ? (demoProgress || 'Loading...') : 'Load Demo Data'}
@@ -992,13 +992,13 @@ export function GCDashboardPage() {
         <>
           {/* Search */}
           <div className="relative mb-6">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
             <input
               type="text"
               placeholder="Search subs by name, trade, or phone..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
+              className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10 dark:focus:ring-blue-400 dark:focus:border-blue-400"
             />
           </div>
 
@@ -1009,11 +1009,11 @@ export function GCDashboardPage() {
           ) : filteredSubs.length === 0 ? (
             <div className="text-center py-16">
               <Users className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-1">No subs yet</h3>
-              <p className="text-sm text-gray-500 mb-2 max-w-md mx-auto">
+              <h3 className="text-lg font-medium text-gray-900 mb-1 dark:text-white">No subs yet</h3>
+              <p className="text-sm text-gray-500 mb-2 max-w-md mx-auto dark:text-gray-400">
                 When you assign sub-contractors to trades on your projects, they'll appear here as your rolodex.
               </p>
-              <p className="text-sm text-gray-400">
+              <p className="text-sm text-gray-400 dark:text-gray-500">
                 Go to a project and invite a sub to get started.
               </p>
             </div>

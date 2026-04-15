@@ -286,17 +286,17 @@ export function CreateGCProjectModal({ open, onClose }: { open: boolean; onClose
         {/* ── Phase 1: Project type picker ── */}
         {!projectType ? (
           <div>
-            <p className="text-sm text-gray-500 mb-3">What kind of project?</p>
+            <p className="text-sm text-gray-500 mb-3 dark:text-gray-400">What kind of project?</p>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               {PROJECT_TYPES.map(pt => (
                 <button
                   key={pt.value}
                   type="button"
                   onClick={() => handleTypeSelect(pt.value)}
-                  className="flex flex-col items-center gap-1.5 p-3 rounded-xl border border-gray-200 hover:border-brand-300 hover:bg-brand-50 transition-all text-center"
+                  className="flex flex-col items-center gap-1.5 p-3 rounded-xl border border-gray-200 hover:border-brand-300 hover:bg-brand-50 transition-all text-center dark:border-white/10 dark:hover:bg-blue-500/20"
                 >
                   <span className="text-2xl">{pt.icon}</span>
-                  <span className="text-xs font-medium text-gray-700">{pt.label}</span>
+                  <span className="text-xs font-medium text-gray-700 dark:text-gray-200">{pt.label}</span>
                 </button>
               ))}
             </div>
@@ -307,7 +307,7 @@ export function CreateGCProjectModal({ open, onClose }: { open: boolean; onClose
             <button
               type="button"
               onClick={() => { setProjectType(''); setZones([]); setZonesGenerated(false); }}
-              className="inline-flex items-center gap-2 px-3 py-1.5 bg-brand-50 text-brand-700 text-sm font-medium rounded-lg hover:bg-brand-100 transition-colors"
+              className="inline-flex items-center gap-2 px-3 py-1.5 bg-brand-50 text-brand-700 text-sm font-medium rounded-lg hover:bg-brand-100 transition-colors dark:bg-blue-500/10 dark:text-blue-300"
             >
               {PROJECT_TYPES.find(p => p.value === projectType)?.icon}{' '}
               {PROJECT_TYPES.find(p => p.value === projectType)?.label}
@@ -315,15 +315,15 @@ export function CreateGCProjectModal({ open, onClose }: { open: boolean; onClose
             </button>
 
             {/* ── Phase 2: Structure Details ── */}
-            <div className="bg-gray-50 rounded-xl p-4">
-              <h3 className="text-sm font-semibold text-gray-900 mb-3">Structure</h3>
+            <div className="bg-gray-50 rounded-xl p-4 dark:bg-white/[0.02]">
+              <h3 className="text-sm font-semibold text-gray-900 mb-3 dark:text-white">Structure</h3>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-1">Type</label>
+                  <label className="block text-xs font-medium text-gray-500 mb-1 dark:text-gray-400">Type</label>
                   <select
                     value={structureType}
                     onChange={e => setStructureType(e.target.value)}
-                    className="w-full px-2.5 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:ring-2 focus:ring-brand-500 outline-none"
+                    className="w-full px-2.5 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:ring-2 focus:ring-brand-500 outline-none dark:border-white/10 dark:bg-white/5 dark:backdrop-blur-sm dark:focus:ring-blue-400"
                   >
                     {STRUCTURE_TYPES.map(t => (
                       <option key={t} value={t}>{t}</option>
@@ -331,45 +331,45 @@ export function CreateGCProjectModal({ open, onClose }: { open: boolean; onClose
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-1">Sq Ft</label>
+                  <label className="block text-xs font-medium text-gray-500 mb-1 dark:text-gray-400">Sq Ft</label>
                   <input
                     type="number"
                     value={sqFootage}
                     onChange={e => setSqFootage(e.target.value ? Number(e.target.value) : '')}
                     placeholder="2400"
-                    className="w-full px-2.5 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 outline-none"
+                    className="w-full px-2.5 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 outline-none dark:border-white/10 dark:focus:ring-blue-400"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-1">Beds</label>
+                  <label className="block text-xs font-medium text-gray-500 mb-1 dark:text-gray-400">Beds</label>
                   <input
                     type="number"
                     min={0}
                     max={10}
                     value={bedrooms}
                     onChange={e => setBedrooms(Number(e.target.value))}
-                    className="w-full px-2.5 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 outline-none"
+                    className="w-full px-2.5 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 outline-none dark:border-white/10 dark:focus:ring-blue-400"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-1">Baths</label>
+                  <label className="block text-xs font-medium text-gray-500 mb-1 dark:text-gray-400">Baths</label>
                   <input
                     type="number"
                     min={0}
                     max={10}
                     value={bathrooms}
                     onChange={e => setBathrooms(Number(e.target.value))}
-                    className="w-full px-2.5 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 outline-none"
+                    className="w-full px-2.5 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 outline-none dark:border-white/10 dark:focus:ring-blue-400"
                   />
                 </div>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3">
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-1">Stories</label>
+                  <label className="block text-xs font-medium text-gray-500 mb-1 dark:text-gray-400">Stories</label>
                   <select
                     value={stories}
                     onChange={e => setStories(Number(e.target.value))}
-                    className="w-full px-2.5 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:ring-2 focus:ring-brand-500 outline-none"
+                    className="w-full px-2.5 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:ring-2 focus:ring-brand-500 outline-none dark:border-white/10 dark:bg-white/5 dark:backdrop-blur-sm dark:focus:ring-blue-400"
                   >
                     {[1, 2, 3].map(n => (
                       <option key={n} value={n}>{n}</option>
@@ -380,7 +380,7 @@ export function CreateGCProjectModal({ open, onClose }: { open: boolean; onClose
                   <button
                     type="button"
                     onClick={handleRegenerateZones}
-                    className="text-xs text-brand-600 hover:text-brand-700 font-medium"
+                    className="text-xs text-brand-600 hover:text-brand-700 font-medium dark:text-blue-300"
                   >
                     Regenerate zones from structure
                   </button>
@@ -391,8 +391,8 @@ export function CreateGCProjectModal({ open, onClose }: { open: boolean; onClose
             {/* ── Zone Cards ── */}
             {zonesGenerated && zones.length > 0 && (
               <div>
-                <h3 className="text-sm font-semibold text-gray-900 mb-2">Zones</h3>
-                <p className="text-xs text-gray-400 mb-3">Each zone groups trades by area. Rename, remove, or add zones below.</p>
+                <h3 className="text-sm font-semibold text-gray-900 mb-2 dark:text-white">Zones</h3>
+                <p className="text-xs text-gray-400 mb-3 dark:text-gray-500">Each zone groups trades by area. Rename, remove, or add zones below.</p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {zones.map((zone, zi) => (
                     <ZoneCard
@@ -413,7 +413,7 @@ export function CreateGCProjectModal({ open, onClose }: { open: boolean; onClose
                     value={addingZoneName}
                     onChange={e => setAddingZoneName(e.target.value)}
                     placeholder="Add custom zone..."
-                    className="flex-1 px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 outline-none"
+                    className="flex-1 px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 outline-none dark:border-white/10 dark:focus:ring-blue-400"
                     onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addCustomZone(); } }}
                   />
                   {addingZoneName.trim() && (
@@ -427,13 +427,13 @@ export function CreateGCProjectModal({ open, onClose }: { open: boolean; onClose
 
             {/* ── Phase 3: Budget summary ── */}
             {allTrades.length > 0 && (
-              <div className="bg-gray-50 rounded-xl p-4">
+              <div className="bg-gray-50 rounded-xl p-4 dark:bg-white/[0.02]">
                 <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-sm font-semibold text-gray-900">Budget Estimate</h3>
+                  <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Budget Estimate</h3>
                   <button
                     type="button"
                     onClick={() => setShowBudgetDetails(!showBudgetDetails)}
-                    className="text-xs text-brand-600 hover:text-brand-700 flex items-center gap-1"
+                    className="text-xs text-brand-600 hover:text-brand-700 flex items-center gap-1 dark:text-blue-300"
                   >
                     {showBudgetDetails ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
                     {showBudgetDetails ? 'Hide details' : 'Show details'}
@@ -443,11 +443,11 @@ export function CreateGCProjectModal({ open, onClose }: { open: boolean; onClose
                 {showBudgetDetails && (
                   <div className="space-y-1 mb-3 max-h-40 overflow-y-auto">
                     {allTrades.map((t, i) => (
-                      <div key={i} className="flex items-center justify-between text-xs px-2 py-1 bg-white rounded">
-                        <span className="text-gray-600">{t.trade}</span>
-                        <span className="text-gray-500">
+                      <div key={i} className="flex items-center justify-between text-xs px-2 py-1 bg-white rounded dark:bg-white/5 dark:backdrop-blur-sm">
+                        <span className="text-gray-600 dark:text-gray-300">{t.trade}</span>
+                        <span className="text-gray-500 dark:text-gray-400">
                           {t.laborHours}h @ ${t.laborRate} + ${t.materialsBudget.toLocaleString()} mat
-                          <span className="ml-2 font-medium text-gray-900">{fmt(t.laborHours * t.laborRate + t.materialsBudget)}</span>
+                          <span className="ml-2 font-medium text-gray-900 dark:text-white">{fmt(t.laborHours * t.laborRate + t.materialsBudget)}</span>
                         </span>
                       </div>
                     ))}
@@ -456,35 +456,35 @@ export function CreateGCProjectModal({ open, onClose }: { open: boolean; onClose
 
                 <div className="flex items-center justify-between text-sm">
                   <div>
-                    <span className="text-gray-500">Cost</span>
-                    <span className="ml-2 font-semibold text-gray-900">{fmt(totals.subtotal)}</span>
+                    <span className="text-gray-500 dark:text-gray-400">Cost</span>
+                    <span className="ml-2 font-semibold text-gray-900 dark:text-white">{fmt(totals.subtotal)}</span>
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="flex items-center gap-1">
-                      <span className="text-gray-400 text-xs">OH</span>
+                      <span className="text-gray-400 text-xs dark:text-gray-500">OH</span>
                       <input
                         type="number"
                         value={overheadPercent}
                         onChange={e => setOverheadPercent(Number(e.target.value))}
-                        className="w-10 px-1 py-0.5 border border-gray-200 rounded text-xs text-center"
+                        className="w-10 px-1 py-0.5 border border-gray-200 rounded text-xs text-center dark:border-white/10"
                       />
-                      <span className="text-gray-400 text-xs">%</span>
+                      <span className="text-gray-400 text-xs dark:text-gray-500">%</span>
                     </div>
                     <div className="flex items-center gap-1">
-                      <span className="text-gray-400 text-xs">Profit</span>
+                      <span className="text-gray-400 text-xs dark:text-gray-500">Profit</span>
                       <input
                         type="number"
                         value={profitPercent}
                         onChange={e => setProfitPercent(Number(e.target.value))}
-                        className="w-10 px-1 py-0.5 border border-gray-200 rounded text-xs text-center"
+                        className="w-10 px-1 py-0.5 border border-gray-200 rounded text-xs text-center dark:border-white/10"
                       />
-                      <span className="text-gray-400 text-xs">%</span>
+                      <span className="text-gray-400 text-xs dark:text-gray-500">%</span>
                     </div>
                   </div>
                 </div>
-                <div className="mt-2 pt-2 border-t border-gray-200 flex items-center justify-between">
-                  <span className="text-sm font-bold text-gray-900">Customer Price</span>
-                  <span className="text-lg font-bold text-brand-600">{fmt(totals.customerPrice)}</span>
+                <div className="mt-2 pt-2 border-t border-gray-200 flex items-center justify-between dark:border-white/10">
+                  <span className="text-sm font-bold text-gray-900 dark:text-white">Customer Price</span>
+                  <span className="text-lg font-bold text-brand-600 dark:text-blue-300">{fmt(totals.customerPrice)}</span>
                 </div>
               </div>
             )}
@@ -492,45 +492,45 @@ export function CreateGCProjectModal({ open, onClose }: { open: boolean; onClose
             {/* ── Phase 4: Name + Customer ── */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">Project Name *</label>
+                <label className="block text-xs font-medium text-gray-500 mb-1 dark:text-gray-400">Project Name *</label>
                 <input
                   type="text"
                   required
                   value={name}
                   onChange={e => setName(e.target.value)}
                   placeholder="Smith Kitchen Remodel"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none dark:border-white/10 dark:focus:ring-blue-400 dark:focus:border-blue-400"
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">Customer</label>
+                <label className="block text-xs font-medium text-gray-500 mb-1 dark:text-gray-400">Customer</label>
                 <input
                   type="text"
                   value={customerName}
                   onChange={e => setCustomerName(e.target.value)}
                   placeholder="John Smith"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none dark:border-white/10 dark:focus:ring-blue-400 dark:focus:border-blue-400"
                 />
               </div>
             </div>
 
             {/* Location */}
             <div className="grid grid-cols-3 gap-2">
-              <input type="text" value={address} onChange={e => setAddress(e.target.value)} placeholder="Address" className="col-span-3 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 outline-none" />
-              <input type="text" value={city} onChange={e => setCity(e.target.value)} placeholder="City" className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 outline-none" />
-              <input type="text" value={state} onChange={e => setState(e.target.value)} placeholder="State" className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 outline-none" />
-              <input type="text" value={zip} onChange={e => setZip(e.target.value)} placeholder="Zip" className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 outline-none" />
+              <input type="text" value={address} onChange={e => setAddress(e.target.value)} placeholder="Address" className="col-span-3 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 outline-none dark:border-white/10 dark:focus:ring-blue-400" />
+              <input type="text" value={city} onChange={e => setCity(e.target.value)} placeholder="City" className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 outline-none dark:border-white/10 dark:focus:ring-blue-400" />
+              <input type="text" value={state} onChange={e => setState(e.target.value)} placeholder="State" className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 outline-none dark:border-white/10 dark:focus:ring-blue-400" />
+              <input type="text" value={zip} onChange={e => setZip(e.target.value)} placeholder="Zip" className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 outline-none dark:border-white/10 dark:focus:ring-blue-400" />
             </div>
 
             {/* Dates */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">Start</label>
-                <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 outline-none" />
+                <label className="block text-xs font-medium text-gray-500 mb-1 dark:text-gray-400">Start</label>
+                <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 outline-none dark:border-white/10 dark:focus:ring-blue-400" />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">Target End</label>
-                <input type="date" value={targetEndDate} onChange={e => setTargetEndDate(e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 outline-none" />
+                <label className="block text-xs font-medium text-gray-500 mb-1 dark:text-gray-400">Target End</label>
+                <input type="date" value={targetEndDate} onChange={e => setTargetEndDate(e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 outline-none dark:border-white/10 dark:focus:ring-blue-400" />
               </div>
             </div>
 
@@ -539,7 +539,7 @@ export function CreateGCProjectModal({ open, onClose }: { open: boolean; onClose
               <button
                 type="button"
                 onClick={() => { resetForm(); onClose(); }}
-                className="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors"
+                className="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors dark:border-white/10 dark:text-gray-200 dark:hover:bg-white/10"
               >
                 Cancel
               </button>
@@ -585,7 +585,7 @@ function ZoneCard({
   const availableTrades = allTradeOptions.filter(t => !zone.trades.includes(t));
 
   return (
-    <div className={`bg-white rounded-xl border-t-2 ${borderClass} border border-gray-200 p-3`}>
+    <div className={`bg-white rounded-xl border-t-2 dark:bg-white/5 dark:backdrop-blur-sm${borderClass} border border-gray-200 p-3 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10`}>
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2 flex-1 min-w-0">
           <span className="text-base">{emoji}</span>
@@ -596,10 +596,10 @@ function ZoneCard({
               onChange={e => setEditName(e.target.value)}
               onBlur={() => { onRename(editName); setEditing(false); }}
               onKeyDown={e => { if (e.key === 'Enter') { onRename(editName); setEditing(false); } }}
-              className="flex-1 text-sm font-bold text-gray-900 px-1 py-0.5 border border-brand-300 rounded focus:outline-none"
+              className="flex-1 text-sm font-bold text-gray-900 px-1 py-0.5 border border-brand-300 rounded focus:outline-none dark:text-white dark:border-blue-500/40"
             />
           ) : (
-            <span className="text-sm font-bold text-gray-900 truncate cursor-pointer" onClick={() => { setEditName(zone.name); setEditing(true); }}>
+            <span className="text-sm font-bold text-gray-900 truncate cursor-pointer dark:text-white" onClick={() => { setEditName(zone.name); setEditing(true); }}>
               {zone.name}
               <Pencil className="w-3 h-3 text-gray-300 inline ml-1.5 -mt-0.5" />
             </span>
@@ -613,7 +613,7 @@ function ZoneCard({
       {/* Trade pills */}
       <div className="flex flex-wrap gap-1.5 mb-2">
         {zone.trades.map(t => (
-          <span key={t} className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-50 border border-gray-200 rounded text-xs text-gray-600">
+          <span key={t} className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-50 border border-gray-200 rounded text-xs text-gray-600 dark:bg-white/[0.02] dark:border-white/10 dark:text-gray-300">
             {t}
             <button type="button" onClick={() => onRemoveTrade(t)} className="text-gray-300 hover:text-red-500">
               <X className="w-3 h-3" />
@@ -632,7 +632,7 @@ function ZoneCard({
               setAddingTrade('');
             }
           }}
-          className="w-full px-2 py-1 border border-gray-200 rounded text-xs bg-white focus:ring-1 focus:ring-brand-500 outline-none text-gray-400"
+          className="w-full px-2 py-1 border border-gray-200 rounded text-xs bg-white focus:ring-1 focus:ring-brand-500 outline-none text-gray-400 dark:border-white/10 dark:bg-white/5 dark:backdrop-blur-sm dark:focus:ring-blue-400 dark:text-gray-500"
         >
           <option value="">+ Add scope...</option>
           {availableTrades.map(t => (

@@ -34,7 +34,7 @@ function StarRow({
   const [hover, setHover] = useState(0);
   return (
     <div className="flex items-center justify-between">
-      <span className="text-sm font-medium text-gray-700">{label}</span>
+      <span className="text-sm font-medium text-gray-700 dark:text-gray-200">{label}</span>
       <div className="flex gap-1" onMouseLeave={() => setHover(0)}>
         {[1, 2, 3, 4, 5].map((star) => (
           <button
@@ -117,7 +117,7 @@ export function RateSubModal({
     <Modal open={open} onClose={onClose} title={`Rate ${subName}`} size="sm">
       <div className="space-y-5">
         {/* Trade badge */}
-        <span className="inline-block px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+        <span className="inline-block px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600 dark:bg-white/10 dark:text-gray-300">
           {tradeName}
         </span>
 
@@ -134,8 +134,8 @@ export function RateSubModal({
         </div>
 
         {/* Overall score */}
-        <div className="flex items-center justify-between py-3 border-t border-gray-100">
-          <span className="text-sm font-semibold text-gray-900">Overall Score</span>
+        <div className="flex items-center justify-between py-3 border-t border-gray-100 dark:border-white/10">
+          <span className="text-sm font-semibold text-gray-900 dark:text-white">Overall Score</span>
           <span className={`text-2xl font-bold ${scoreColor}`}>
             {allRated ? overall.toFixed(1) : '--'}
           </span>
@@ -147,7 +147,7 @@ export function RateSubModal({
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           rows={2}
-          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none resize-none"
+          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none resize-none dark:border-white/10 dark:focus:ring-blue-400 dark:focus:border-blue-400"
         />
 
         {/* Submit */}

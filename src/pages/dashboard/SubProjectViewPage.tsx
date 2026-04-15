@@ -169,8 +169,8 @@ export function SubProjectViewPage() {
   if (!project) {
     return (
       <div className="p-6 text-center">
-        <p className="text-gray-500">Project not found or you don't have access.</p>
-        <Link to="/dashboard/schedule" className="mt-4 text-brand-600 hover:underline text-sm">
+        <p className="text-gray-500 dark:text-gray-400">Project not found or you don't have access.</p>
+        <Link to="/dashboard/schedule" className="mt-4 text-brand-600 hover:underline text-sm dark:text-blue-300">
           Back to Dashboard
         </Link>
       </div>
@@ -181,21 +181,21 @@ export function SubProjectViewPage() {
     <div className="p-4 lg:p-6 max-w-4xl mx-auto space-y-6">
       {/* Breadcrumbs */}
       <div className="flex items-center gap-1.5 text-sm">
-        <Link to="/dashboard/schedule" className="text-gray-500 hover:text-gray-700 transition-colors">
+        <Link to="/dashboard/schedule" className="text-gray-500 hover:text-gray-700 transition-colors dark:text-gray-400 dark:hover:text-gray-200">
           Dashboard
         </Link>
-        <ChevronRight className="w-3.5 h-3.5 text-gray-400" />
-        <span className="text-gray-900 font-medium truncate max-w-[200px]">{project.name}</span>
+        <ChevronRight className="w-3.5 h-3.5 text-gray-400 dark:text-gray-500" />
+        <span className="text-gray-900 font-medium truncate max-w-[200px] dark:text-white">{project.name}</span>
       </div>
 
       {/* ── 1. Hero Banner ── */}
-      <div className={`rounded-2xl bg-gradient-to-br ${accent.bg} border border-gray-200 p-6 lg:p-8`}>
+      <div className={`rounded-2xl bg-gradient-to-br ${accent.bg} border border-gray-200 p-6 lg:p-8 dark:border-white/10`}>
         <div className="flex items-start justify-between gap-4 mb-5">
           <div>
-            <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-1">
+            <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-1 dark:text-white">
               {emoji} {zoneName} — {tradeName}
             </h1>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-gray-500 dark:text-gray-400">
               {project.name}
               {project.gcBusinessName ? ` \u00B7 Assigned by ${project.gcBusinessName}` : ''}
             </p>
@@ -205,8 +205,8 @@ export function SubProjectViewPage() {
         {/* Big progress bar */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-semibold text-gray-700">{progress}% Complete</span>
-            <span className="text-sm text-gray-500">
+            <span className="text-sm font-semibold text-gray-700 dark:text-gray-200">{progress}% Complete</span>
+            <span className="text-sm text-gray-500 dark:text-gray-400">
               {doneTasks} of {totalTasks} tasks done
               {(earliestDue || tradeEndDate) && (
                 <> &middot; Due {formatDate(earliestDue?.toISOString() || tradeEndDate)}</>
@@ -297,18 +297,18 @@ function TaskSection({ trade, projectId, accent }: { trade: any; projectId: stri
   });
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-      <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-2">
-        <h2 className="text-base font-semibold text-gray-900">My Tasks</h2>
-        <span className="text-xs text-gray-400">({trade.trade})</span>
+    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10 dark:shadow-black/30">
+      <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-2 dark:border-white/10">
+        <h2 className="text-base font-semibold text-gray-900 dark:text-white">My Tasks</h2>
+        <span className="text-xs text-gray-400 dark:text-gray-500">({trade.trade})</span>
       </div>
 
       {tasks.length === 0 ? (
         <div className="px-5 py-10 text-center">
-          <p className="text-sm text-gray-400">No tasks assigned yet. Check back later.</p>
+          <p className="text-sm text-gray-400 dark:text-gray-500">No tasks assigned yet. Check back later.</p>
         </div>
       ) : (
-        <div className="divide-y divide-gray-100">
+        <div className="divide-y divide-gray-100 dark:divide-white/10">
           {tasks.map((task: any) => (
             <TaskCard
               key={task.id}
@@ -371,7 +371,7 @@ function TaskCard({ task, accent, onToggle }: { task: any; accent: ReturnType<ty
 
           {/* Due date */}
           {(task.dueDate || task.due_date) && (
-            <div className="flex items-center gap-1 mt-1 text-xs text-gray-400">
+            <div className="flex items-center gap-1 mt-1 text-xs text-gray-400 dark:text-gray-500">
               <Clock className="w-3 h-3" />
               <span>Due {formatDate(task.dueDate || task.due_date)}</span>
             </div>
@@ -379,7 +379,7 @@ function TaskCard({ task, accent, onToggle }: { task: any; accent: ReturnType<ty
 
           {/* Notes display / edit */}
           {isDone && note ? (
-            <div className="mt-2 text-xs text-gray-500 bg-gray-100 rounded-lg px-3 py-2">
+            <div className="mt-2 text-xs text-gray-500 bg-gray-100 rounded-lg px-3 py-2 dark:text-gray-400 dark:bg-white/10">
               <div className="flex items-center gap-1 mb-0.5">
                 <StickyNote className="w-3 h-3" />
                 <span className="font-medium">Note:</span>
@@ -387,7 +387,7 @@ function TaskCard({ task, accent, onToggle }: { task: any; accent: ReturnType<ty
               {note}
             </div>
           ) : isDone && !note ? (
-            <p className="mt-1.5 text-xs text-gray-400 italic">No notes</p>
+            <p className="mt-1.5 text-xs text-gray-400 italic dark:text-gray-500">No notes</p>
           ) : editing ? (
             <div className="mt-2">
               <textarea
@@ -398,7 +398,7 @@ function TaskCard({ task, accent, onToggle }: { task: any; accent: ReturnType<ty
                 onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSaveNote(); } }}
                 placeholder="Add a note..."
                 rows={2}
-                className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none resize-none"
+                className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none resize-none dark:border-white/10 dark:focus:ring-blue-400 dark:focus:border-blue-400"
               />
               <div className="flex items-center gap-2 mt-1.5">
                 <button
@@ -409,7 +409,7 @@ function TaskCard({ task, accent, onToggle }: { task: any; accent: ReturnType<ty
                 </button>
                 <button
                   onClick={() => { setNote(getTaskNote(task.id)); setEditing(false); }}
-                  className="text-xs text-gray-400 hover:text-gray-600"
+                  className="text-xs text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
                 >
                   Cancel
                 </button>
@@ -419,12 +419,12 @@ function TaskCard({ task, accent, onToggle }: { task: any; accent: ReturnType<ty
             <div className="mt-2 flex items-center gap-2">
               <button
                 onClick={() => setEditing(true)}
-                className="text-xs text-gray-400 hover:text-gray-600 flex items-center gap-1 transition-colors"
+                className="text-xs text-gray-400 hover:text-gray-600 flex items-center gap-1 transition-colors dark:text-gray-500 dark:hover:text-gray-300"
               >
                 <StickyNote className="w-3 h-3" />
                 {note ? 'Edit note' : 'Add note...'}
               </button>
-              <button className="text-xs text-gray-400 hover:text-gray-600 flex items-center gap-1 transition-colors">
+              <button className="text-xs text-gray-400 hover:text-gray-600 flex items-center gap-1 transition-colors dark:text-gray-500 dark:hover:text-gray-300">
                 <Camera className="w-3 h-3" />
                 Photo
               </button>
@@ -456,23 +456,23 @@ function BudgetCard({ trades, accent }: { trades: any[]; accent: ReturnType<type
   if (total === 0) return null;
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-      <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-2">
-        <DollarSign className="w-4 h-4 text-gray-400" />
-        <h2 className="text-base font-semibold text-gray-900">Your Budget</h2>
+    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10 dark:shadow-black/30">
+      <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-2 dark:border-white/10">
+        <DollarSign className="w-4 h-4 text-gray-400 dark:text-gray-500" />
+        <h2 className="text-base font-semibold text-gray-900 dark:text-white">Your Budget</h2>
       </div>
       <div className="px-5 py-5">
         <div className="grid grid-cols-3 gap-4">
           <div className="text-center">
-            <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Labor</p>
-            <p className="text-lg font-bold text-gray-900">{formatCurrency(totalLabor)}</p>
+            <p className="text-xs text-gray-500 uppercase tracking-wide mb-1 dark:text-gray-400">Labor</p>
+            <p className="text-lg font-bold text-gray-900 dark:text-white">{formatCurrency(totalLabor)}</p>
           </div>
-          <div className="text-center border-x border-gray-100">
-            <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Materials</p>
-            <p className="text-lg font-bold text-gray-900">{formatCurrency(totalMaterials)}</p>
+          <div className="text-center border-x border-gray-100 dark:border-white/10">
+            <p className="text-xs text-gray-500 uppercase tracking-wide mb-1 dark:text-gray-400">Materials</p>
+            <p className="text-lg font-bold text-gray-900 dark:text-white">{formatCurrency(totalMaterials)}</p>
           </div>
           <div className="text-center">
-            <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Total</p>
+            <p className="text-xs text-gray-500 uppercase tracking-wide mb-1 dark:text-gray-400">Total</p>
             <p className={`text-lg font-bold ${accent.text}`}>{formatCurrency(total)}</p>
           </div>
         </div>
@@ -502,13 +502,13 @@ function SubProjectBanner({ project }: { project: any }) {
   const TypeIcon = cfg.Icon;
 
   return (
-    <div className={`${cfg.bg} border-l-4 ${cfg.borderColor} rounded-r-xl px-4 py-3 shadow-sm`}>
+    <div className={`${cfg.bg} border-l-4 ${cfg.borderColor} rounded-r-xl px-4 py-3 shadow-sm dark:shadow-black/30`}>
       <div className="flex items-start gap-3">
         <TypeIcon className={`w-5 h-5 ${cfg.textColor} flex-shrink-0 mt-0.5`} />
         <div className="flex-1 min-w-0">
           <p className={`text-sm font-medium ${cfg.textColor}`}>{bannerMessage}</p>
           {bannerUpdatedAt && (
-            <p className="text-xs text-gray-400 mt-1">{formatTime(bannerUpdatedAt)}</p>
+            <p className="text-xs text-gray-400 mt-1 dark:text-gray-500">{formatTime(bannerUpdatedAt)}</p>
           )}
         </div>
       </div>
@@ -559,10 +559,10 @@ function ProjectTimeline({
   if (entries.length <= 1) return null;
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-      <div className="px-5 py-4 border-b border-gray-100">
-        <h2 className="text-base font-semibold text-gray-900">Project Timeline</h2>
-        <p className="text-xs text-gray-400 mt-0.5">See where your work fits in the overall project</p>
+    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10 dark:shadow-black/30">
+      <div className="px-5 py-4 border-b border-gray-100 dark:border-white/10">
+        <h2 className="text-base font-semibold text-gray-900 dark:text-white">Project Timeline</h2>
+        <p className="text-xs text-gray-400 mt-0.5 dark:text-gray-500">See where your work fits in the overall project</p>
       </div>
       <div className="px-5 py-4 space-y-3">
         {entries.map((entry) => {
@@ -578,7 +578,7 @@ function ProjectTimeline({
               <span className={`text-sm w-28 truncate flex-shrink-0 ${isMyZone ? 'font-semibold text-gray-900' : 'text-gray-500'}`}>
                 {entry.name}
               </span>
-              <div className="flex-1 h-3 rounded-full bg-gray-100 overflow-hidden">
+              <div className="flex-1 h-3 rounded-full bg-gray-100 overflow-hidden dark:bg-white/10">
                 <div
                   className="h-full rounded-full transition-all duration-500"
                   style={{ width: `${pct}%`, backgroundColor: zoneColor }}
@@ -588,7 +588,7 @@ function ProjectTimeline({
                 {pct}%
               </span>
               {isMyZone && (
-                <span className="text-xs text-gray-400 flex-shrink-0">&larr; You</span>
+                <span className="text-xs text-gray-400 flex-shrink-0 dark:text-gray-500">&larr; You</span>
               )}
             </div>
           );
@@ -610,23 +610,23 @@ function GCContactCard({ project }: { project: any }) {
   const gcEmail = project.gcEmail || project.gc_email;
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-      <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-2">
-        <Building2 className="w-4 h-4 text-gray-400" />
-        <h2 className="text-base font-semibold text-gray-900">Your GC</h2>
+    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10 dark:shadow-black/30">
+      <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-2 dark:border-white/10">
+        <Building2 className="w-4 h-4 text-gray-400 dark:text-gray-500" />
+        <h2 className="text-base font-semibold text-gray-900 dark:text-white">Your GC</h2>
       </div>
       <div className="px-5 py-4">
-        <p className="font-semibold text-gray-900 mb-2">{gcName}</p>
+        <p className="font-semibold text-gray-900 mb-2 dark:text-white">{gcName}</p>
         <div className="space-y-1.5">
           {gcPhone && (
-            <a href={`tel:${gcPhone}`} className="flex items-center gap-2 text-sm text-gray-600 hover:text-brand-600 transition-colors">
-              <Phone className="w-4 h-4 text-gray-400" />
+            <a href={`tel:${gcPhone}`} className="flex items-center gap-2 text-sm text-gray-600 hover:text-brand-600 transition-colors dark:text-gray-300">
+              <Phone className="w-4 h-4 text-gray-400 dark:text-gray-500" />
               {gcPhone}
             </a>
           )}
           {gcEmail && (
-            <a href={`mailto:${gcEmail}`} className="flex items-center gap-2 text-sm text-gray-600 hover:text-brand-600 transition-colors">
-              <Mail className="w-4 h-4 text-gray-400" />
+            <a href={`mailto:${gcEmail}`} className="flex items-center gap-2 text-sm text-gray-600 hover:text-brand-600 transition-colors dark:text-gray-300">
+              <Mail className="w-4 h-4 text-gray-400 dark:text-gray-500" />
               {gcEmail}
             </a>
           )}

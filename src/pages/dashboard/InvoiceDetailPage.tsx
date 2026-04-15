@@ -159,20 +159,20 @@ export function InvoiceDetailPage() {
       <div className="p-6 lg:p-8 max-w-4xl mx-auto">
         <button
           onClick={() => navigate('/dashboard/invoices')}
-          className="flex items-center gap-2 text-sm text-neutral-500 hover:text-neutral-700 mb-6"
+          className="flex items-center gap-2 text-sm text-neutral-500 hover:text-neutral-700 mb-6 dark:text-gray-400"
         >
           <ArrowLeft className="w-4 h-4" />
           Back to Invoices
         </button>
         <div className="animate-pulse space-y-6">
           <div className="h-8 bg-neutral-200 rounded w-56" />
-          <div className="bg-white rounded-xl border border-neutral-200 p-6 space-y-4">
+          <div className="bg-white rounded-xl border border-neutral-200 p-6 space-y-4 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
             <div className="h-5 bg-neutral-200 rounded w-40" />
-            <div className="h-4 bg-neutral-100 rounded w-32" />
-            <div className="h-4 bg-neutral-100 rounded w-48" />
+            <div className="h-4 bg-neutral-100 rounded w-32 dark:bg-white/10" />
+            <div className="h-4 bg-neutral-100 rounded w-48 dark:bg-white/10" />
           </div>
-          <div className="h-48 bg-neutral-100 rounded-xl" />
-          <div className="h-32 bg-neutral-100 rounded-xl" />
+          <div className="h-48 bg-neutral-100 rounded-xl dark:bg-white/10" />
+          <div className="h-32 bg-neutral-100 rounded-xl dark:bg-white/10" />
         </div>
       </div>
     );
@@ -184,14 +184,14 @@ export function InvoiceDetailPage() {
       <div className="p-6 lg:p-8 max-w-4xl mx-auto">
         <button
           onClick={() => navigate('/dashboard/invoices')}
-          className="flex items-center gap-2 text-sm text-neutral-500 hover:text-neutral-700 mb-6"
+          className="flex items-center gap-2 text-sm text-neutral-500 hover:text-neutral-700 mb-6 dark:text-gray-400"
         >
           <ArrowLeft className="w-4 h-4" />
           Back to Invoices
         </button>
         <div className="text-center py-16">
           <FileText className="w-12 h-12 text-neutral-300 mx-auto mb-3" />
-          <p className="text-base font-medium text-neutral-500">
+          <p className="text-base font-medium text-neutral-500 dark:text-gray-400">
             Invoice not found
           </p>
         </div>
@@ -211,7 +211,7 @@ export function InvoiceDetailPage() {
       {/* Back button */}
       <button
         onClick={() => navigate('/dashboard/invoices')}
-        className="flex items-center gap-2 text-sm text-neutral-500 hover:text-neutral-700 mb-6 transition-colors"
+        className="flex items-center gap-2 text-sm text-neutral-500 hover:text-neutral-700 mb-6 transition-colors dark:text-gray-400"
       >
         <ArrowLeft className="w-4 h-4" />
         Back to Invoices
@@ -219,24 +219,24 @@ export function InvoiceDetailPage() {
 
       {/* Alerts */}
       {actionError && (
-        <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
+        <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-lg p-3 mb-4 dark:bg-red-500/10 dark:border-red-500/30">
           <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
-          <p className="text-sm text-red-700">{actionError}</p>
+          <p className="text-sm text-red-700 dark:text-red-300">{actionError}</p>
         </div>
       )}
       {actionSuccess && (
-        <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
+        <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-lg p-3 mb-4 dark:bg-green-500/10 dark:border-green-500/30">
           <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
-          <p className="text-sm text-green-700">{actionSuccess}</p>
+          <p className="text-sm text-green-700 dark:text-green-300">{actionSuccess}</p>
         </div>
       )}
 
       {/* Header */}
-      <div className="bg-white rounded-xl border border-neutral-200 p-6 mb-6">
+      <div className="bg-white rounded-xl border border-neutral-200 p-6 mb-6 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <div className="flex items-center gap-3 mb-2">
-              <h1 className="text-xl font-bold text-neutral-900">
+              <h1 className="text-xl font-bold text-neutral-900 dark:text-white">
                 Invoice #
                 {invoice.invoiceNumber ||
                   invoice.invoice_number ||
@@ -249,18 +249,18 @@ export function InvoiceDetailPage() {
               </span>
             </div>
             {invoice.customer && (
-              <p className="text-sm text-neutral-600">
+              <p className="text-sm text-neutral-600 dark:text-gray-300">
                 {invoice.customer.firstName} {invoice.customer.lastName}
               </p>
             )}
           </div>
           <div className="text-right">
-            <p className="text-2xl font-bold text-neutral-900">
+            <p className="text-2xl font-bold text-neutral-900 dark:text-white">
               {formatCurrency(Number(invoice.total || 0))}
             </p>
             {Number(invoice.balanceDue ?? invoice.balance_due ?? 0) > 0 &&
               !isPaid && (
-                <p className="text-sm text-red-600 font-semibold mt-1">
+                <p className="text-sm text-red-600 font-semibold mt-1 dark:text-red-300">
                   Balance due:{' '}
                   {formatCurrency(
                     Number(invoice.balanceDue ?? invoice.balance_due ?? 0)
@@ -276,23 +276,23 @@ export function InvoiceDetailPage() {
         <div className="lg:col-span-2 space-y-6">
           {/* Customer info */}
           {invoice.customer && (
-            <div className="bg-white rounded-xl border border-neutral-200 p-5">
-              <h2 className="text-xs font-semibold text-neutral-500 uppercase tracking-wide mb-3">
+            <div className="bg-white rounded-xl border border-neutral-200 p-5 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
+              <h2 className="text-xs font-semibold text-neutral-500 uppercase tracking-wide mb-3 dark:text-gray-400">
                 Bill To
               </h2>
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                  <User className="w-4 h-4 text-neutral-400" />
-                  <span className="text-sm font-medium text-neutral-900">
+                  <User className="w-4 h-4 text-neutral-400 dark:text-gray-500" />
+                  <span className="text-sm font-medium text-neutral-900 dark:text-white">
                     {invoice.customer.firstName} {invoice.customer.lastName}
                   </span>
                 </div>
                 {invoice.customer.email && (
                   <div className="flex items-center gap-2">
-                    <Mail className="w-4 h-4 text-neutral-400" />
+                    <Mail className="w-4 h-4 text-neutral-400 dark:text-gray-500" />
                     <a
                       href={`mailto:${invoice.customer.email}`}
-                      className="text-sm text-neutral-600 hover:text-brand-600"
+                      className="text-sm text-neutral-600 hover:text-brand-600 dark:text-gray-300"
                     >
                       {invoice.customer.email}
                     </a>
@@ -300,10 +300,10 @@ export function InvoiceDetailPage() {
                 )}
                 {invoice.customer.phone && (
                   <div className="flex items-center gap-2">
-                    <Phone className="w-4 h-4 text-neutral-400" />
+                    <Phone className="w-4 h-4 text-neutral-400 dark:text-gray-500" />
                     <a
                       href={`tel:${invoice.customer.phone}`}
-                      className="text-sm text-neutral-600 hover:text-brand-600"
+                      className="text-sm text-neutral-600 hover:text-brand-600 dark:text-gray-300"
                     >
                       {invoice.customer.phone}
                     </a>
@@ -314,26 +314,26 @@ export function InvoiceDetailPage() {
           )}
 
           {/* Line items */}
-          <div className="bg-white rounded-xl border border-neutral-200 overflow-hidden">
-            <div className="px-5 py-3 border-b border-neutral-100 bg-neutral-50">
-              <h2 className="text-xs font-semibold text-neutral-500 uppercase tracking-wide">
+          <div className="bg-white rounded-xl border border-neutral-200 overflow-hidden dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
+            <div className="px-5 py-3 border-b border-neutral-100 bg-neutral-50 dark:border-white/10 dark:bg-white/[0.02]">
+              <h2 className="text-xs font-semibold text-neutral-500 uppercase tracking-wide dark:text-gray-400">
                 Line Items
               </h2>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-neutral-100">
-                    <th className="text-left px-5 py-2.5 text-xs font-semibold text-neutral-500">
+                  <tr className="border-b border-neutral-100 dark:border-white/10">
+                    <th className="text-left px-5 py-2.5 text-xs font-semibold text-neutral-500 dark:text-gray-400">
                       Description
                     </th>
-                    <th className="text-right px-5 py-2.5 text-xs font-semibold text-neutral-500 w-20">
+                    <th className="text-right px-5 py-2.5 text-xs font-semibold text-neutral-500 w-20 dark:text-gray-400">
                       Qty
                     </th>
-                    <th className="text-right px-5 py-2.5 text-xs font-semibold text-neutral-500 w-28">
+                    <th className="text-right px-5 py-2.5 text-xs font-semibold text-neutral-500 w-28 dark:text-gray-400">
                       Unit Price
                     </th>
-                    <th className="text-right px-5 py-2.5 text-xs font-semibold text-neutral-500 w-28">
+                    <th className="text-right px-5 py-2.5 text-xs font-semibold text-neutral-500 w-28 dark:text-gray-400">
                       Total
                     </th>
                   </tr>
@@ -348,16 +348,16 @@ export function InvoiceDetailPage() {
                       const lineTotal = qty * price;
                       return (
                         <tr key={item.id || i}>
-                          <td className="px-5 py-3 text-sm text-neutral-900">
+                          <td className="px-5 py-3 text-sm text-neutral-900 dark:text-white">
                             {item.description}
                           </td>
-                          <td className="px-5 py-3 text-sm text-neutral-600 text-right">
+                          <td className="px-5 py-3 text-sm text-neutral-600 text-right dark:text-gray-300">
                             {qty}
                           </td>
-                          <td className="px-5 py-3 text-sm text-neutral-600 text-right">
+                          <td className="px-5 py-3 text-sm text-neutral-600 text-right dark:text-gray-300">
                             {formatCurrency(price)}
                           </td>
-                          <td className="px-5 py-3 text-sm font-medium text-neutral-900 text-right">
+                          <td className="px-5 py-3 text-sm font-medium text-neutral-900 text-right dark:text-white">
                             {formatCurrency(lineTotal)}
                           </td>
                         </tr>
@@ -367,7 +367,7 @@ export function InvoiceDetailPage() {
                     <tr>
                       <td
                         colSpan={4}
-                        className="px-5 py-6 text-sm text-neutral-400 text-center"
+                        className="px-5 py-6 text-sm text-neutral-400 text-center dark:text-gray-500"
                       >
                         No line items
                       </td>
@@ -378,38 +378,38 @@ export function InvoiceDetailPage() {
             </div>
 
             {/* Totals */}
-            <div className="border-t border-neutral-200 px-5 py-4 space-y-2">
+            <div className="border-t border-neutral-200 px-5 py-4 space-y-2 dark:border-white/10">
               <div className="flex justify-between text-sm">
-                <span className="text-neutral-500">Subtotal</span>
-                <span className="text-neutral-900 font-medium">
+                <span className="text-neutral-500 dark:text-gray-400">Subtotal</span>
+                <span className="text-neutral-900 font-medium dark:text-white">
                   {formatCurrency(Number(invoice.subtotal || 0))}
                 </span>
               </div>
               {Number(invoice.tax || 0) > 0 && (
                 <div className="flex justify-between text-sm">
-                  <span className="text-neutral-500">
+                  <span className="text-neutral-500 dark:text-gray-400">
                     Tax
                     {invoice.taxRate || invoice.tax_rate
                       ? ` (${invoice.taxRate || invoice.tax_rate}%)`
                       : ''}
                   </span>
-                  <span className="text-neutral-900 font-medium">
+                  <span className="text-neutral-900 font-medium dark:text-white">
                     {formatCurrency(Number(invoice.tax || 0))}
                   </span>
                 </div>
               )}
-              <div className="flex justify-between text-base pt-2 border-t border-neutral-100">
-                <span className="font-bold text-neutral-900">Total</span>
-                <span className="font-bold text-neutral-900">
+              <div className="flex justify-between text-base pt-2 border-t border-neutral-100 dark:border-white/10">
+                <span className="font-bold text-neutral-900 dark:text-white">Total</span>
+                <span className="font-bold text-neutral-900 dark:text-white">
                   {formatCurrency(Number(invoice.total || 0))}
                 </span>
               </div>
               {!isPaid && (
                 <div className="flex justify-between text-sm">
-                  <span className="font-semibold text-red-600">
+                  <span className="font-semibold text-red-600 dark:text-red-300">
                     Balance Due
                   </span>
-                  <span className="font-bold text-red-600">
+                  <span className="font-bold text-red-600 dark:text-red-300">
                     {formatCurrency(
                       Number(
                         invoice.balanceDue ?? invoice.balance_due ?? invoice.total ?? 0
@@ -423,11 +423,11 @@ export function InvoiceDetailPage() {
 
           {/* Due Date */}
           {dueDate && (
-            <div className="bg-white rounded-xl border border-neutral-200 p-5">
+            <div className="bg-white rounded-xl border border-neutral-200 p-5 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
               <div className="flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-neutral-400" />
-                <span className="text-sm text-neutral-500">Due Date:</span>
-                <span className="text-sm font-medium text-neutral-900">
+                <Calendar className="w-4 h-4 text-neutral-400 dark:text-gray-500" />
+                <span className="text-sm text-neutral-500 dark:text-gray-400">Due Date:</span>
+                <span className="text-sm font-medium text-neutral-900 dark:text-white">
                   {format(new Date(dueDate), 'MMMM d, yyyy')}
                 </span>
               </div>
@@ -436,14 +436,14 @@ export function InvoiceDetailPage() {
 
           {/* Notes */}
           {invoice.notes && (
-            <div className="bg-white rounded-xl border border-neutral-200 p-5">
+            <div className="bg-white rounded-xl border border-neutral-200 p-5 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
               <div className="flex items-center gap-2 mb-2">
-                <StickyNote className="w-4 h-4 text-neutral-400" />
-                <h2 className="text-xs font-semibold text-neutral-500 uppercase tracking-wide">
+                <StickyNote className="w-4 h-4 text-neutral-400 dark:text-gray-500" />
+                <h2 className="text-xs font-semibold text-neutral-500 uppercase tracking-wide dark:text-gray-400">
                   Notes
                 </h2>
               </div>
-              <p className="text-sm text-neutral-700 whitespace-pre-wrap leading-relaxed">
+              <p className="text-sm text-neutral-700 whitespace-pre-wrap leading-relaxed dark:text-gray-200">
                 {invoice.notes}
               </p>
             </div>
@@ -454,13 +454,13 @@ export function InvoiceDetailPage() {
         <div className="space-y-4">
           {/* Paid banner */}
           {isPaid && (
-            <div className="bg-green-50 border border-green-200 rounded-xl p-5 text-center">
+            <div className="bg-green-50 border border-green-200 rounded-xl p-5 text-center dark:bg-green-500/10 dark:border-green-500/30">
               <CheckCircle className="w-8 h-8 text-green-500 mx-auto mb-2" />
-              <p className="text-base font-bold text-green-700">
+              <p className="text-base font-bold text-green-700 dark:text-green-300">
                 Payment Received
               </p>
               {(invoice.paidAt || invoice.paid_at) && (
-                <p className="text-xs text-green-600 mt-1">
+                <p className="text-xs text-green-600 mt-1 dark:text-green-300">
                   {format(
                     new Date(invoice.paidAt || invoice.paid_at),
                     'MMM d, yyyy'
@@ -472,8 +472,8 @@ export function InvoiceDetailPage() {
 
           {/* Actions for unpaid invoices */}
           {!isPaid && (
-            <div className="bg-white rounded-xl border border-neutral-200 p-5 space-y-3">
-              <h2 className="text-xs font-semibold text-neutral-500 uppercase tracking-wide mb-1">
+            <div className="bg-white rounded-xl border border-neutral-200 p-5 space-y-3 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
+              <h2 className="text-xs font-semibold text-neutral-500 uppercase tracking-wide mb-1 dark:text-gray-400">
                 Actions
               </h2>
 
@@ -512,7 +512,7 @@ export function InvoiceDetailPage() {
                 <button
                   onClick={handleCreatePaymentLink}
                   disabled={generatingLink}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 border border-brand-300 text-brand-600 rounded-lg text-sm font-semibold hover:bg-brand-50 transition-colors disabled:opacity-60"
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 border border-brand-300 text-brand-600 rounded-lg text-sm font-semibold hover:bg-brand-50 transition-colors disabled:opacity-60 dark:border-blue-500/40 dark:text-blue-300 dark:hover:bg-blue-500/20"
                 >
                   {generatingLink ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -524,22 +524,22 @@ export function InvoiceDetailPage() {
                     : 'Create Payment Link'}
                 </button>
               ) : (
-                <div className="bg-brand-50 border border-brand-200 rounded-lg p-3">
+                <div className="bg-brand-50 border border-brand-200 rounded-lg p-3 dark:bg-blue-500/10 dark:border-blue-500/30">
                   <div className="flex items-center gap-2 mb-2">
-                    <CheckCircle className="w-4 h-4 text-brand-500" />
-                    <span className="text-xs font-semibold text-brand-700">
+                    <CheckCircle className="w-4 h-4 text-brand-500 dark:text-blue-300" />
+                    <span className="text-xs font-semibold text-brand-700 dark:text-blue-300">
                       Payment Link Ready
                     </span>
                   </div>
                   <p
-                    className="text-xs text-brand-600 truncate mb-2 select-all"
+                    className="text-xs text-brand-600 truncate mb-2 select-all dark:text-blue-300"
                     title={paymentLink}
                   >
                     {paymentLink}
                   </p>
                   <button
                     onClick={handleCopyLink}
-                    className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-white border border-brand-200 rounded-md text-xs font-semibold text-brand-600 hover:bg-brand-50 transition-colors"
+                    className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-white border border-brand-200 rounded-md text-xs font-semibold text-brand-600 hover:bg-brand-50 transition-colors dark:bg-white/5 dark:backdrop-blur-sm dark:border-blue-500/30 dark:text-blue-300 dark:hover:bg-blue-500/20"
                   >
                     {copied ? (
                       <CheckCircle className="w-3.5 h-3.5 text-green-500" />
@@ -547,7 +547,7 @@ export function InvoiceDetailPage() {
                       <Copy className="w-3.5 h-3.5" />
                     )}
                     {copied ? (
-                      <span className="text-green-600">Copied!</span>
+                      <span className="text-green-600 dark:text-green-300">Copied!</span>
                     ) : (
                       'Copy Link'
                     )}
@@ -556,12 +556,12 @@ export function InvoiceDetailPage() {
                     href={paymentLink}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full flex items-center justify-center gap-2 px-3 py-2 mt-2 bg-white border border-neutral-200 rounded-md text-xs font-semibold text-neutral-600 hover:bg-neutral-50 transition-colors"
+                    className="w-full flex items-center justify-center gap-2 px-3 py-2 mt-2 bg-white border border-neutral-200 rounded-md text-xs font-semibold text-neutral-600 hover:bg-neutral-50 transition-colors dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10 dark:text-gray-300 dark:hover:bg-white/10"
                   >
                     <ExternalLink className="w-3.5 h-3.5" />
                     Open in Browser
                   </a>
-                  <p className="text-[11px] text-brand-500 mt-2 text-center">
+                  <p className="text-[11px] text-brand-500 mt-2 text-center dark:text-blue-300">
                     Copy this link and text it to your customer
                   </p>
                 </div>
@@ -577,8 +577,8 @@ export function InvoiceDetailPage() {
                   Mark as Paid
                 </button>
               ) : (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                  <p className="text-sm text-green-800 font-medium mb-3">
+                <div className="bg-green-50 border border-green-200 rounded-lg p-3 dark:bg-green-500/10 dark:border-green-500/30">
+                  <p className="text-sm text-green-800 font-medium mb-3 dark:text-green-200">
                     Confirm payment of{' '}
                     {formatCurrency(Number(invoice.total || 0))}?
                   </p>
@@ -597,7 +597,7 @@ export function InvoiceDetailPage() {
                     </button>
                     <button
                       onClick={() => setShowConfirmPaid(false)}
-                      className="flex-1 px-3 py-2 bg-white border border-neutral-200 text-neutral-600 rounded-md text-sm font-semibold hover:bg-neutral-50"
+                      className="flex-1 px-3 py-2 bg-white border border-neutral-200 text-neutral-600 rounded-md text-sm font-semibold hover:bg-neutral-50 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10 dark:text-gray-300 dark:hover:bg-white/10"
                     >
                       Cancel
                     </button>

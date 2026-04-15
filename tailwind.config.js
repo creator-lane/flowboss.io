@@ -4,6 +4,16 @@ export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
+      keyframes: {
+        'check-flash': {
+          '0%': { backgroundColor: 'transparent' },
+          '30%': { backgroundColor: 'rgb(187 247 208 / 0.5)' },
+          '100%': { backgroundColor: 'transparent' },
+        },
+      },
+      animation: {
+        'check-flash': 'check-flash 0.6s ease-out',
+      },
       colors: {
         brand: {
           50: '#eff6ff',

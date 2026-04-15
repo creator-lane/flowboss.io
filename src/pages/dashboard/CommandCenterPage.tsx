@@ -24,6 +24,7 @@ import {
 import { CreateGCProjectModal } from '../../components/gc/CreateGCProjectModal';
 import { CreateInvoiceModal } from '../../components/invoices/CreateInvoiceModal';
 import { CreateJobModal } from '../../components/jobs/CreateJobModal';
+import { SetupChecklist } from '../../components/dashboard/SetupChecklist';
 
 // ── Helpers ──────────────────────────────────────────────────────────
 
@@ -113,11 +114,23 @@ export function CommandCenterPage() {
     queryFn: () => api.getInvitedProjects(),
   });
 
+  const { data: customersData } = useQuery({
+    queryKey: ['customers'],
+    queryFn: () => api.getCustomers(),
+  });
+
+  const { data: allJobsData } = useQuery({
+    queryKey: ['jobs', 'all'],
+    queryFn: () => api.getTodaysJobs(undefined, 'all'),
+  });
+
   const projects = projectsData?.data || [];
   const todaysJobs = jobsData?.data || [];
   const invoices = invoicesData?.data || [];
   const settings = settingsData?.data;
   const invitedProjects: any[] = invitedData?.data || [];
+  const allCustomers: any[] = customersData?.data || [];
+  const allJobs: any[] = allJobsData?.data || [];
 
   const isLoading = loadingProjects || loadingJobs || loadingInvoices || loadingSettings || loadingInvited;
 
@@ -309,6 +322,16 @@ export function CommandCenterPage() {
           </div>
         </div>
       </div>
+
+      {/* 1b. Setup Checklist — shown for new users */}
+      <SetupChecklist
+        customersCount={allCustomers.length}
+        jobsCount={allJobs.length}
+        sentInvoicesCount={invoices.filter((i: any) => i.status !== 'draft').length}
+        scheduledJobsCount={allJobs.filter((j: any) => j.scheduledStart || j.scheduled_start).length}
+        hasPhone={!!(settings?.phone || profile?.phone)}
+        hasBusinessName={!!(settings?.business_name || profile?.business_name)}
+      />
 
       {/* 2. Active Projects Strip — GCs and 'both' see this prominently */}
       {projects.length > 0 && isGC && (

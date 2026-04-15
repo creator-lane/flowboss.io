@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { Wrench, ArrowLeft, ArrowRight, Check, Users, User, Building2, HardHat, Loader2 } from 'lucide-react';
 import { useAuth } from '../lib/auth';
 import { api } from '../lib/api';
+// Lazy-load seed data generator — only pulled in when onboarding completes
+const loadSeedData = () => import('../lib/seedData');
 import { useToast } from '../components/ui/Toast';
 
 // ---------------------------------------------------------------------------
@@ -470,6 +472,14 @@ export function Onboarding() {
       if (data.priorities.length > 0) profileUpdate.priorities = data.priorities;
 
       await api.updateSettings(profileUpdate);
+
+      // Generate trade-specific demo data so the dashboard isn't empty
+      try {
+        const { generateSeedData } = await loadSeedData();
+        await generateSeedData(tradeValue);
+      } catch {
+        // Seed data is non-blocking — dashboard works fine without it
+      }
 
       navigate('/dashboard/home', { replace: true });
     } catch (err: any) {

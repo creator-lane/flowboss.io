@@ -73,33 +73,33 @@ export function Login() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-950">
         <div className="w-8 h-8 border-4 border-brand-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-950 px-4">
       <div className="w-full max-w-sm">
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
           {/* Logo */}
           <div className="flex flex-col items-center mb-8">
             <div className="w-12 h-12 bg-brand-500 rounded-xl flex items-center justify-center mb-3">
               <Wrench className="w-6 h-6 text-white" />
             </div>
-            <h1 className="text-xl font-bold text-gray-900">Sign in to FlowBoss</h1>
+            <h1 className="text-xl font-bold text-gray-900 dark:text-white">Sign in to FlowBoss</h1>
           </div>
 
           {/* Mode toggle */}
-          <div className="flex rounded-lg bg-gray-100 p-1 mb-6">
+          <div className="flex rounded-lg bg-gray-100 p-1 mb-6 dark:bg-white/10">
             <button
               type="button"
               onClick={() => switchMode('password')}
               className={`flex-1 text-sm font-medium py-2 rounded-md transition-colors ${
                 mode === 'password'
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-500 hover:text-gray-700'
+                  ? 'bg-white text-gray-900 shadow-sm dark:bg-white/10 dark:text-white'
+                  : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
               }`}
             >
               Email &amp; Password
@@ -109,8 +109,8 @@ export function Login() {
               onClick={() => switchMode('magic-link')}
               className={`flex-1 text-sm font-medium py-2 rounded-md transition-colors ${
                 mode === 'magic-link'
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-500 hover:text-gray-700'
+                  ? 'bg-white text-gray-900 shadow-sm dark:bg-white/10 dark:text-white'
+                  : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
               }`}
             >
               Magic Link
@@ -119,7 +119,7 @@ export function Login() {
 
           {/* Error */}
           {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg">
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg dark:bg-red-500/10 dark:border-red-500/20 dark:text-red-300">
               {error}
             </div>
           )}
@@ -128,7 +128,7 @@ export function Login() {
           {mode === 'password' && (
             <form onSubmit={handlePasswordLogin} className="space-y-4">
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">
                   Email
                 </label>
                 <input
@@ -137,12 +137,12 @@ export function Login() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-white/5 dark:border-white/10 dark:text-white dark:placeholder:text-gray-500 dark:focus:ring-blue-400 dark:focus:border-blue-400"
                   placeholder="you@company.com"
                 />
               </div>
               <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">
                   Password
                 </label>
                 <input
@@ -151,7 +151,7 @@ export function Login() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-white/5 dark:border-white/10 dark:text-white dark:placeholder:text-gray-500 dark:focus:ring-blue-400 dark:focus:border-blue-400"
                   placeholder="Enter your password"
                 />
               </div>
@@ -169,7 +169,7 @@ export function Login() {
           {mode === 'magic-link' && !magicLinkSent && (
             <form onSubmit={handleMagicLink} className="space-y-4">
               <div>
-                <label htmlFor="magic-email" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="magic-email" className="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">
                   Email
                 </label>
                 <input
@@ -178,7 +178,7 @@ export function Login() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-white/5 dark:border-white/10 dark:text-white dark:placeholder:text-gray-500 dark:focus:ring-blue-400 dark:focus:border-blue-400"
                   placeholder="you@company.com"
                 />
               </div>
@@ -200,9 +200,9 @@ export function Login() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
               </div>
-              <p className="text-sm font-medium text-gray-900 mb-1">Check your email</p>
-              <p className="text-sm text-gray-500">
-                We sent a magic link to <span className="font-medium">{email}</span>
+              <p className="text-sm font-medium text-gray-900 mb-1 dark:text-white">Check your email</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                We sent a magic link to <span className="font-medium dark:text-gray-200">{email}</span>
               </p>
             </div>
           )}
@@ -210,7 +210,7 @@ export function Login() {
 
         {/* Back to homepage */}
         <div className="text-center mt-6">
-          <Link to="/" className="text-sm text-gray-500 hover:text-brand-500 transition-colors">
+          <Link to="/" className="text-sm text-gray-500 hover:text-brand-500 transition-colors dark:text-gray-500 dark:hover:text-blue-300">
             &larr; Back to homepage
           </Link>
         </div>

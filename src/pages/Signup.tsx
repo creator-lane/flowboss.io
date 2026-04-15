@@ -124,6 +124,18 @@ export function Signup() {
                 invited_by: null,
                 joined_at: new Date().toISOString(),
               });
+
+            // Log activity: sub accepted
+            try {
+              await supabase.from('project_activity').insert({
+                gc_project_id: inviteProjectId,
+                actor_user_id: newUserId,
+                actor_name: businessName || email,
+                event_type: 'sub_accepted',
+                summary: `${businessName || email} accepted the invite`,
+                trade_id: inviteTradeId,
+              });
+            } catch { /* ignore */ }
           }
 
           // Redirect to the GC project view (skip checkout for invited subs)
@@ -147,16 +159,16 @@ export function Signup() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-950">
         <div className="w-8 h-8 border-4 border-brand-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4 py-12">
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-950 px-4 py-12">
       <div className="w-full max-w-sm">
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
           {/* Logo */}
           <div className="flex flex-col items-center mb-6">
             <div className="w-12 h-12 bg-brand-500 rounded-xl flex items-center justify-center mb-3">
@@ -164,11 +176,11 @@ export function Signup() {
             </div>
             {isInvite ? (
               <>
-                <h1 className="text-xl font-bold text-gray-900">Join Project on FlowBoss</h1>
-                <p className="text-sm text-gray-500 mt-1 text-center">
+                <h1 className="text-xl font-bold text-gray-900 dark:text-white">Join Project on FlowBoss</h1>
+                <p className="text-sm text-gray-500 mt-1 text-center dark:text-gray-400">
                   You've been invited to join
                   {inviteProjectName ? (
-                    <span className="font-semibold text-gray-700"> {inviteProjectName}</span>
+                    <span className="font-semibold text-gray-700 dark:text-gray-200"> {inviteProjectName}</span>
                   ) : (
                     ' a project'
                   )}
@@ -177,15 +189,15 @@ export function Signup() {
               </>
             ) : (
               <>
-                <h1 className="text-xl font-bold text-gray-900">Start Your 14-Day Free Trial</h1>
-                <p className="text-sm text-gray-500 mt-1">14-day free trial. Credit card required.</p>
+                <h1 className="text-xl font-bold text-gray-900 dark:text-white">Start Your 14-Day Free Trial</h1>
+                <p className="text-sm text-gray-500 mt-1 dark:text-gray-400">14-day free trial. Credit card required.</p>
               </>
             )}
           </div>
 
           {/* Error */}
           {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg">
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg dark:bg-red-500/10 dark:border-red-500/20 dark:text-red-300">
               {error}
             </div>
           )}
@@ -193,7 +205,7 @@ export function Signup() {
           {/* Signup form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="businessName" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="businessName" className="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">
                 Business Name
               </label>
               <input
@@ -202,13 +214,13 @@ export function Signup() {
                 required
                 value={businessName}
                 onChange={(e) => setBusinessName(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-white/5 dark:border-white/10 dark:text-white dark:placeholder:text-gray-500 dark:focus:ring-blue-400 dark:focus:border-blue-400"
                 placeholder="Acme Plumbing LLC"
               />
             </div>
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">
                 Email
               </label>
               <input
@@ -217,13 +229,13 @@ export function Signup() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-white/5 dark:border-white/10 dark:text-white dark:placeholder:text-gray-500 dark:focus:ring-blue-400 dark:focus:border-blue-400"
                 placeholder="you@company.com"
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">
                 Password
               </label>
               <input
@@ -233,7 +245,7 @@ export function Signup() {
                 minLength={8}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-white/5 dark:border-white/10 dark:text-white dark:placeholder:text-gray-500 dark:focus:ring-blue-400 dark:focus:border-blue-400"
                 placeholder="Min 8 characters"
               />
             </div>
@@ -252,11 +264,11 @@ export function Signup() {
           </form>
 
           {/* Login link */}
-          <p className="text-center text-sm text-gray-500 mt-5">
+          <p className="text-center text-sm text-gray-500 mt-5 dark:text-gray-400">
             Already have an account?{' '}
             <Link
               to={isInvite ? `/login?redirect=/dashboard/projects/assigned/${inviteProjectId}` : '/login'}
-              className="text-brand-500 hover:text-brand-600 font-medium"
+              className="text-brand-500 hover:text-brand-600 font-medium dark:text-blue-400 dark:hover:text-blue-300"
             >
               Log in
             </Link>
@@ -265,7 +277,7 @@ export function Signup() {
 
         {/* Back to homepage */}
         <div className="text-center mt-6">
-          <Link to="/" className="text-sm text-gray-500 hover:text-brand-500 transition-colors">
+          <Link to="/" className="text-sm text-gray-500 hover:text-brand-500 transition-colors dark:text-gray-500 dark:hover:text-blue-300">
             &larr; Back to homepage
           </Link>
         </div>

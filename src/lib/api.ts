@@ -808,6 +808,77 @@ export const api = {
     }
   },
 
+  // -- Project Activity Feed -------------------------------------------------
+  getProjectActivity: async (projectId: string, limit = 20) => {
+    const { data, error } = await supabase
+      .from('project_activity')
+      .select('*')
+      .eq('gc_project_id', projectId)
+      .order('created_at', { ascending: false })
+      .limit(limit);
+    if (error) {
+      // Table may not exist yet — return empty gracefully
+      if (error.message.includes('does not exist') || error.message.includes('schema cache')) {
+        return { data: [] };
+      }
+      throw new Error(error.message);
+    }
+    return { data: camelify(data || []) };
+  },
+
+  getRecentActivityAcrossProjects: async (limit = 15) => {
+    const userId = await getUserId().catch(() => null);
+    if (!userId) return { data: [] };
+    const { data, error } = await supabase
+      .from('project_activity')
+      .select('*, project:gc_projects(id, name)')
+      .order('created_at', { ascending: false })
+      .limit(limit);
+    if (error) {
+      if (error.message.includes('does not exist') || error.message.includes('schema cache')) {
+        return { data: [] };
+      }
+      throw new Error(error.message);
+    }
+    return { data: camelify(data || []) };
+  },
+
+  logActivity: async (
+    projectId: string,
+    eventType: string,
+    summary: string,
+    opts?: { tradeId?: string; zoneId?: string; metadata?: any }
+  ) => {
+    try {
+      const userId = await getUserId().catch(() => null);
+      let actorName: string | null = null;
+      if (userId) {
+        const { data: prof } = await supabase
+          .from('profiles')
+          .select('business_name, email')
+          .eq('id', userId)
+          .maybeSingle();
+        actorName = prof?.business_name || prof?.email || null;
+      }
+      const { error } = await supabase.from('project_activity').insert({
+        gc_project_id: projectId,
+        actor_user_id: userId,
+        actor_name: actorName,
+        event_type: eventType,
+        summary,
+        trade_id: opts?.tradeId || null,
+        zone_id: opts?.zoneId || null,
+        metadata: opts?.metadata || null,
+      });
+      if (error && !error.message.includes('does not exist')) {
+        console.warn('[activity]', error.message);
+      }
+    } catch (e) {
+      // Non-fatal — activity logging should never break caller
+      console.warn('[activity]', e);
+    }
+  },
+
   // -- Expenses --------------------------------------------------------------
   getExpenses: async (params?: Record<string, string>) => {
     let query = supabase
@@ -1739,6 +1810,26 @@ export const api = {
       .update({ done })
       .eq('id', taskId);
     if (error) throw new Error(error.message);
+
+    // Log activity on completion
+    if (done) {
+      try {
+        const { data: task } = await supabase
+          .from('gc_project_tasks')
+          .select('name, trade:gc_project_trades(id, trade, gc_project_id, zone_id)')
+          .eq('id', taskId)
+          .single();
+        const trade: any = Array.isArray(task?.trade) ? task?.trade[0] : task?.trade;
+        if (trade?.gc_project_id) {
+          await api.logActivity(
+            trade.gc_project_id,
+            'task_completed',
+            `${trade.trade}: ${task?.name || 'Task'} completed`,
+            { tradeId: trade.id, zoneId: trade.zone_id }
+          );
+        }
+      } catch { /* ignore */ }
+    }
   },
 
   addGCTask: async (tradeId: string, name: string) => {

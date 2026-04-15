@@ -91,6 +91,16 @@ export function InviteSubModal({
       // Edge function may not be deployed yet — continue with note tracking
     }
 
+    // Log activity
+    try {
+      await api.logActivity(
+        projectId,
+        'sub_invited',
+        `Invited ${emailCompany.trim() || email.trim()} to ${tradeName}`,
+        { tradeId }
+      );
+    } catch { /* ignore */ }
+
     // Track the invite in trade notes
     const notes = emailCompany.trim()
       ? `Invited: ${email.trim()} (${emailCompany.trim()})`

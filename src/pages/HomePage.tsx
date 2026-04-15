@@ -310,11 +310,11 @@ function ZoneClusterMock() {
     return () => clearInterval(iv);
   }, [inView]);
   const zonesBase = [
-    { name: 'Kitchen', trades: ['Plumbing', 'Electrical', 'Cabinets'], pct: 75, color: 'blue' },
-    { name: 'Bathroom 1', trades: ['Plumbing', 'Tiling', 'Electric'], pct: 40, color: 'purple' },
-    { name: 'Bathroom 2', trades: ['Plumbing', 'Tiling'], pct: 100, color: 'green' },
-    { name: 'Exterior', trades: ['Siding', 'Landscape'], pct: 15, color: 'amber' },
-  ];
+    { name: 'Kitchen', trades: [['Plumbing', 'Carlos D.'], ['Electrical', 'Tony R.'], ['Cabinets', 'Apex Mill.']], pct: 75, color: 'blue' },
+    { name: 'Bathroom 1', trades: [['Plumbing', 'Carlos D.'], ['Tiling', 'Maria S.'], ['Electric', 'Tony R.']], pct: 40, color: 'purple' },
+    { name: 'Bathroom 2', trades: [['Plumbing', 'Carlos D.'], ['Tiling', 'Maria S.']], pct: 100, color: 'green' },
+    { name: 'Exterior', trades: [['Siding', 'Dale C.'], ['Landscape', 'Greenline']], pct: 15, color: 'amber' },
+  ] as const;
   // nudge live-ticker zones 1% every cycle
   const zones = zonesBase.map((z, i) =>
     i === 1 ? { ...z, pct: Math.min(99, z.pct + (tickPct % 5)) } : i === 3 ? { ...z, pct: Math.min(35, z.pct + (tickPct % 4)) } : z
@@ -346,11 +346,14 @@ function ZoneClusterMock() {
           <span className="font-bold text-sm">{z.name}</span>
           <span className="text-xs font-bold tabular-nums">{z.pct}%</span>
         </div>
-        <div className="space-y-1 mb-3">
-          {z.trades.map((t) => (
-            <div key={t} className="text-xs flex items-center gap-1.5">
-              <div className="w-1 h-1 rounded-full bg-current opacity-60" />
-              {t}
+        <div className="space-y-1.5 mb-3">
+          {z.trades.map(([trade, sub]) => (
+            <div key={trade} className="text-xs flex items-center justify-between gap-2">
+              <div className="flex items-center gap-1.5">
+                <div className="w-1 h-1 rounded-full bg-current opacity-60" />
+                <span className="font-medium">{trade}</span>
+              </div>
+              <span className="text-[10px] opacity-75 truncate">{sub}</span>
             </div>
           ))}
         </div>

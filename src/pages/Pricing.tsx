@@ -37,20 +37,20 @@ const FAQS = [
 function FAQItem({ q, a }: { q: string; a: string }) {
   const [open, setOpen] = useState(false);
   return (
-    <div className="border-b border-gray-200 last:border-0">
+    <div className="border-b border-gray-200 last:border-0 dark:border-white/10">
       <button
         onClick={() => setOpen(!open)}
         className="w-full flex items-center justify-between py-4 text-left"
       >
-        <span className="text-base font-medium text-gray-900">{q}</span>
+        <span className="text-base font-medium text-gray-900 dark:text-white">{q}</span>
         {open ? (
-          <ChevronUp className="w-5 h-5 text-gray-400 flex-shrink-0" />
+          <ChevronUp className="w-5 h-5 text-gray-400 flex-shrink-0 dark:text-gray-500" />
         ) : (
-          <ChevronDown className="w-5 h-5 text-gray-400 flex-shrink-0" />
+          <ChevronDown className="w-5 h-5 text-gray-400 flex-shrink-0 dark:text-gray-500" />
         )}
       </button>
       {open && (
-        <p className="pb-4 text-sm text-gray-600 leading-relaxed">{a}</p>
+        <p className="pb-4 text-sm text-gray-600 leading-relaxed dark:text-gray-400">{a}</p>
       )}
     </div>
   );
@@ -61,20 +61,20 @@ export function Pricing() {
   const monthlyHref = session ? '/checkout?plan=monthly' : '/signup?plan=monthly';
   const annualHref = session ? '/checkout?plan=annual' : '/signup?plan=annual';
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white dark:bg-gray-950">
       {/* Nav */}
-      <nav className="border-b border-gray-200/60 bg-white/80 backdrop-blur-lg">
+      <nav className="border-b border-gray-200/60 bg-white/80 backdrop-blur-lg dark:border-white/10 dark:bg-gray-950/80">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2.5">
             <div className="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center">
               <Wrench className="w-4.5 h-4.5 text-white" />
             </div>
-            <span className="text-xl font-bold text-gray-900">FlowBoss</span>
+            <span className="text-xl font-bold text-gray-900 dark:text-white">FlowBoss</span>
           </Link>
           <div className="flex items-center gap-4">
             <Link
               to="/login"
-              className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+              className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors dark:text-gray-300 dark:hover:text-white"
             >
               Log In
             </Link>
@@ -90,10 +90,10 @@ export function Pricing() {
 
       {/* Hero */}
       <section className="pt-20 pb-4 text-center px-6">
-        <h1 className="text-4xl sm:text-5xl font-extrabold text-gray-900 tracking-tight">
+        <h1 className="text-4xl sm:text-5xl font-extrabold text-gray-900 tracking-tight dark:text-white">
           Simple, Transparent Pricing
         </h1>
-        <p className="mt-4 text-lg text-gray-500 max-w-xl mx-auto">
+        <p className="mt-4 text-lg text-gray-500 max-w-xl mx-auto dark:text-gray-400">
           Everything you need to run your trade business. No hidden fees, no per-user charges.
         </p>
       </section>
@@ -102,17 +102,17 @@ export function Pricing() {
       <section className="max-w-4xl mx-auto px-6 py-12">
         <div className="grid md:grid-cols-2 gap-8">
           {/* Monthly */}
-          <div className="rounded-2xl border border-gray-200 p-8 flex flex-col">
-            <h2 className="text-lg font-semibold text-gray-900">Monthly</h2>
+          <div className="rounded-2xl border border-gray-200 p-8 flex flex-col dark:border-white/10 dark:bg-white/5 dark:backdrop-blur-sm">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Monthly</h2>
             <div className="mt-4 flex items-baseline gap-1">
-              <span className="text-4xl font-extrabold text-gray-900">$29.99</span>
-              <span className="text-gray-500 text-sm">/mo</span>
+              <span className="text-4xl font-extrabold text-gray-900 dark:text-white">$29.99</span>
+              <span className="text-gray-500 text-sm dark:text-gray-400">/mo</span>
             </div>
-            <p className="mt-2 text-sm text-gray-500">Billed monthly. Cancel anytime.</p>
+            <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">Billed monthly. Cancel anytime.</p>
 
             <ul className="mt-8 space-y-3 flex-1">
               {FEATURES.map((f) => (
-                <li key={f} className="flex items-start gap-2.5 text-sm text-gray-700">
+                <li key={f} className="flex items-start gap-2.5 text-sm text-gray-700 dark:text-gray-300">
                   <CheckCircle2 className="w-4.5 h-4.5 text-green-500 flex-shrink-0 mt-0.5" />
                   {f}
                 </li>
@@ -128,22 +128,22 @@ export function Pricing() {
           </div>
 
           {/* Annual */}
-          <div className="rounded-2xl border-2 border-blue-600 p-8 flex flex-col relative">
+          <div className="rounded-2xl border-2 border-blue-600 p-8 flex flex-col relative dark:bg-white/5 dark:backdrop-blur-sm">
             <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide">
               Best Value
             </div>
-            <h2 className="text-lg font-semibold text-gray-900">Annual</h2>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Annual</h2>
             <div className="mt-4 flex items-baseline gap-1">
-              <span className="text-4xl font-extrabold text-gray-900">$199.99</span>
-              <span className="text-gray-500 text-sm">/yr</span>
+              <span className="text-4xl font-extrabold text-gray-900 dark:text-white">$199.99</span>
+              <span className="text-gray-500 text-sm dark:text-gray-400">/yr</span>
             </div>
-            <p className="mt-2 text-sm text-gray-500">
+            <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
               $16.67/mo &mdash; save $160 vs monthly
             </p>
 
             <ul className="mt-8 space-y-3 flex-1">
               {FEATURES.map((f) => (
-                <li key={f} className="flex items-start gap-2.5 text-sm text-gray-700">
+                <li key={f} className="flex items-start gap-2.5 text-sm text-gray-700 dark:text-gray-300">
                   <CheckCircle2 className="w-4.5 h-4.5 text-green-500 flex-shrink-0 mt-0.5" />
                   {f}
                 </li>
@@ -159,17 +159,17 @@ export function Pricing() {
           </div>
         </div>
 
-        <p className="text-center text-sm text-gray-500 mt-8">
+        <p className="text-center text-sm text-gray-500 mt-8 dark:text-gray-400">
           14-day free trial on both plans. Credit card required.
         </p>
       </section>
 
       {/* FAQ */}
       <section className="max-w-2xl mx-auto px-6 pb-20">
-        <h2 className="text-2xl font-bold text-gray-900 text-center mb-8">
+        <h2 className="text-2xl font-bold text-gray-900 text-center mb-8 dark:text-white">
           Frequently Asked Questions
         </h2>
-        <div className="bg-white rounded-2xl border border-gray-200 divide-y divide-gray-200 px-6">
+        <div className="bg-white rounded-2xl border border-gray-200 divide-y divide-gray-200 px-6 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10 dark:divide-white/10">
           {FAQS.map((faq) => (
             <FAQItem key={faq.q} q={faq.q} a={faq.a} />
           ))}

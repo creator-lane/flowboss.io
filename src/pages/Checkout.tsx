@@ -72,27 +72,27 @@ export function Checkout() {
   }, [session, planKey]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4 py-12">
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4 py-12 dark:bg-gray-950">
       <div className="w-full max-w-md">
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
           {/* Logo */}
           <div className="flex flex-col items-center mb-6">
             <div className="w-12 h-12 bg-brand-500 rounded-xl flex items-center justify-center mb-3">
               <Wrench className="w-6 h-6 text-white" />
             </div>
-            <h1 className="text-xl font-bold text-gray-900">Checkout</h1>
+            <h1 className="text-xl font-bold text-gray-900 dark:text-white">Checkout</h1>
           </div>
 
           {/* Plan summary */}
-          <div className="bg-gray-50 rounded-xl p-4 mb-6">
+          <div className="bg-gray-50 rounded-xl p-4 mb-6 dark:bg-white/5 dark:border dark:border-white/10">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-900">{plan.name} Plan</p>
-                <p className="text-xs text-gray-500 mt-0.5">14-day free trial included</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-white">{plan.name} Plan</p>
+                <p className="text-xs text-gray-500 mt-0.5 dark:text-gray-400">14-day free trial included</p>
               </div>
               <div className="text-right">
-                <span className="text-2xl font-bold text-gray-900">{plan.price}</span>
-                <span className="text-sm text-gray-500">{plan.interval}</span>
+                <span className="text-2xl font-bold text-gray-900 dark:text-white">{plan.price}</span>
+                <span className="text-sm text-gray-500 dark:text-gray-400">{plan.interval}</span>
               </div>
             </div>
           </div>
@@ -100,23 +100,23 @@ export function Checkout() {
           {loading ? (
             <div className="flex flex-col items-center py-8">
               <div className="w-8 h-8 border-4 border-brand-500 border-t-transparent rounded-full animate-spin mb-4" />
-              <p className="text-sm text-gray-500">Redirecting to secure checkout...</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Redirecting to secure checkout...</p>
             </div>
           ) : error ? (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg">
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg dark:bg-red-500/10 dark:border-red-500/20 dark:text-red-300">
               {error}
             </div>
           ) : (
             <>
               {/* Coming Soon state */}
               <div className="text-center py-4">
-                <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                  <Smartphone className="w-7 h-7 text-blue-600" />
+                <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-4 dark:bg-blue-500/10 dark:border dark:border-blue-500/20">
+                  <Smartphone className="w-7 h-7 text-blue-600 dark:text-blue-300" />
                 </div>
-                <h2 className="text-lg font-semibold text-gray-900 mb-2">
+                <h2 className="text-lg font-semibold text-gray-900 mb-2 dark:text-white">
                   Web Payments Coming Soon
                 </h2>
-                <p className="text-sm text-gray-500 leading-relaxed mb-6">
+                <p className="text-sm text-gray-500 leading-relaxed mb-6 dark:text-gray-400">
                   We're finalizing web payments. In the meantime, download the app to start
                   your free trial today.
                 </p>
@@ -148,10 +148,10 @@ export function Checkout() {
 
         {/* Back links */}
         <div className="flex items-center justify-center gap-4 mt-6">
-          <Link to="/pricing" className="text-sm text-gray-500 hover:text-brand-500 transition-colors">
+          <Link to="/pricing" className="text-sm text-gray-500 hover:text-brand-500 transition-colors dark:text-gray-500 dark:hover:text-blue-300">
             &larr; Back to pricing
           </Link>
-          <Link to="/dashboard" className="text-sm text-gray-500 hover:text-brand-500 transition-colors">
+          <Link to="/dashboard" className="text-sm text-gray-500 hover:text-brand-500 transition-colors dark:text-gray-500 dark:hover:text-blue-300">
             Go to dashboard
           </Link>
         </div>

@@ -12,12 +12,17 @@ interface EmptyStateProps {
   accentColor?: string;
 }
 
-const COLOR_MAP: Record<string, { bg: string; bgTo: string; btn: string; btnHover: string }> = {
-  brand:   { bg: 'from-blue-100 to-blue-50',     bgTo: 'dark:from-blue-900/30 dark:to-blue-800/20',   btn: 'bg-blue-600',    btnHover: 'hover:bg-blue-700' },
-  emerald: { bg: 'from-emerald-100 to-emerald-50', bgTo: 'dark:from-emerald-900/30 dark:to-emerald-800/20', btn: 'bg-emerald-600', btnHover: 'hover:bg-emerald-700' },
-  cyan:    { bg: 'from-cyan-100 to-cyan-50',       bgTo: 'dark:from-cyan-900/30 dark:to-cyan-800/20',     btn: 'bg-cyan-600',    btnHover: 'hover:bg-cyan-700' },
-  amber:   { bg: 'from-amber-100 to-amber-50',     bgTo: 'dark:from-amber-900/30 dark:to-amber-800/20',   btn: 'bg-amber-600',   btnHover: 'hover:bg-amber-700' },
-  violet:  { bg: 'from-violet-100 to-violet-50',   bgTo: 'dark:from-violet-900/30 dark:to-violet-800/20', btn: 'bg-violet-600',  btnHover: 'hover:bg-violet-700' },
+// Light: warm gradient chips. Dark: translucent brand-tinted chip (matches homepage pattern).
+const COLOR_MAP: Record<string, { bg: string; dark: string; btn: string; btnHover: string }> = {
+  brand:   { bg: 'from-blue-100 to-blue-50',       dark: 'dark:bg-blue-500/10 dark:border dark:border-blue-500/20 dark:bg-none',       btn: 'bg-blue-600',    btnHover: 'hover:bg-blue-700' },
+  emerald: { bg: 'from-emerald-100 to-emerald-50', dark: 'dark:bg-emerald-500/10 dark:border dark:border-emerald-500/20 dark:bg-none', btn: 'bg-emerald-600', btnHover: 'hover:bg-emerald-700' },
+  cyan:    { bg: 'from-cyan-100 to-cyan-50',       dark: 'dark:bg-cyan-500/10 dark:border dark:border-cyan-500/20 dark:bg-none',       btn: 'bg-cyan-600',    btnHover: 'hover:bg-cyan-700' },
+  amber:   { bg: 'from-amber-100 to-amber-50',     dark: 'dark:bg-amber-500/10 dark:border dark:border-amber-500/20 dark:bg-none',     btn: 'bg-amber-600',   btnHover: 'hover:bg-amber-700' },
+  violet:  { bg: 'from-violet-100 to-violet-50',   dark: 'dark:bg-violet-500/10 dark:border dark:border-violet-500/20 dark:bg-none',   btn: 'bg-violet-600',  btnHover: 'hover:bg-violet-700' },
+  indigo:  { bg: 'from-indigo-100 to-indigo-50',   dark: 'dark:bg-indigo-500/10 dark:border dark:border-indigo-500/20 dark:bg-none',   btn: 'bg-indigo-600',  btnHover: 'hover:bg-indigo-700' },
+  green:   { bg: 'from-green-100 to-green-50',     dark: 'dark:bg-green-500/10 dark:border dark:border-green-500/20 dark:bg-none',     btn: 'bg-green-600',   btnHover: 'hover:bg-green-700' },
+  purple:  { bg: 'from-purple-100 to-purple-50',   dark: 'dark:bg-purple-500/10 dark:border dark:border-purple-500/20 dark:bg-none',   btn: 'bg-purple-600',  btnHover: 'hover:bg-purple-700' },
+  blue:    { bg: 'from-blue-100 to-blue-50',       dark: 'dark:bg-blue-500/10 dark:border dark:border-blue-500/20 dark:bg-none',       btn: 'bg-blue-600',    btnHover: 'hover:bg-blue-700' },
 };
 
 export function EmptyState({
@@ -57,7 +62,7 @@ export function EmptyState({
 
       {/* Icon circle */}
       <div
-        className={`relative w-16 h-16 rounded-full bg-gradient-to-br ${colors.bg} ${colors.bgTo} flex items-center justify-center mb-5 shadow-sm`}
+        className={`relative w-16 h-16 rounded-full bg-gradient-to-br ${colors.bg} ${colors.dark} flex items-center justify-center mb-5 shadow-sm`}
       >
         <Icon className="w-7 h-7 text-gray-500 dark:text-gray-300" />
       </div>

@@ -21,6 +21,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import { CreateGCProjectModal } from '../../components/gc/CreateGCProjectModal';
+import { MultiProjectActivityFeed } from '../../components/gc/ProjectActivityFeed';
 import { TypeToConfirmDialog } from '../../components/ui/TypeToConfirmDialog';
 import { loadAllDemoData } from '../../lib/demoData';
 
@@ -880,6 +881,11 @@ export function GCDashboardPage() {
       {/* ── Projects Tab ── */}
       {activeTab === 'projects' && (
         <>
+          {/* Cross-project live activity */}
+          <div className="mb-6">
+            <MultiProjectActivityFeed limit={8} />
+          </div>
+
           {/* Stats */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <div className="bg-white rounded-xl border border-gray-200 p-4 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">

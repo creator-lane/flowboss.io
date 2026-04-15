@@ -35,6 +35,7 @@ import {
 } from 'lucide-react';
 import { TimelineBoard } from '../../components/gc/TimelineBoard';
 import { ZoneClusterDiagram } from '../../components/gc/ZoneClusterDiagram';
+import { ProjectActivityFeed } from '../../components/gc/ProjectActivityFeed';
 import { OnboardingOverlay } from '../../components/gc/OnboardingOverlay';
 import { Tooltip } from '../../components/ui/Tooltip';
 import { useToast } from '../../components/ui/Toast';
@@ -334,26 +335,33 @@ export function GCProjectDetailPage() {
 
       {/* ─── Visual View ─── */}
       {viewMode === 'visual' && (
-        <div className="relative">
-          {zones.length > 0 ? (
-            <ZoneClusterDiagram
-              project={project}
-              trades={trades}
-              zones={zones}
-              overallProgress={overallProgress}
-              selectedZoneId={selectedZoneId}
-              onSelectZone={(zoneId) => setSelectedZoneId(zoneId === selectedZoneId ? null : zoneId)}
-            />
-          ) : (
-            <HubSpokeDiagram
-              project={project}
-              trades={trades}
-              overallProgress={overallProgress}
-              selectedTradeId={selectedTradeId}
-              onSelectTrade={(tradeId) => setSelectedTradeId(tradeId === selectedTradeId ? null : tradeId)}
-              onAddTrade={() => setShowAddTradeVisual(true)}
-            />
-          )}
+        <div className="relative grid grid-cols-1 xl:grid-cols-[1fr_320px] gap-4">
+          <div className="min-w-0">
+            {zones.length > 0 ? (
+              <ZoneClusterDiagram
+                project={project}
+                trades={trades}
+                zones={zones}
+                overallProgress={overallProgress}
+                selectedZoneId={selectedZoneId}
+                onSelectZone={(zoneId) => setSelectedZoneId(zoneId === selectedZoneId ? null : zoneId)}
+              />
+            ) : (
+              <HubSpokeDiagram
+                project={project}
+                trades={trades}
+                overallProgress={overallProgress}
+                selectedTradeId={selectedTradeId}
+                onSelectTrade={(tradeId) => setSelectedTradeId(tradeId === selectedTradeId ? null : tradeId)}
+                onAddTrade={() => setShowAddTradeVisual(true)}
+              />
+            )}
+          </div>
+
+          {/* Activity sidebar */}
+          <aside className="xl:sticky xl:top-4 xl:self-start">
+            <ProjectActivityFeed projectId={id!} />
+          </aside>
 
           {/* Quick Add Trade Popup (Visual View) */}
           {showAddTradeVisual && (
@@ -904,17 +912,17 @@ function ZoneDetailPanel({
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/20 backdrop-blur-[1px] z-40 transition-opacity duration-200"
+        className="fixed inset-0 bg-black/20 backdrop-blur-[1px] z-40 transition-opacity duration-200 dark:bg-black/60"
         onClick={onClose}
       />
 
       {/* Panel */}
       <div
-        className="fixed right-0 top-0 bottom-0 w-full max-w-md bg-white shadow-2xl z-50 overflow-y-auto dark:bg-white/5 dark:backdrop-blur-sm"
+        className="fixed right-0 top-0 bottom-0 w-full max-w-md bg-white shadow-2xl z-50 overflow-y-auto dark:bg-gray-900 dark:border-l dark:border-white/10"
         style={{ animation: 'slideInRight 0.25s ease-out' }}
       >
         {/* Header */}
-        <div className="sticky top-0 bg-white z-10 border-b border-gray-100 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
+        <div className="sticky top-0 bg-white z-10 border-b border-gray-100 dark:bg-gray-900 dark:border-white/10">
           <div className="flex items-center justify-between p-4">
             <div className="flex items-center gap-2 min-w-0">
               <span className="text-xl">{zoneEmoji}</span>
@@ -1318,17 +1326,17 @@ function TradeDetailPanelInner({
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/20 backdrop-blur-[1px] z-40 transition-opacity duration-200"
+        className="fixed inset-0 bg-black/20 backdrop-blur-[1px] z-40 transition-opacity duration-200 dark:bg-black/60"
         onClick={onClose}
       />
 
       {/* Panel */}
       <div
-        className="fixed right-0 top-0 bottom-0 w-full max-w-md bg-white shadow-2xl z-50 overflow-y-auto dark:bg-white/5 dark:backdrop-blur-sm"
+        className="fixed right-0 top-0 bottom-0 w-full max-w-md bg-white shadow-2xl z-50 overflow-y-auto dark:bg-gray-900 dark:border-l dark:border-white/10"
         style={{ animation: 'slideInRight 0.25s ease-out' }}
       >
         {/* Header */}
-        <div className="sticky top-0 bg-white z-10 border-b border-gray-100 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
+        <div className="sticky top-0 bg-white z-10 border-b border-gray-100 dark:bg-gray-900 dark:border-white/10">
           {/* Back button row */}
           {onBack && (
             <button

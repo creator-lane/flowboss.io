@@ -1,6 +1,17 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Wrench, ArrowLeft, ArrowRight, Check, Users, User, Building2, HardHat, Loader2 } from 'lucide-react';
+import {
+  Wrench,
+  ArrowLeft,
+  ArrowRight,
+  Check,
+  Users,
+  User,
+  Building2,
+  HardHat,
+  Loader2,
+  Sparkles,
+} from 'lucide-react';
 import { useAuth } from '../lib/auth';
 import { api } from '../lib/api';
 // Lazy-load seed data generator — only pulled in when onboarding completes
@@ -38,40 +49,43 @@ const INITIAL_DATA: OnboardingData = {
 // ---------------------------------------------------------------------------
 
 const TRADES = [
-  { id: 'Plumbing', label: 'Plumbing', emoji: '\uD83D\uDD27' },
-  { id: 'Electrical', label: 'Electrical', emoji: '\u26A1' },
-  { id: 'HVAC', label: 'HVAC', emoji: '\u2744\uFE0F' },
-  { id: 'General Contractor', label: 'General Contractor', emoji: '\uD83C\uDFD7\uFE0F' },
-  { id: 'Roofing', label: 'Roofing', emoji: '\uD83C\uDFE0' },
-  { id: 'Painting', label: 'Painting', emoji: '\uD83C\uDFA8' },
-  { id: 'Landscaping', label: 'Landscaping', emoji: '\uD83C\uDF3F' },
-  { id: 'Flooring', label: 'Flooring', emoji: '\uD83E\uDEB5' },
-  { id: 'Concrete', label: 'Concrete', emoji: '\uD83E\uDDF1' },
-  { id: 'Other', label: 'Other', emoji: '\uD83D\uDEE0\uFE0F' },
+  { id: 'Plumbing', label: 'Plumbing', emoji: '\uD83D\uDD27', accent: 'from-cyan-500/20 to-blue-500/10' },
+  { id: 'Electrical', label: 'Electrical', emoji: '\u26A1', accent: 'from-amber-500/20 to-yellow-500/10' },
+  { id: 'HVAC', label: 'HVAC', emoji: '\u2744\uFE0F', accent: 'from-sky-500/20 to-indigo-500/10' },
+  { id: 'General Contractor', label: 'General Contractor', emoji: '\uD83C\uDFD7\uFE0F', accent: 'from-blue-500/20 to-indigo-500/10' },
+  { id: 'Roofing', label: 'Roofing', emoji: '\uD83C\uDFE0', accent: 'from-rose-500/20 to-orange-500/10' },
+  { id: 'Painting', label: 'Painting', emoji: '\uD83C\uDFA8', accent: 'from-violet-500/20 to-fuchsia-500/10' },
+  { id: 'Landscaping', label: 'Landscaping', emoji: '\uD83C\uDF3F', accent: 'from-emerald-500/20 to-green-500/10' },
+  { id: 'Flooring', label: 'Flooring', emoji: '\uD83E\uDEB5', accent: 'from-orange-500/20 to-amber-500/10' },
+  { id: 'Concrete', label: 'Concrete', emoji: '\uD83E\uDDF1', accent: 'from-slate-500/20 to-gray-500/10' },
+  { id: 'Other', label: 'Other', emoji: '\uD83D\uDEE0\uFE0F', accent: 'from-blue-500/20 to-indigo-500/10' },
 ];
 
 const TEAM_SIZES = [
-  { id: 'solo', label: 'Just me', icon: User },
-  { id: '2-5', label: '2-5 people', icon: Users },
-  { id: '6-15', label: '6-15 people', icon: Building2 },
-  { id: '15+', label: '15+ people', icon: HardHat },
+  { id: 'solo', label: 'Just me', sub: 'Solo operator', icon: User },
+  { id: '2-5', label: '2–5 people', sub: 'Small crew', icon: Users },
+  { id: '6-15', label: '6–15 people', sub: 'Growing shop', icon: Building2 },
+  { id: '15+', label: '15+ people', sub: 'Full operation', icon: HardHat },
 ];
 
 const BUSINESS_ROLES = [
   {
     id: 'gc',
     label: 'I AM a GC',
-    desc: 'I manage projects with multiple subs',
+    desc: 'I manage projects with multiple subs.',
+    tag: 'Command center',
   },
   {
     id: 'sub',
     label: 'I work FOR GCs',
-    desc: 'I get hired as a sub on GC projects',
+    desc: 'I get hired as a sub on GC projects.',
+    tag: 'Sub workspace',
   },
   {
     id: 'both',
     label: 'Both',
-    desc: 'I do my own jobs AND work on GC projects',
+    desc: 'I run my own jobs AND work on GC projects.',
+    tag: 'Hybrid',
   },
 ];
 
@@ -87,6 +101,25 @@ const PRIORITIES = [
 const TOTAL_STEPS = 6;
 
 // ---------------------------------------------------------------------------
+// Shared step chrome
+// ---------------------------------------------------------------------------
+
+function StepHeader({ eyebrow, title, subtitle }: { eyebrow: string; title: string; subtitle: string }) {
+  return (
+    <div className="text-center mb-8">
+      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-[11px] font-semibold tracking-wide text-blue-600 dark:text-blue-300 uppercase mb-3">
+        <Sparkles className="w-3 h-3" />
+        {eyebrow}
+      </div>
+      <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-2 tracking-tight">
+        {title}
+      </h2>
+      <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400">{subtitle}</p>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Step Components
 // ---------------------------------------------------------------------------
 
@@ -99,32 +132,48 @@ function StepTrade({
 }) {
   return (
     <div>
-      <h2 className="text-2xl font-bold text-gray-900 text-center mb-2 dark:text-white">What's your trade?</h2>
-      <p className="text-gray-500 text-center mb-8 dark:text-gray-400">Select the trade that best describes your business.</p>
+      <StepHeader
+        eyebrow="Your trade"
+        title="What do you build?"
+        subtitle="Pick the trade that best fits your business — we'll tailor templates and pricebook to match."
+      />
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-        {TRADES.map((t) => (
-          <button
-            key={t.id}
-            type="button"
-            onClick={() => onChange({ trade: t.id, customTrade: t.id === 'Other' ? data.customTrade : '' })}
-            className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
-              data.trade === t.id
-                ? 'border-brand-500 bg-brand-50 ring-2 ring-brand-500'
-                : 'border-gray-200 hover:border-gray-300 bg-white'
-            } dark:bg-blue-500/10`}
-          >
-            <span className="text-2xl">{t.emoji}</span>
-            <span className="text-sm font-medium text-gray-900 dark:text-white">{t.label}</span>
-          </button>
-        ))}
+        {TRADES.map((t) => {
+          const selected = data.trade === t.id;
+          return (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => onChange({ trade: t.id, customTrade: t.id === 'Other' ? data.customTrade : '' })}
+              className={`group relative flex flex-col items-center justify-center gap-2 p-4 sm:p-5 rounded-2xl border transition-all overflow-hidden
+                ${selected
+                  ? 'border-blue-500 bg-blue-50 shadow-lg shadow-blue-500/10 dark:bg-blue-500/10 dark:border-blue-400'
+                  : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-md dark:border-white/10 dark:bg-white/[0.03] dark:hover:bg-white/[0.06] dark:hover:border-white/20'}`}
+            >
+              <div
+                className={`absolute inset-0 bg-gradient-to-br ${t.accent} transition-opacity
+                  ${selected ? 'opacity-100' : 'opacity-0 group-hover:opacity-60'}`}
+              />
+              <span className="relative text-3xl">{t.emoji}</span>
+              <span className="relative text-sm font-semibold text-gray-900 dark:text-white text-center">
+                {t.label}
+              </span>
+              {selected && (
+                <div className="absolute top-2 right-2 w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center shadow-lg shadow-blue-600/40">
+                  <Check className="w-3 h-3 text-white" />
+                </div>
+              )}
+            </button>
+          );
+        })}
       </div>
       {data.trade === 'Other' && (
         <input
           type="text"
-          placeholder="Enter your trade..."
+          placeholder="Tell us your trade..."
           value={data.customTrade}
           onChange={(e) => onChange({ customTrade: e.target.value })}
-          className="mt-4 w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:border-white/10 dark:focus:ring-blue-400 dark:focus:border-blue-400"
+          className="mt-4 w-full px-4 py-3 border border-gray-300 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-gray-500 dark:focus:ring-blue-400 dark:focus:border-blue-400"
           autoFocus
         />
       )}
@@ -141,24 +190,44 @@ function StepTeamSize({
 }) {
   return (
     <div>
-      <h2 className="text-2xl font-bold text-gray-900 text-center mb-2 dark:text-white">How big is your team?</h2>
-      <p className="text-gray-500 text-center mb-8 dark:text-gray-400">This helps us tailor the experience for you.</p>
-      <div className="grid grid-cols-2 gap-4">
+      <StepHeader
+        eyebrow="Crew size"
+        title="How big is your team?"
+        subtitle="Small crew or full operation — we'll scale the layout and shortcuts to match."
+      />
+      <div className="grid grid-cols-2 gap-3 sm:gap-4">
         {TEAM_SIZES.map((ts) => {
           const Icon = ts.icon;
+          const selected = data.teamSize === ts.id;
           return (
             <button
               key={ts.id}
               type="button"
               onClick={() => onChange({ teamSize: ts.id })}
-              className={`flex flex-col items-center gap-3 p-6 rounded-xl border-2 transition-all ${
-                data.teamSize === ts.id
-                  ? 'border-brand-500 bg-brand-50 ring-2 ring-brand-500'
-                  : 'border-gray-200 hover:border-gray-300 bg-white'
-              } dark:bg-blue-500/10`}
+              className={`relative flex flex-col items-center gap-3 p-5 sm:p-6 rounded-2xl border transition-all overflow-hidden
+                ${selected
+                  ? 'border-blue-500 bg-blue-50 shadow-lg shadow-blue-500/10 dark:bg-blue-500/10 dark:border-blue-400'
+                  : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-md dark:border-white/10 dark:bg-white/[0.03] dark:hover:bg-white/[0.06] dark:hover:border-white/20'}`}
             >
-              <Icon className={`w-8 h-8 ${data.teamSize === ts.id ? 'text-brand-500' : 'text-gray-400'}`} />
-              <span className="text-sm font-medium text-gray-900 dark:text-white">{ts.label}</span>
+              <div
+                className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors
+                  ${selected
+                    ? 'bg-blue-600 shadow-lg shadow-blue-600/30'
+                    : 'bg-gray-100 dark:bg-white/10'}`}
+              >
+                <Icon className={`w-6 h-6 ${selected ? 'text-white' : 'text-gray-500 dark:text-gray-400'}`} />
+              </div>
+              <div className="text-center">
+                <div className="text-sm sm:text-base font-semibold text-gray-900 dark:text-white">
+                  {ts.label}
+                </div>
+                <div className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">{ts.sub}</div>
+              </div>
+              {selected && (
+                <div className="absolute top-3 right-3 w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center shadow-lg shadow-blue-600/40">
+                  <Check className="w-3 h-3 text-white" />
+                </div>
+              )}
             </button>
           );
         })}
@@ -176,48 +245,79 @@ function StepBusinessInfo({
 }) {
   return (
     <div>
-      <h2 className="text-2xl font-bold text-gray-900 text-center mb-2 dark:text-white">Tell us about your business</h2>
-      <p className="text-gray-500 text-center mb-8 dark:text-gray-400">We'll use this to set up your account.</p>
+      <StepHeader
+        eyebrow="Business"
+        title="Tell us about your business"
+        subtitle="We'll stamp this on invoices, estimates, and your sub-facing project pages."
+      />
       <div className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-200">
-            Business Name <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            required
-            value={data.businessName}
-            onChange={(e) => onChange({ businessName: e.target.value })}
-            placeholder="Acme Plumbing LLC"
-            className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:border-white/10 dark:focus:ring-blue-400 dark:focus:border-blue-400"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-200">
-            Phone Number <span className="text-gray-400 dark:text-gray-500">(optional)</span>
-          </label>
-          <input
-            type="tel"
-            value={data.phone}
-            onChange={(e) => onChange({ phone: e.target.value })}
-            placeholder="(555) 123-4567"
-            className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:border-white/10 dark:focus:ring-blue-400 dark:focus:border-blue-400"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-200">
-            Zip Code <span className="text-gray-400 dark:text-gray-500">(optional)</span>
-          </label>
-          <input
-            type="text"
-            value={data.zip}
-            onChange={(e) => onChange({ zip: e.target.value })}
-            placeholder="90210"
-            maxLength={10}
-            className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:border-white/10 dark:focus:ring-blue-400 dark:focus:border-blue-400"
-          />
-        </div>
+        <Field
+          label="Business Name"
+          required
+          value={data.businessName}
+          onChange={(v) => onChange({ businessName: v })}
+          placeholder="Acme Plumbing LLC"
+        />
+        <Field
+          label="Phone Number"
+          optional
+          type="tel"
+          value={data.phone}
+          onChange={(v) => onChange({ phone: v })}
+          placeholder="(555) 123-4567"
+        />
+        <Field
+          label="Zip Code"
+          optional
+          value={data.zip}
+          onChange={(v) => onChange({ zip: v })}
+          placeholder="90210"
+          maxLength={10}
+        />
       </div>
+    </div>
+  );
+}
+
+function Field({
+  label,
+  required,
+  optional,
+  value,
+  onChange,
+  placeholder,
+  type = 'text',
+  maxLength,
+}: {
+  label: string;
+  required?: boolean;
+  optional?: boolean;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  type?: string;
+  maxLength?: number;
+}) {
+  return (
+    <div>
+      <label className="flex items-center justify-between mb-1.5">
+        <span className="text-sm font-medium text-gray-700 dark:text-gray-200">
+          {label}
+          {required && <span className="text-red-500 ml-0.5">*</span>}
+        </span>
+        {optional && (
+          <span className="text-[11px] text-gray-400 dark:text-gray-500">Optional</span>
+        )}
+      </label>
+      <input
+        type={type}
+        required={required}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        maxLength={maxLength}
+        className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-gray-500 dark:focus:ring-blue-400 dark:focus:border-blue-400"
+      />
     </div>
   );
 }
@@ -231,24 +331,46 @@ function StepGCRole({
 }) {
   return (
     <div>
-      <h2 className="text-2xl font-bold text-gray-900 text-center mb-2 dark:text-white">How do you work with GCs?</h2>
-      <p className="text-gray-500 text-center mb-8 dark:text-gray-400">This helps us show you the right tools.</p>
+      <StepHeader
+        eyebrow="Your role"
+        title="How do you work with GCs?"
+        subtitle="FlowBoss is one platform for GCs, subs, and solo trades. We'll show you the right tools."
+      />
       <div className="space-y-3">
-        {BUSINESS_ROLES.map((role) => (
-          <button
-            key={role.id}
-            type="button"
-            onClick={() => onChange({ businessRole: role.id })}
-            className={`w-full text-left p-5 rounded-xl border-2 transition-all ${
-              data.businessRole === role.id
-                ? 'border-brand-500 bg-brand-50 ring-2 ring-brand-500'
-                : 'border-gray-200 hover:border-gray-300 bg-white'
-            } dark:bg-blue-500/10`}
-          >
-            <div className="font-semibold text-gray-900 dark:text-white">{role.label}</div>
-            <div className="text-sm text-gray-500 mt-1 dark:text-gray-400">{role.desc}</div>
-          </button>
-        ))}
+        {BUSINESS_ROLES.map((role) => {
+          const selected = data.businessRole === role.id;
+          return (
+            <button
+              key={role.id}
+              type="button"
+              onClick={() => onChange({ businessRole: role.id })}
+              className={`w-full text-left p-5 rounded-2xl border transition-all
+                ${selected
+                  ? 'border-blue-500 bg-blue-50 shadow-lg shadow-blue-500/10 dark:bg-blue-500/10 dark:border-blue-400'
+                  : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-md dark:border-white/10 dark:bg-white/[0.03] dark:hover:bg-white/[0.06] dark:hover:border-white/20'}`}
+            >
+              <div className="flex items-start gap-4">
+                <div
+                  className={`w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center border-2 transition-colors mt-0.5
+                    ${selected
+                      ? 'bg-blue-600 border-blue-600 shadow-lg shadow-blue-600/30'
+                      : 'border-gray-300 dark:border-white/20'}`}
+                >
+                  {selected && <Check className="w-3 h-3 text-white" />}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center flex-wrap gap-2 mb-1">
+                    <span className="font-semibold text-gray-900 dark:text-white">{role.label}</span>
+                    <span className="text-[10px] font-bold tracking-wide uppercase px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">
+                      {role.tag}
+                    </span>
+                  </div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400">{role.desc}</div>
+                </div>
+              </div>
+            </button>
+          );
+        })}
       </div>
     </div>
   );
@@ -272,33 +394,43 @@ function StepPriorities({
 
   return (
     <div>
-      <h2 className="text-2xl font-bold text-gray-900 text-center mb-2 dark:text-white">What matters most to you?</h2>
-      <p className="text-gray-500 text-center mb-8 dark:text-gray-400">Pick up to 3. This helps us personalize your experience.</p>
-      <div className="space-y-3">
+      <StepHeader
+        eyebrow="Priorities"
+        title="What matters most to you?"
+        subtitle="Pick up to 3. We'll pin these to the top of your dashboard."
+      />
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {PRIORITIES.map((p) => {
           const selected = data.priorities.includes(p);
+          const disabled = !selected && data.priorities.length >= 3;
           return (
             <button
               key={p}
               type="button"
               onClick={() => toggle(p)}
-              className={`w-full text-left p-4 rounded-xl border-2 transition-all flex items-center gap-3 ${
-                selected
-                  ? 'border-brand-500 bg-brand-50 ring-2 ring-brand-500'
-                  : 'border-gray-200 hover:border-gray-300 bg-white'
-              } dark:bg-blue-500/10`}
+              disabled={disabled}
+              className={`w-full text-left p-4 rounded-2xl border transition-all flex items-center gap-3
+                ${selected
+                  ? 'border-blue-500 bg-blue-50 shadow-lg shadow-blue-500/10 dark:bg-blue-500/10 dark:border-blue-400'
+                  : disabled
+                    ? 'border-gray-200 bg-gray-50 opacity-50 dark:border-white/5 dark:bg-white/[0.02]'
+                    : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-md dark:border-white/10 dark:bg-white/[0.03] dark:hover:bg-white/[0.06] dark:hover:border-white/20'}`}
             >
               <div
-                className={`w-5 h-5 rounded flex items-center justify-center flex-shrink-0 ${
-                  selected ? 'bg-brand-500' : 'border-2 border-gray-300'
-                }`}
+                className={`w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0 border-2 transition-colors
+                  ${selected
+                    ? 'bg-blue-600 border-blue-600 shadow-lg shadow-blue-600/30'
+                    : 'border-gray-300 dark:border-white/20'}`}
               >
-                {selected && <Check className="w-3.5 h-3.5 text-white" />}
+                {selected && <Check className="w-3 h-3 text-white" />}
               </div>
               <span className="text-sm font-medium text-gray-900 dark:text-white">{p}</span>
             </button>
           );
         })}
+      </div>
+      <div className="mt-4 text-center text-xs text-gray-400 dark:text-gray-500">
+        {data.priorities.length}/3 selected
       </div>
     </div>
   );
@@ -309,49 +441,49 @@ function StepComplete({ data }: { data: OnboardingData }) {
   const teamLabel = TEAM_SIZES.find((t) => t.id === data.teamSize)?.label || data.teamSize;
   const roleLabel = BUSINESS_ROLES.find((r) => r.id === data.businessRole)?.label || data.businessRole;
 
+  const rows: Array<[string, string | null]> = [
+    ['Trade', tradeName],
+    ['Team size', teamLabel],
+    ['Business', data.businessName],
+    ['Phone', data.phone || null],
+    ['Zip', data.zip || null],
+    ['Role', roleLabel],
+    ['Priorities', data.priorities.length > 0 ? data.priorities.join(', ') : null],
+  ];
+
   return (
     <div className="text-center">
-      <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 dark:bg-green-500/20">
-        <Check className="w-8 h-8 text-green-600 dark:text-green-300" />
+      <div className="relative inline-block mb-6">
+        <div className="absolute inset-0 rounded-full bg-blue-500/30 blur-2xl animate-pulse" />
+        <div className="relative w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-2xl shadow-blue-500/40">
+          <Check className="w-10 h-10 text-white" strokeWidth={3} />
+        </div>
       </div>
-      <h2 className="text-2xl font-bold text-gray-900 mb-2 dark:text-white">You're all set!</h2>
-      <p className="text-gray-500 mb-8 dark:text-gray-400">Here's a summary of your setup.</p>
+      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-[11px] font-semibold tracking-wide text-blue-600 dark:text-blue-300 uppercase mb-3">
+        <Sparkles className="w-3 h-3" />
+        Almost there
+      </div>
+      <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-2 tracking-tight">
+        You're all set.
+      </h2>
+      <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 mb-8">
+        We're about to pre-load your dashboard with a realistic {tradeName.toLowerCase() || 'starter'} project so it looks lived-in from day one.
+      </p>
 
-      <div className="bg-gray-50 rounded-xl p-6 text-left space-y-3 mb-6 dark:bg-white/[0.02]">
-        <div className="flex justify-between text-sm">
-          <span className="text-gray-500 dark:text-gray-400">Trade</span>
-          <span className="font-medium text-gray-900 dark:text-white">{tradeName}</span>
-        </div>
-        <div className="flex justify-between text-sm">
-          <span className="text-gray-500 dark:text-gray-400">Team Size</span>
-          <span className="font-medium text-gray-900 dark:text-white">{teamLabel}</span>
-        </div>
-        <div className="flex justify-between text-sm">
-          <span className="text-gray-500 dark:text-gray-400">Business</span>
-          <span className="font-medium text-gray-900 dark:text-white">{data.businessName}</span>
-        </div>
-        {data.phone && (
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-500 dark:text-gray-400">Phone</span>
-            <span className="font-medium text-gray-900 dark:text-white">{data.phone}</span>
-          </div>
-        )}
-        {data.zip && (
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-500 dark:text-gray-400">Zip</span>
-            <span className="font-medium text-gray-900 dark:text-white">{data.zip}</span>
-          </div>
-        )}
-        <div className="flex justify-between text-sm">
-          <span className="text-gray-500 dark:text-gray-400">GC Role</span>
-          <span className="font-medium text-gray-900 dark:text-white">{roleLabel}</span>
-        </div>
-        {data.priorities.length > 0 && (
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-500 flex-shrink-0 dark:text-gray-400">Priorities</span>
-            <span className="font-medium text-gray-900 text-right dark:text-white">{data.priorities.join(', ')}</span>
-          </div>
-        )}
+      <div className="text-left rounded-2xl border border-gray-200 bg-gradient-to-br from-gray-50 to-white overflow-hidden dark:border-white/10 dark:from-white/[0.03] dark:to-white/[0.01]">
+        {rows
+          .filter(([, v]) => v)
+          .map(([label, value], idx, arr) => (
+            <div
+              key={label}
+              className={`flex items-start justify-between gap-4 px-5 py-3 text-sm ${
+                idx < arr.length - 1 ? 'border-b border-gray-100 dark:border-white/5' : ''
+              }`}
+            >
+              <span className="text-gray-500 dark:text-gray-400">{label}</span>
+              <span className="font-semibold text-gray-900 dark:text-white text-right">{value}</span>
+            </div>
+          ))}
       </div>
     </div>
   );
@@ -389,11 +521,9 @@ export function Onboarding() {
       try {
         const { data: profile } = await api.getSettings();
         if (!cancelled && profile?.business_role) {
-          // Already onboarded — go to dashboard
           navigate('/dashboard', { replace: true });
           return;
         }
-        // Pre-fill from signup localStorage if available
         if (!cancelled) {
           try {
             const stashed = localStorage.getItem('flowboss-signup');
@@ -407,11 +537,11 @@ export function Onboarding() {
               localStorage.removeItem('flowboss-signup');
             }
           } catch {
-            // Bad parse — ignore
+            /* ignore bad parse */
           }
         }
       } catch {
-        // Profile fetch failed — let them onboard
+        /* profile fetch failed — let them onboard */
       }
       if (!cancelled) setCheckingProfile(false);
     })();
@@ -456,16 +586,12 @@ export function Onboarding() {
     try {
       const tradeValue = data.trade === 'Other' ? data.customTrade.trim() : data.trade;
 
-      // Save fields the profiles table supports for sure
       const profileUpdate: Record<string, any> = {
         business_name: data.businessName.trim(),
         trade: tradeValue,
       };
 
       if (data.phone.trim()) profileUpdate.phone = data.phone.trim();
-
-      // Attempt to save additional fields — these may or may not exist on the table yet.
-      // Supabase will ignore unknown columns in a PATCH-style update.
       if (data.zip.trim()) profileUpdate.zip = data.zip.trim();
       if (data.teamSize) profileUpdate.team_size = data.teamSize;
       if (data.businessRole) profileUpdate.business_role = data.businessRole;
@@ -473,17 +599,15 @@ export function Onboarding() {
 
       await api.updateSettings(profileUpdate);
 
-      // Generate trade-specific demo data so the dashboard isn't empty
       try {
         const { generateSeedData } = await loadSeedData();
         await generateSeedData(tradeValue);
       } catch {
-        // Seed data is non-blocking — dashboard works fine without it
+        /* seed data non-blocking */
       }
 
       navigate('/dashboard/home', { replace: true });
-    } catch (err: any) {
-      // If the full payload fails (unknown columns), retry with just the safe fields
+    } catch {
       try {
         await api.updateSettings({
           business_name: data.businessName.trim(),
@@ -504,11 +628,11 @@ export function Onboarding() {
     if (step > 0) setStep((s) => s - 1);
   };
 
-  // Loading states
+  // Loading state
   if (authLoading || checkingProfile) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-white/10">
-        <div className="w-8 h-8 border-4 border-brand-500 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-950">
+        <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -522,50 +646,68 @@ export function Onboarding() {
     <StepComplete key="complete" data={data} />,
   ];
 
+  const progressPct = ((step + 1) / TOTAL_STEPS) * 100;
+
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col dark:bg-white/10">
+    <div className="relative min-h-screen flex flex-col overflow-x-hidden bg-gray-100 dark:bg-gray-950">
+      {/* Dark-mode atmospheric background (matches homepage aesthetic) */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden hidden dark:block">
+        <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-blue-500/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-indigo-500/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-cyan-500/5 rounded-full blur-3xl" />
+        <div
+          className="absolute inset-0 opacity-[0.04]"
+          style={{
+            backgroundImage: 'radial-gradient(circle, #64748b 1px, transparent 1px)',
+            backgroundSize: '24px 24px',
+          }}
+        />
+      </div>
+
       {/* Header */}
-      <div className="pt-8 pb-4 flex justify-center">
-        <div className="flex items-center gap-2">
-          <div className="w-10 h-10 bg-brand-500 rounded-xl flex items-center justify-center">
+      <div className="relative pt-8 sm:pt-10 pb-4 flex justify-center">
+        <div className="flex items-center gap-2.5">
+          <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/30">
             <Wrench className="w-5 h-5 text-white" />
           </div>
-          <span className="text-xl font-bold text-gray-900 dark:text-white">FlowBoss</span>
+          <span className="text-xl font-bold text-gray-900 dark:text-white tracking-tight">FlowBoss</span>
         </div>
       </div>
 
-      {/* Progress bar */}
-      <div className="max-w-2xl mx-auto w-full px-4 mb-6">
-        <div className="flex items-center gap-1">
-          {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
-            <div
-              key={i}
-              className={`h-1.5 flex-1 rounded-full transition-colors ${
-                i <= step ? 'bg-brand-500' : 'bg-gray-300'
-              }`}
-            />
-          ))}
+      {/* Progress */}
+      <div className="relative max-w-2xl mx-auto w-full px-4 sm:px-6 mb-6 sm:mb-8">
+        <div className="flex items-center justify-between text-[11px] uppercase tracking-wide font-semibold mb-2">
+          <span className="text-blue-600 dark:text-blue-300">
+            Step {step + 1} of {TOTAL_STEPS}
+          </span>
+          <span className="text-gray-400 dark:text-gray-500">{Math.round(progressPct)}% complete</span>
         </div>
-        <div className="text-xs text-gray-400 text-center mt-2 dark:text-gray-500">
-          Step {step + 1} of {TOTAL_STEPS}
+        <div className="h-1.5 rounded-full bg-gray-200 dark:bg-white/10 overflow-hidden">
+          <div
+            className="h-full rounded-full bg-gradient-to-r from-blue-500 to-blue-400 transition-all duration-500 shadow-lg shadow-blue-500/30"
+            style={{ width: `${progressPct}%` }}
+          />
         </div>
       </div>
 
       {/* Card */}
-      <div className="flex-1 flex items-start justify-center px-4 pb-12">
+      <div className="relative flex-1 flex items-start justify-center px-4 sm:px-6 pb-12">
         <div className="w-full max-w-2xl">
-          <div className="bg-white rounded-2xl shadow-lg p-8 dark:bg-white/5 dark:backdrop-blur-sm">{stepContent[step]}</div>
+          <div className="relative rounded-3xl border border-gray-200 bg-white shadow-xl p-6 sm:p-10 overflow-hidden dark:border-white/10 dark:bg-white/[0.04] dark:backdrop-blur-xl dark:shadow-2xl dark:shadow-blue-500/5">
+            {/* Subtle top-edge gradient glow in dark mode */}
+            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue-500/40 to-transparent dark:via-blue-400/30" />
+            {stepContent[step]}
+          </div>
 
-          {/* Navigation buttons */}
-          <div className="flex items-center justify-between mt-6">
+          {/* Navigation */}
+          <div className="flex items-center justify-between mt-5 sm:mt-6">
             <button
               type="button"
               onClick={handleBack}
-              className={`flex items-center gap-2 px-5 py-2.5 text-sm font-medium rounded-xl transition-colors ${
-                step === 0
+              className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium rounded-xl transition-colors
+                ${step === 0
                   ? 'invisible'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-white'
-              } dark:hover:text-white`}
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-white dark:text-gray-400 dark:hover:text-white dark:hover:bg-white/5'}`}
             >
               <ArrowLeft className="w-4 h-4" />
               Back
@@ -575,22 +717,22 @@ export function Onboarding() {
               type="button"
               onClick={handleNext}
               disabled={!canAdvance() || saving}
-              className="flex items-center gap-2 px-6 py-2.5 bg-brand-500 text-white text-sm font-medium rounded-xl hover:bg-brand-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="group flex items-center gap-2 px-5 sm:px-6 py-3 bg-gradient-to-br from-blue-500 to-blue-600 text-white text-sm font-semibold rounded-xl shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 hover:from-blue-500 hover:to-blue-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
             >
               {saving ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  Saving...
+                  Setting up your workspace...
                 </>
               ) : step === TOTAL_STEPS - 1 ? (
                 <>
-                  Go to Dashboard
-                  <ArrowRight className="w-4 h-4" />
+                  Launch dashboard
+                  <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
                 </>
               ) : (
                 <>
-                  Next
-                  <ArrowRight className="w-4 h-4" />
+                  Continue
+                  <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
                 </>
               )}
             </button>

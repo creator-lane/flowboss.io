@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Wrench,
   ArrowLeft,
@@ -497,6 +497,13 @@ export function Onboarding() {
   const { session, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { addToast } = useToast();
+  const [searchParams] = useSearchParams();
+
+  // Preserve the plan the user picked on /pricing so we can drop them
+  // straight into /checkout after onboarding — no second pricing stop.
+  const planFromUrl = searchParams.get('plan');
+  const [selectedPlan, setSelectedPlan] = useState<string | null>(planFromUrl);
+  const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
 
   const [step, setStep] = useState(0);
   const [data, setData] = useState<OnboardingData>(INITIAL_DATA);
@@ -520,6 +527,13 @@ export function Onboarding() {
     (async () => {
       try {
         const { data: profile } = await api.getSettings();
+        // Track subscription status so post-onboarding we can skip checkout
+        // for users who already have access (e.g. invited subs, grandfathered
+        // mobile users, or someone resuming onboarding after paying).
+        const sub = profile?.subscription_status;
+        if (!cancelled && (sub === 'active' || sub === 'trialing')) {
+          setHasActiveSubscription(true);
+        }
         if (!cancelled && profile?.business_role) {
           navigate('/dashboard', { replace: true });
           return;
@@ -528,12 +542,16 @@ export function Onboarding() {
           try {
             const stashed = localStorage.getItem('flowboss-signup');
             if (stashed) {
-              const { businessName, trade } = JSON.parse(stashed);
+              const { businessName, trade, plan: stashedPlan } = JSON.parse(stashed);
               setData((prev) => ({
                 ...prev,
                 businessName: businessName || prev.businessName,
                 trade: trade || prev.trade,
               }));
+              // If we don't have a plan from the URL, fall back to localStorage
+              if (!planFromUrl && stashedPlan) {
+                setSelectedPlan(stashedPlan);
+              }
               localStorage.removeItem('flowboss-signup');
             }
           } catch {
@@ -549,6 +567,7 @@ export function Onboarding() {
     return () => {
       cancelled = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session, navigate]);
 
   const update = (partial: Partial<OnboardingData>) => {
@@ -606,7 +625,7 @@ export function Onboarding() {
         /* seed data non-blocking */
       }
 
-      navigate('/dashboard/home', { replace: true });
+      navigate(postOnboardingPath(), { replace: true });
     } catch {
       try {
         await api.updateSettings({
@@ -614,15 +633,28 @@ export function Onboarding() {
           trade: data.trade === 'Other' ? data.customTrade.trim() : data.trade,
           phone: data.phone.trim() || undefined,
         });
-        navigate('/dashboard/home', { replace: true });
+        navigate(postOnboardingPath(), { replace: true });
       } catch {
         addToast('Failed to save — you can update this in Settings later.', 'error');
-        navigate('/dashboard/home', { replace: true });
+        navigate(postOnboardingPath(), { replace: true });
       }
     } finally {
       setSaving(false);
     }
   };
+
+  /**
+   * Where to send the user when onboarding completes.
+   * - If they already have an active/trialing subscription (e.g. invited sub,
+   *   or someone who completed checkout earlier) → dashboard.
+   * - Otherwise → checkout, preserving the plan they picked on /pricing so
+   *   they don't bounce back through the pricing page.
+   */
+  function postOnboardingPath(): string {
+    if (hasActiveSubscription) return '/dashboard/home';
+    const plan = selectedPlan || 'monthly';
+    return `/checkout?plan=${encodeURIComponent(plan)}`;
+  }
 
   const handleBack = () => {
     if (step > 0) setStep((s) => s - 1);

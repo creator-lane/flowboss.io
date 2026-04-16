@@ -78,18 +78,20 @@ export function Signup() {
         setSubmitting(false);
         setError('');
         addToast('Check your email to confirm your account, then log in.', 'success');
-        // Stash signup data for after confirmation
+        // Stash signup data (incl. selected plan) for after confirmation
         try {
-          localStorage.setItem('flowboss-signup', JSON.stringify({ businessName }));
+          localStorage.setItem('flowboss-signup', JSON.stringify({ businessName, plan }));
         } catch { /* ignore */ }
         return;
       }
 
       // 3. Stash signup fields so onboarding can pre-fill them (don't write to profile yet —
-      //    Onboarding handles the full save so it doesn't auto-skip on business_name check)
+      //    Onboarding handles the full save so it doesn't auto-skip on business_name check).
+      //    Also stash the plan as a resilient fallback; primary path is the ?plan= query param.
       try {
         localStorage.setItem('flowboss-signup', JSON.stringify({
           businessName,
+          plan,
         }));
       } catch {
         // localStorage write failed — onboarding will just start blank
@@ -149,8 +151,10 @@ export function Signup() {
         return;
       }
 
-      // 5. Normal signup: redirect to onboarding wizard
-      navigate('/onboarding', { replace: true });
+      // 5. Normal signup: redirect to onboarding wizard, preserving the
+      //    selected plan so onboarding can send the user directly to checkout
+      //    (instead of hitting /dashboard → RequireSubscription → /pricing again).
+      navigate(`/onboarding?plan=${encodeURIComponent(plan)}`, { replace: true });
     } catch (err: any) {
       setError(err.message || 'Something went wrong. Please try again.');
     } finally {

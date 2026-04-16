@@ -266,12 +266,14 @@ export function ZoneClusterDiagram({
           </div>
         ) : (
           <>
-            {/* Desktop: 3-column layout, hub in the middle */}
-            <div className="hidden lg:grid lg:grid-cols-[1fr_auto_1fr] lg:gap-6 lg:items-start">
+            {/* Ultra-wide: 3-column layout, hub in the middle (needs ~1536px+
+                so it doesn't collide with the 320px activity sidebar on the
+                project detail page) */}
+            <div className="hidden 2xl:grid 2xl:grid-cols-[1fr_auto_1fr] 2xl:gap-6 2xl:items-start">
               <div className="flex flex-col gap-4">
                 {leftZones.map(renderZoneCard)}
               </div>
-              <div className="w-[420px] max-w-full sticky top-6">
+              <div className="w-[380px] max-w-full sticky top-6">
                 {Hub}
               </div>
               <div className="flex flex-col gap-4">
@@ -279,8 +281,8 @@ export function ZoneClusterDiagram({
               </div>
             </div>
 
-            {/* Mobile / tablet: hub on top, zones in a 1 or 2-col grid below */}
-            <div className="lg:hidden">
+            {/* Everything below 2xl: hub on top, zones in a 1 or 2-col grid below */}
+            <div className="2xl:hidden">
               {Hub}
               <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {zoneList.map(renderZoneCard)}

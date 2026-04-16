@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { CheckCircle2, ChevronDown, ChevronUp, Wrench } from 'lucide-react';
+import { CheckCircle2, ChevronDown, ChevronUp, Wrench, ArrowRight, Sparkles } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from '../lib/auth';
 
@@ -61,56 +61,67 @@ export function Pricing() {
   const monthlyHref = session ? '/checkout?plan=monthly' : '/signup?plan=monthly';
   const annualHref = session ? '/checkout?plan=annual' : '/signup?plan=annual';
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-950">
+    <div className="relative min-h-screen overflow-x-hidden bg-white dark:bg-gray-950">
+      {/* Dark-mode atmospheric glow */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden hidden dark:block">
+        <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[900px] h-[900px] bg-blue-500/10 rounded-full blur-3xl" />
+        <div className="absolute top-1/2 right-0 w-[500px] h-[500px] bg-indigo-500/10 rounded-full blur-3xl" />
+      </div>
+
       {/* Nav */}
-      <nav className="border-b border-gray-200/60 bg-white/80 backdrop-blur-lg dark:border-white/10 dark:bg-gray-950/80">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+      <nav className="sticky top-0 z-40 border-b border-gray-200/60 bg-white/80 backdrop-blur-lg dark:border-white/10 dark:bg-gray-950/80">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2.5">
-            <div className="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-md shadow-blue-500/20">
               <Wrench className="w-4.5 h-4.5 text-white" />
             </div>
-            <span className="text-xl font-bold text-gray-900 dark:text-white">FlowBoss</span>
+            <span className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white tracking-tight">FlowBoss</span>
           </Link>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
             <Link
               to="/login"
-              className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors dark:text-gray-300 dark:hover:text-white"
+              className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors dark:text-gray-300 dark:hover:text-white px-2 py-1.5"
             >
-              Log In
+              Log in
             </Link>
             <Link
               to="/signup"
-              className="hidden sm:inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-all shadow-sm"
+              className="inline-flex items-center gap-1.5 px-3 sm:px-4 py-2 bg-gradient-to-br from-blue-500 to-blue-600 text-white text-sm font-semibold rounded-lg hover:from-blue-500 hover:to-blue-500 transition-all shadow-md shadow-blue-500/20 hover:shadow-blue-500/40"
             >
-              Start Free Trial
+              <span>Start trial</span>
+              <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
         </div>
       </nav>
 
       {/* Hero */}
-      <section className="pt-20 pb-4 text-center px-6">
-        <h1 className="text-4xl sm:text-5xl font-extrabold text-gray-900 tracking-tight dark:text-white">
-          Simple, Transparent Pricing
+      <section className="relative pt-16 sm:pt-20 pb-4 text-center px-4 sm:px-6">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-[11px] font-semibold tracking-wide text-blue-600 dark:text-blue-300 uppercase mb-4">
+          <Sparkles className="w-3 h-3" />
+          14-day free trial · No credit card risk
+        </div>
+        <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-gray-900 tracking-tight dark:text-white">
+          Simple, transparent pricing
         </h1>
-        <p className="mt-4 text-lg text-gray-500 max-w-xl mx-auto dark:text-gray-400">
-          Everything you need to run your trade business. No hidden fees, no per-user charges.
+        <p className="mt-4 text-base sm:text-lg text-gray-500 max-w-xl mx-auto dark:text-gray-400">
+          Everything you need to run your trade business. No hidden fees, no per-user charges, no nickel-and-diming.
         </p>
       </section>
 
       {/* Plan cards */}
-      <section className="max-w-4xl mx-auto px-6 py-12">
-        <div className="grid md:grid-cols-2 gap-8">
+      <section className="relative max-w-4xl mx-auto px-4 sm:px-6 py-10 sm:py-12">
+        <div className="grid md:grid-cols-2 gap-5 sm:gap-8">
           {/* Monthly */}
-          <div className="rounded-2xl border border-gray-200 p-8 flex flex-col dark:border-white/10 dark:bg-white/5 dark:backdrop-blur-sm">
+          <div className="relative rounded-3xl border border-gray-200 p-6 sm:p-8 flex flex-col bg-white dark:border-white/10 dark:bg-white/[0.03] dark:backdrop-blur-sm">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Monthly</h2>
-            <div className="mt-4 flex items-baseline gap-1">
-              <span className="text-4xl font-extrabold text-gray-900 dark:text-white">$29.99</span>
+            <div className="mt-3 flex items-baseline gap-1">
+              <span className="text-4xl sm:text-5xl font-extrabold text-gray-900 dark:text-white tracking-tight">$29.99</span>
               <span className="text-gray-500 text-sm dark:text-gray-400">/mo</span>
             </div>
             <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">Billed monthly. Cancel anytime.</p>
 
-            <ul className="mt-8 space-y-3 flex-1">
+            <ul className="mt-6 sm:mt-8 space-y-2.5 flex-1">
               {FEATURES.map((f) => (
                 <li key={f} className="flex items-start gap-2.5 text-sm text-gray-700 dark:text-gray-300">
                   <CheckCircle2 className="w-4.5 h-4.5 text-green-500 flex-shrink-0 mt-0.5" />
@@ -121,27 +132,28 @@ export function Pricing() {
 
             <Link
               to={monthlyHref}
-              className="mt-8 block text-center py-3 px-6 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors"
+              className="group mt-7 inline-flex items-center justify-center gap-2 py-3 px-6 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 transition-colors dark:bg-white/10 dark:hover:bg-white/20"
             >
-              Start Free Trial
+              Start free trial
+              <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
             </Link>
           </div>
 
           {/* Annual */}
-          <div className="rounded-2xl border-2 border-blue-600 p-8 flex flex-col relative dark:bg-white/5 dark:backdrop-blur-sm">
-            <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide">
-              Best Value
+          <div className="relative rounded-3xl border-2 border-blue-600 p-6 sm:p-8 flex flex-col bg-gradient-to-br from-blue-50/50 via-white to-white shadow-xl shadow-blue-500/10 dark:border-blue-500/60 dark:from-blue-500/10 dark:via-transparent dark:to-transparent dark:bg-white/[0.03] dark:backdrop-blur-sm">
+            <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-br from-blue-500 to-blue-600 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow-lg shadow-blue-500/40">
+              Best value · Save $160
             </div>
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Annual</h2>
-            <div className="mt-4 flex items-baseline gap-1">
-              <span className="text-4xl font-extrabold text-gray-900 dark:text-white">$199.99</span>
+            <div className="mt-3 flex items-baseline gap-1">
+              <span className="text-4xl sm:text-5xl font-extrabold text-gray-900 dark:text-white tracking-tight">$199.99</span>
               <span className="text-gray-500 text-sm dark:text-gray-400">/yr</span>
             </div>
             <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
               $16.67/mo &mdash; save $160 vs monthly
             </p>
 
-            <ul className="mt-8 space-y-3 flex-1">
+            <ul className="mt-6 sm:mt-8 space-y-2.5 flex-1">
               {FEATURES.map((f) => (
                 <li key={f} className="flex items-start gap-2.5 text-sm text-gray-700 dark:text-gray-300">
                   <CheckCircle2 className="w-4.5 h-4.5 text-green-500 flex-shrink-0 mt-0.5" />
@@ -152,24 +164,25 @@ export function Pricing() {
 
             <Link
               to={annualHref}
-              className="mt-8 block text-center py-3 px-6 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+              className="group mt-7 inline-flex items-center justify-center gap-2 py-3 px-6 bg-gradient-to-br from-blue-500 to-blue-600 text-white text-sm font-semibold rounded-xl shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 hover:from-blue-500 hover:to-blue-500 transition-all"
             >
-              Start Free Trial
+              Start free trial
+              <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
             </Link>
           </div>
         </div>
 
-        <p className="text-center text-sm text-gray-500 mt-8 dark:text-gray-400">
+        <p className="text-center text-sm text-gray-500 mt-6 sm:mt-8 dark:text-gray-400">
           14-day free trial on both plans. Credit card required.
         </p>
       </section>
 
       {/* FAQ */}
-      <section className="max-w-2xl mx-auto px-6 pb-20">
-        <h2 className="text-2xl font-bold text-gray-900 text-center mb-8 dark:text-white">
-          Frequently Asked Questions
+      <section className="relative max-w-2xl mx-auto px-4 sm:px-6 pb-16 sm:pb-20">
+        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 text-center mb-6 sm:mb-8 dark:text-white tracking-tight">
+          Frequently asked
         </h2>
-        <div className="bg-white rounded-2xl border border-gray-200 divide-y divide-gray-200 px-6 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10 dark:divide-white/10">
+        <div className="bg-white rounded-2xl border border-gray-200 divide-y divide-gray-200 px-5 sm:px-6 dark:bg-white/[0.03] dark:backdrop-blur-sm dark:border-white/10 dark:divide-white/10">
           {FAQS.map((faq) => (
             <FAQItem key={faq.q} q={faq.q} a={faq.a} />
           ))}

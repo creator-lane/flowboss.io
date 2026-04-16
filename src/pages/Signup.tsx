@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { Wrench } from 'lucide-react';
+import { Wrench, ArrowRight, Sparkles } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../lib/auth';
 import { useToast } from '../components/ui/Toast';
+import { AuthShell, AuthCard } from '../components/ui/AuthShell';
 
 export function Signup() {
   const { session, loading } = useAuth();
@@ -159,25 +160,36 @@ export function Signup() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-950">
-        <div className="w-8 h-8 border-4 border-brand-500 border-t-transparent rounded-full animate-spin" />
-      </div>
+      <AuthShell>
+        <div className="flex items-center justify-center">
+          <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
+        </div>
+      </AuthShell>
     );
   }
 
+  const inputClass =
+    'w-full px-3.5 py-2.5 border border-gray-300 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-white/5 dark:border-white/10 dark:text-white dark:placeholder:text-gray-500 dark:focus:ring-blue-400 dark:focus:border-blue-400';
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-950 px-4 py-12">
-      <div className="w-full max-w-sm">
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
+    <AuthShell>
+      <div className="w-full max-w-sm mx-auto">
+        <AuthCard>
           {/* Logo */}
           <div className="flex flex-col items-center mb-6">
-            <div className="w-12 h-12 bg-brand-500 rounded-xl flex items-center justify-center mb-3">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center mb-3 shadow-lg shadow-blue-500/30">
               <Wrench className="w-6 h-6 text-white" />
             </div>
             {isInvite ? (
               <>
-                <h1 className="text-xl font-bold text-gray-900 dark:text-white">Join Project on FlowBoss</h1>
-                <p className="text-sm text-gray-500 mt-1 text-center dark:text-gray-400">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-green-500/10 border border-green-500/20 text-[10px] font-semibold tracking-wide text-green-600 dark:text-green-300 uppercase mb-2">
+                  <Sparkles className="w-2.5 h-2.5" />
+                  Free for invited subs
+                </div>
+                <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white tracking-tight text-center">
+                  Join project on FlowBoss
+                </h1>
+                <p className="text-sm text-gray-500 mt-1.5 text-center dark:text-gray-400">
                   You've been invited to join
                   {inviteProjectName ? (
                     <span className="font-semibold text-gray-700 dark:text-gray-200"> {inviteProjectName}</span>
@@ -185,19 +197,26 @@ export function Signup() {
                     ' a project'
                   )}
                 </p>
-                <p className="text-xs text-green-600 mt-1 font-medium">Free for invited subs</p>
               </>
             ) : (
               <>
-                <h1 className="text-xl font-bold text-gray-900 dark:text-white">Start Your 14-Day Free Trial</h1>
-                <p className="text-sm text-gray-500 mt-1 dark:text-gray-400">14-day free trial. Credit card required.</p>
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-[10px] font-semibold tracking-wide text-blue-600 dark:text-blue-300 uppercase mb-2">
+                  <Sparkles className="w-2.5 h-2.5" />
+                  14-day free trial
+                </div>
+                <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white tracking-tight text-center">
+                  Start your free trial
+                </h1>
+                <p className="text-sm text-gray-500 mt-1.5 text-center dark:text-gray-400">
+                  No charge for 14 days. Cancel anytime.
+                </p>
               </>
             )}
           </div>
 
           {/* Error */}
           {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg dark:bg-red-500/10 dark:border-red-500/20 dark:text-red-300">
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl dark:bg-red-500/10 dark:border-red-500/20 dark:text-red-300">
               {error}
             </div>
           )}
@@ -205,8 +224,8 @@ export function Signup() {
           {/* Signup form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="businessName" className="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">
-                Business Name
+              <label htmlFor="businessName" className="block text-sm font-medium text-gray-700 mb-1.5 dark:text-gray-300">
+                Business name
               </label>
               <input
                 id="businessName"
@@ -214,13 +233,13 @@ export function Signup() {
                 required
                 value={businessName}
                 onChange={(e) => setBusinessName(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-white/5 dark:border-white/10 dark:text-white dark:placeholder:text-gray-500 dark:focus:ring-blue-400 dark:focus:border-blue-400"
+                className={inputClass}
                 placeholder="Acme Plumbing LLC"
               />
             </div>
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1.5 dark:text-gray-300">
                 Email
               </label>
               <input
@@ -229,13 +248,13 @@ export function Signup() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-white/5 dark:border-white/10 dark:text-white dark:placeholder:text-gray-500 dark:focus:ring-blue-400 dark:focus:border-blue-400"
+                className={inputClass}
                 placeholder="you@company.com"
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1.5 dark:text-gray-300">
                 Password
               </label>
               <input
@@ -245,7 +264,7 @@ export function Signup() {
                 minLength={8}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-white/5 dark:border-white/10 dark:text-white dark:placeholder:text-gray-500 dark:focus:ring-blue-400 dark:focus:border-blue-400"
+                className={inputClass}
                 placeholder="Min 8 characters"
               />
             </div>
@@ -253,13 +272,16 @@ export function Signup() {
             <button
               type="submit"
               disabled={submitting}
-              className="w-full py-2.5 bg-brand-500 text-white text-sm font-medium rounded-lg hover:bg-brand-600 transition-colors disabled:opacity-50"
+              className="group w-full flex items-center justify-center gap-2 py-3 bg-gradient-to-br from-blue-500 to-blue-600 text-white text-sm font-semibold rounded-xl shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 hover:from-blue-500 hover:to-blue-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
             >
-              {submitting
-                ? 'Creating account...'
-                : isInvite
-                  ? 'Join Project'
-                  : 'Start Free Trial'}
+              {submitting ? (
+                'Creating account...'
+              ) : (
+                <>
+                  {isInvite ? 'Join project' : 'Start free trial'}
+                  <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
+                </>
+              )}
             </button>
           </form>
 
@@ -268,20 +290,20 @@ export function Signup() {
             Already have an account?{' '}
             <Link
               to={isInvite ? `/login?redirect=/dashboard/projects/assigned/${inviteProjectId}` : '/login'}
-              className="text-brand-500 hover:text-brand-600 font-medium dark:text-blue-400 dark:hover:text-blue-300"
+              className="text-blue-600 hover:text-blue-700 font-medium dark:text-blue-400 dark:hover:text-blue-300"
             >
               Log in
             </Link>
           </p>
-        </div>
+        </AuthCard>
 
         {/* Back to homepage */}
         <div className="text-center mt-6">
-          <Link to="/" className="text-sm text-gray-500 hover:text-brand-500 transition-colors dark:text-gray-500 dark:hover:text-blue-300">
+          <Link to="/" className="text-sm text-gray-500 hover:text-gray-700 transition-colors dark:text-gray-500 dark:hover:text-blue-300">
             &larr; Back to homepage
           </Link>
         </div>
       </div>
-    </div>
+    </AuthShell>
   );
 }

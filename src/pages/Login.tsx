@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams, useLocation } from 'react-router-dom';
-import { Wrench } from 'lucide-react';
+import { Wrench, ArrowRight } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../lib/auth';
+import { AuthShell, AuthCard } from '../components/ui/AuthShell';
 
 type AuthMode = 'password' | 'magic-link';
 
@@ -73,53 +74,61 @@ export function Login() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-950">
-        <div className="w-8 h-8 border-4 border-brand-500 border-t-transparent rounded-full animate-spin" />
-      </div>
+      <AuthShell>
+        <div className="flex items-center justify-center">
+          <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
+        </div>
+      </AuthShell>
     );
   }
 
+  const inputClass =
+    'w-full px-3.5 py-2.5 border border-gray-300 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-white/5 dark:border-white/10 dark:text-white dark:placeholder:text-gray-500 dark:focus:ring-blue-400 dark:focus:border-blue-400';
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-950 px-4">
-      <div className="w-full max-w-sm">
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
+    <AuthShell>
+      <div className="w-full max-w-sm mx-auto">
+        <AuthCard>
           {/* Logo */}
-          <div className="flex flex-col items-center mb-8">
-            <div className="w-12 h-12 bg-brand-500 rounded-xl flex items-center justify-center mb-3">
+          <div className="flex flex-col items-center mb-7">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center mb-3 shadow-lg shadow-blue-500/30">
               <Wrench className="w-6 h-6 text-white" />
             </div>
-            <h1 className="text-xl font-bold text-gray-900 dark:text-white">Sign in to FlowBoss</h1>
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white tracking-tight">
+              Welcome back
+            </h1>
+            <p className="text-sm text-gray-500 mt-1.5 dark:text-gray-400">Sign in to your FlowBoss account.</p>
           </div>
 
           {/* Mode toggle */}
-          <div className="flex rounded-lg bg-gray-100 p-1 mb-6 dark:bg-white/10">
+          <div className="flex rounded-xl bg-gray-100 p-1 mb-5 dark:bg-white/5 dark:border dark:border-white/10">
             <button
               type="button"
               onClick={() => switchMode('password')}
-              className={`flex-1 text-sm font-medium py-2 rounded-md transition-colors ${
+              className={`flex-1 text-sm font-medium py-2 rounded-lg transition-all ${
                 mode === 'password'
                   ? 'bg-white text-gray-900 shadow-sm dark:bg-white/10 dark:text-white'
                   : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
               }`}
             >
-              Email &amp; Password
+              Password
             </button>
             <button
               type="button"
               onClick={() => switchMode('magic-link')}
-              className={`flex-1 text-sm font-medium py-2 rounded-md transition-colors ${
+              className={`flex-1 text-sm font-medium py-2 rounded-lg transition-all ${
                 mode === 'magic-link'
                   ? 'bg-white text-gray-900 shadow-sm dark:bg-white/10 dark:text-white'
                   : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
               }`}
             >
-              Magic Link
+              Magic link
             </button>
           </div>
 
           {/* Error */}
           {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg dark:bg-red-500/10 dark:border-red-500/20 dark:text-red-300">
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl dark:bg-red-500/10 dark:border-red-500/20 dark:text-red-300">
               {error}
             </div>
           )}
@@ -128,7 +137,7 @@ export function Login() {
           {mode === 'password' && (
             <form onSubmit={handlePasswordLogin} className="space-y-4">
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1.5 dark:text-gray-300">
                   Email
                 </label>
                 <input
@@ -137,12 +146,12 @@ export function Login() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-white/5 dark:border-white/10 dark:text-white dark:placeholder:text-gray-500 dark:focus:ring-blue-400 dark:focus:border-blue-400"
+                  className={inputClass}
                   placeholder="you@company.com"
                 />
               </div>
               <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">
+                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1.5 dark:text-gray-300">
                   Password
                 </label>
                 <input
@@ -151,16 +160,23 @@ export function Login() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-white/5 dark:border-white/10 dark:text-white dark:placeholder:text-gray-500 dark:focus:ring-blue-400 dark:focus:border-blue-400"
+                  className={inputClass}
                   placeholder="Enter your password"
                 />
               </div>
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full py-2.5 bg-brand-500 text-white text-sm font-medium rounded-lg hover:bg-brand-600 transition-colors disabled:opacity-50"
+                className="group w-full flex items-center justify-center gap-2 py-3 bg-gradient-to-br from-blue-500 to-blue-600 text-white text-sm font-semibold rounded-xl shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 hover:from-blue-500 hover:to-blue-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
               >
-                {submitting ? 'Signing in...' : 'Sign In'}
+                {submitting ? (
+                  'Signing in...'
+                ) : (
+                  <>
+                    Sign in
+                    <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
+                  </>
+                )}
               </button>
             </form>
           )}
@@ -169,7 +185,7 @@ export function Login() {
           {mode === 'magic-link' && !magicLinkSent && (
             <form onSubmit={handleMagicLink} className="space-y-4">
               <div>
-                <label htmlFor="magic-email" className="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">
+                <label htmlFor="magic-email" className="block text-sm font-medium text-gray-700 mb-1.5 dark:text-gray-300">
                   Email
                 </label>
                 <input
@@ -178,16 +194,23 @@ export function Login() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-white/5 dark:border-white/10 dark:text-white dark:placeholder:text-gray-500 dark:focus:ring-blue-400 dark:focus:border-blue-400"
+                  className={inputClass}
                   placeholder="you@company.com"
                 />
               </div>
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full py-2.5 bg-brand-500 text-white text-sm font-medium rounded-lg hover:bg-brand-600 transition-colors disabled:opacity-50"
+                className="group w-full flex items-center justify-center gap-2 py-3 bg-gradient-to-br from-blue-500 to-blue-600 text-white text-sm font-semibold rounded-xl shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 hover:from-blue-500 hover:to-blue-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
               >
-                {submitting ? 'Sending...' : 'Send Magic Link'}
+                {submitting ? (
+                  'Sending...'
+                ) : (
+                  <>
+                    Send magic link
+                    <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
+                  </>
+                )}
               </button>
             </form>
           )}
@@ -195,26 +218,34 @@ export function Login() {
           {/* Magic link success */}
           {mode === 'magic-link' && magicLinkSent && (
             <div className="text-center py-4">
-              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                <svg className="w-6 h-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
+              <div className="relative inline-block mb-3">
+                <div className="absolute inset-0 rounded-full bg-green-500/30 blur-xl" />
+                <div className="relative w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center shadow-lg shadow-green-500/30">
+                  <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
               </div>
-              <p className="text-sm font-medium text-gray-900 mb-1 dark:text-white">Check your email</p>
+              <p className="text-base font-semibold text-gray-900 mb-1 dark:text-white">Check your email</p>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                We sent a magic link to <span className="font-medium dark:text-gray-200">{email}</span>
+                We sent a magic link to{' '}
+                <span className="font-medium text-gray-700 dark:text-gray-200">{email}</span>
               </p>
             </div>
           )}
-        </div>
+        </AuthCard>
 
-        {/* Back to homepage */}
-        <div className="text-center mt-6">
-          <Link to="/" className="text-sm text-gray-500 hover:text-brand-500 transition-colors dark:text-gray-500 dark:hover:text-blue-300">
+        {/* Footer links */}
+        <div className="flex items-center justify-center gap-4 mt-6">
+          <Link to="/" className="text-sm text-gray-500 hover:text-gray-700 transition-colors dark:text-gray-500 dark:hover:text-blue-300">
             &larr; Back to homepage
+          </Link>
+          <span className="text-gray-300 dark:text-gray-700">·</span>
+          <Link to="/signup" className="text-sm text-gray-500 hover:text-gray-700 transition-colors dark:text-gray-500 dark:hover:text-blue-300">
+            Create an account
           </Link>
         </div>
       </div>
-    </div>
+    </AuthShell>
   );
 }

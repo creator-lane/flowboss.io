@@ -1,0 +1,12 @@
+# Supabase project config.
+# Per-function settings. `verify_jwt = false` means Supabase's default
+# JWT gate is disabled — required for webhooks authenticated by provider
+# signatures (Stripe, etc.), otherwise every delivery 401s with
+# "Missing authorization header".
+
+[functions.stripe-webhook]
+verify_jwt = false
+
+[functions.create-checkout-session]
+# User's own auth — keep JWT on
+verify_jwt = true

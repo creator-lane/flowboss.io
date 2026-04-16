@@ -23,6 +23,8 @@ import {
   ShieldCheck,
   Sparkles,
   Layers,
+  Gift,
+  HardHat,
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
@@ -36,21 +38,38 @@ const screenshots = {
   history: '/screenshots/Screenshot_20260327-152308.png',
 };
 
-const pricingFeatures = [
+const gcFeatures = [
   'Unlimited jobs & invoices',
-  'Route optimization',
-  'Stripe payment links & on-site collection',
-  'QuickBooks invoice sync',
-  'Multi-phase project tracking',
-  'GC command center & sub invites',
+  'GC command center',
   'Zone-based project visualizer',
-  'Sub marketplace (coming soon)',
+  'Invite unlimited subs (free for them)',
+  'Route optimization',
+  'Stripe payment links',
+  'QuickBooks sync',
   'Auto-learning pricebook',
-  'Financial insights & revenue per hour',
-  'Customer CRM & work history',
-  'AI job suggestions',
+  'Financial insights',
+  'Customer CRM',
+];
+
+const subFreeFeatures = [
+  'Every GC project you\'re invited to',
+  'Your assigned tasks & schedule',
+  'Read-only earnings view',
+  'Message the GC & co-subs',
+  'FlowBoss Score & public profile',
   'Photo documentation',
-  'Trade-specific templates',
+  'Mobile + web access',
+];
+
+const subProFeatures = [
+  'Everything in Sub Free, plus:',
+  'Your own direct jobs & customers',
+  'Send direct Stripe invoices',
+  'Auto-learning pricebook',
+  'QuickBooks sync',
+  'Revenue-per-hour analytics',
+  'Route optimization',
+  'Marketplace listing priority',
 ];
 
 const testimonials = [
@@ -1239,7 +1258,7 @@ export function HomePage() {
                   App Store
                 </a>
                 <a
-                  href="https://play.google.com/store/apps/details?id=io.flowboss.app"
+                  href="https://play.google.com/store/apps/details?id=com.flowboss.app"
                   className="inline-flex items-center gap-2 px-5 py-3 bg-gray-900 text-white font-semibold rounded-xl hover:bg-gray-800 text-sm"
                 >
                   Google Play
@@ -1320,62 +1339,165 @@ export function HomePage() {
       {/* ─── PRICING ───────────────────────────────────────────────────────── */}
       <section id="pricing" className="py-20">
         <div className="max-w-6xl mx-auto px-6">
+          <div className="flex justify-center mb-4">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-[11px] font-semibold tracking-wide text-blue-700 uppercase">
+              <Sparkles className="w-3 h-3" />
+              Built for GCs and Subs
+            </div>
+          </div>
           <h2 className="text-3xl md:text-5xl font-bold text-center text-gray-900 mb-4 tracking-tight">Simple, transparent pricing</h2>
-          <p className="text-center text-gray-600 mb-14 max-w-xl mx-auto text-lg">
-            Everything included. No per-user fees. No hidden costs. Invited subs always free.
+          <p className="text-center text-gray-600 mb-14 max-w-2xl mx-auto text-lg">
+            Invited subs are always free. GCs get the full command center. Self-employed subs get their own shop for less.
           </p>
 
-          <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
-            <div className="bg-white rounded-3xl border border-gray-200 shadow-lg overflow-hidden flex flex-col">
-              <div className="p-8 flex-1 flex flex-col">
-                <h3 className="text-lg font-bold text-gray-900 mb-1">Monthly</h3>
-                <p className="text-sm text-gray-500 mb-6">Pay as you go, cancel anytime</p>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-extrabold text-gray-900">$29.99</span>
-                  <span className="text-gray-500">/mo</span>
+          {/* Three tiers */}
+          <div className="grid md:grid-cols-3 gap-5 md:gap-6 max-w-6xl mx-auto">
+            {/* Sub Free */}
+            <div className="bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden flex flex-col">
+              <div className="p-7 flex-1 flex flex-col">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-9 h-9 rounded-xl bg-green-50 border border-green-200 flex items-center justify-center">
+                    <Gift className="w-4 h-4 text-green-600" />
+                  </div>
+                  <span className="text-[10px] font-bold tracking-wider uppercase text-green-700">Invited Subs</span>
                 </div>
-                <p className="text-sm text-gray-500 mt-1 mb-6">&nbsp;</p>
-                <ul className="space-y-3 mb-8 flex-1">
-                  {pricingFeatures.map((f) => (
-                    <li key={f} className="flex items-center gap-3">
-                      <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0" />
-                      <span className="text-gray-700 text-sm">{f}</span>
+                <h3 className="text-lg font-bold text-gray-900">Sub Free</h3>
+                <p className="text-sm text-gray-500 mt-1">For subs invited by a GC</p>
+                <div className="mt-4 flex items-baseline gap-1">
+                  <span className="text-4xl font-extrabold text-gray-900">$0</span>
+                  <span className="text-gray-500 text-sm">/forever</span>
+                </div>
+                <p className="mt-1 text-xs text-gray-500">No credit card · No trial timer</p>
+                <ul className="mt-6 space-y-2.5 flex-1">
+                  {subFreeFeatures.map((f) => (
+                    <li key={f} className="flex items-start gap-2.5 text-sm text-gray-700">
+                      <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0 mt-0.5" />
+                      {f}
                     </li>
                   ))}
                 </ul>
-                <a href="/signup?plan=monthly" className="block w-full text-center px-6 py-3.5 bg-gray-900 text-white font-semibold rounded-xl hover:bg-gray-800">
-                  Start Free Trial
+                <div className="mt-5 p-3 rounded-xl bg-green-50 border border-green-200 text-xs text-green-800 leading-relaxed">
+                  <strong>How it works:</strong> A GC sends you an invite link. You sign up. You work the job. You never pay.
+                </div>
+              </div>
+            </div>
+
+            {/* GC (primary) */}
+            <div className="bg-white rounded-3xl border-2 border-blue-500 shadow-xl shadow-blue-500/20 overflow-hidden flex flex-col relative md:scale-105">
+              <div className="absolute top-0 left-0 right-0 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-center text-xs font-bold uppercase tracking-wider py-1.5">
+                Most Popular
+              </div>
+              <div className="p-7 pt-10 flex-1 flex flex-col">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-9 h-9 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center">
+                    <HardHat className="w-4 h-4 text-blue-600" />
+                  </div>
+                  <span className="text-[10px] font-bold tracking-wider uppercase text-blue-700">GCs &amp; Contractors</span>
+                </div>
+                <h3 className="text-lg font-bold text-gray-900">Contractor</h3>
+                <p className="text-sm text-gray-500 mt-1">Run projects, crew, and your whole shop</p>
+                <div className="mt-4 flex items-baseline gap-1">
+                  <span className="text-4xl font-extrabold text-gray-900">$16.67</span>
+                  <span className="text-gray-500 text-sm">/mo</span>
+                </div>
+                <p className="mt-1 text-xs text-gray-500">Billed $199.99/yr · or $29.99/mo</p>
+                <ul className="mt-6 space-y-2.5 flex-1">
+                  {gcFeatures.map((f) => (
+                    <li key={f} className="flex items-start gap-2.5 text-sm text-gray-700">
+                      <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0 mt-0.5" />
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+                <a href="/signup?plan=annual" className="mt-6 inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-gradient-to-br from-blue-500 to-blue-600 text-white font-semibold rounded-xl hover:from-blue-500 hover:to-blue-500 shadow-lg shadow-blue-600/30">
+                  Start 14-day free trial
+                  <ArrowRight className="w-4 h-4" />
                 </a>
               </div>
             </div>
 
-            <div className="bg-white rounded-3xl border-2 border-blue-500 shadow-xl overflow-hidden flex flex-col relative">
-              <div className="absolute top-0 left-0 right-0 bg-blue-600 text-white text-center text-sm font-semibold py-1.5">
-                Best Value — Save $160/yr
-              </div>
-              <div className="p-8 pt-12 flex-1 flex flex-col">
-                <h3 className="text-lg font-bold text-gray-900 mb-1">Annual</h3>
-                <p className="text-sm text-gray-500 mb-6">Lock in the lowest price</p>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-extrabold text-gray-900">$16.67</span>
-                  <span className="text-gray-500">/mo</span>
+            {/* Sub Pro */}
+            <div className="bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden flex flex-col">
+              <div className="p-7 flex-1 flex flex-col">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-9 h-9 rounded-xl bg-indigo-50 border border-indigo-200 flex items-center justify-center">
+                    <Users className="w-4 h-4 text-indigo-600" />
+                  </div>
+                  <span className="text-[10px] font-bold tracking-wider uppercase text-indigo-700">Self-employed Subs</span>
                 </div>
-                <p className="text-sm text-gray-500 mt-1 mb-6">Billed annually at $199.99/yr</p>
-                <ul className="space-y-3 mb-8 flex-1">
-                  {pricingFeatures.map((f) => (
-                    <li key={f} className="flex items-center gap-3">
-                      <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0" />
-                      <span className="text-gray-700 text-sm">{f}</span>
+                <h3 className="text-lg font-bold text-gray-900">Sub Pro</h3>
+                <p className="text-sm text-gray-500 mt-1">For subs who also run their own shop</p>
+                <div className="mt-4 flex items-baseline gap-1">
+                  <span className="text-4xl font-extrabold text-gray-900">$12.50</span>
+                  <span className="text-gray-500 text-sm">/mo</span>
+                </div>
+                <p className="mt-1 text-xs text-gray-500">Billed $149.99/yr · or $19.99/mo</p>
+                <ul className="mt-6 space-y-2.5 flex-1">
+                  {subProFeatures.map((f, i) => (
+                    <li key={f} className={`flex items-start gap-2.5 text-sm ${i === 0 ? 'font-semibold text-gray-900' : 'text-gray-700'}`}>
+                      {i === 0 ? (
+                        <Sparkles className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" />
+                      ) : (
+                        <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0 mt-0.5" />
+                      )}
+                      {f}
                     </li>
                   ))}
                 </ul>
-                <a href="/signup?plan=annual" className="block w-full text-center px-6 py-3.5 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-600/25">
-                  Start Free Trial
+                <a href="/signup?plan=sub_pro_monthly" className="mt-6 inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-gray-900 text-white font-semibold rounded-xl hover:bg-gray-800">
+                  Start 14-day Pro trial
+                  <ArrowRight className="w-4 h-4" />
                 </a>
+                <p className="text-[11px] text-gray-400 mt-2 text-center">
+                  Free trial auto-starts when a GC invites you
+                </p>
               </div>
             </div>
           </div>
-          <p className="text-center text-sm text-gray-500 mt-6">14-day free trial. Credit card required. Subs invited by a GC are always free.</p>
+
+          {/* How it works strip */}
+          <div className="mt-14 max-w-5xl mx-auto rounded-3xl border border-gray-200 bg-gray-50 p-7">
+            <h3 className="text-lg font-bold text-gray-900 mb-5 text-center">How the pricing works</h3>
+            <div className="grid sm:grid-cols-3 gap-5 text-sm">
+              <div>
+                <div className="flex items-center gap-2 mb-1.5">
+                  <div className="w-7 h-7 rounded-md bg-green-100 flex items-center justify-center">
+                    <span className="text-xs font-bold text-green-700">1</span>
+                  </div>
+                  <p className="font-semibold text-gray-900">You're an invited sub</p>
+                </div>
+                <p className="text-gray-600 leading-relaxed pl-9">
+                  A GC invites you. You sign up. You work the job. You never pay. Simple.
+                </p>
+              </div>
+              <div>
+                <div className="flex items-center gap-2 mb-1.5">
+                  <div className="w-7 h-7 rounded-md bg-blue-100 flex items-center justify-center">
+                    <span className="text-xs font-bold text-blue-700">2</span>
+                  </div>
+                  <p className="font-semibold text-gray-900">You run a GC business</p>
+                </div>
+                <p className="text-gray-600 leading-relaxed pl-9">
+                  You manage projects, crew, subs, and customers. $29.99/mo (or $16.67/mo annual).
+                </p>
+              </div>
+              <div>
+                <div className="flex items-center gap-2 mb-1.5">
+                  <div className="w-7 h-7 rounded-md bg-indigo-100 flex items-center justify-center">
+                    <span className="text-xs font-bold text-indigo-700">3</span>
+                  </div>
+                  <p className="font-semibold text-gray-900">You also want direct customers</p>
+                </div>
+                <p className="text-gray-600 leading-relaxed pl-9">
+                  Sub Pro unlocks your own shop — direct jobs, invoicing, QBO. $19.99/mo.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <p className="text-center text-sm text-gray-500 mt-8">
+            14-day free trial on Contractor and Sub Pro. Credit card required for trial. Cancel anytime.
+          </p>
         </div>
       </section>
 

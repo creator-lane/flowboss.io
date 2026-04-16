@@ -1,20 +1,46 @@
-import { ReactNode } from 'react';
-import { Navigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { ReactNode, useEffect, useState } from 'react';
+import { Navigate, useLocation } from 'react-router-dom';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../lib/api';
 
 // Web launch date — existing mobile users created before this date get access
 const WEB_LAUNCH_DATE = new Date('2026-04-13T00:00:00Z');
+
+// Grace period after Stripe checkout completes, to let the webhook land
+// before we decide the user has no subscription and bounce them to /pricing.
+const CHECKOUT_GRACE_MS = 10000;
+const CHECKOUT_POLL_MS = 1500;
 
 interface Props {
   children: ReactNode;
 }
 
 export function RequireSubscription({ children }: Props) {
+  const location = useLocation();
+  const queryClient = useQueryClient();
+  const justCheckedOut =
+    new URLSearchParams(location.search).get('checkout') === 'success';
+
+  // If we just came back from Stripe, poll the profile until the webhook
+  // writes the status (or we give up after CHECKOUT_GRACE_MS).
+  const [graceActive, setGraceActive] = useState(justCheckedOut);
+
   const { data: profile, isLoading } = useQuery({
     queryKey: ['settings'],
     queryFn: () => api.getSettings(),
+    refetchInterval: graceActive ? CHECKOUT_POLL_MS : false,
+    refetchOnMount: justCheckedOut ? 'always' : true,
   });
+
+  // On first mount after checkout, force-refetch immediately (don't trust the
+  // cache from before the Stripe redirect) and start the grace-period timer.
+  useEffect(() => {
+    if (!justCheckedOut) return;
+    queryClient.invalidateQueries({ queryKey: ['settings'] });
+    const t = setTimeout(() => setGraceActive(false), CHECKOUT_GRACE_MS);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [justCheckedOut]);
 
   if (isLoading) {
     return (
@@ -63,6 +89,22 @@ export function RequireSubscription({ children }: Props) {
     if (userCreated < WEB_LAUNCH_DATE) {
       return <>{children}</>;
     }
+  }
+
+  // Just came back from Stripe — hold off on redirecting while we wait for
+  // the webhook to land. Show a friendly "finalizing" screen.
+  if (graceActive) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 dark:bg-gray-950 px-4">
+        <div className="w-10 h-10 border-4 border-brand-500 border-t-transparent rounded-full animate-spin mb-4" />
+        <p className="text-sm font-medium text-gray-900 dark:text-white">
+          Finalizing your subscription...
+        </p>
+        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+          This usually takes just a few seconds.
+        </p>
+      </div>
+    );
   }
 
   // No valid subscription — redirect to pricing

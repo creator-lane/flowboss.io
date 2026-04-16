@@ -5,9 +5,17 @@
 
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
-import Stripe from 'https://esm.sh/stripe@14.14.0';
+import Stripe from 'https://esm.sh/stripe@14.14.0?target=deno';
 
-const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY')!, { apiVersion: '2023-10-16' });
+// Deno runs on SubtleCrypto, which is async-only. We must pass an async
+// crypto provider AND use constructEventAsync, otherwise signature verification
+// throws "SubtleCryptoProvider cannot be used in a synchronous context".
+const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY')!, {
+  apiVersion: '2023-10-16',
+  httpClient: Stripe.createFetchHttpClient(),
+});
+const cryptoProvider = Stripe.createSubtleCryptoProvider();
+
 const webhookSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET')!;
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -18,7 +26,13 @@ serve(async (req) => {
 
   let event: Stripe.Event;
   try {
-    event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
+    event = await stripe.webhooks.constructEventAsync(
+      body,
+      signature,
+      webhookSecret,
+      undefined,
+      cryptoProvider,
+    );
   } catch (err) {
     return new Response(`Webhook error: ${err.message}`, { status: 400 });
   }

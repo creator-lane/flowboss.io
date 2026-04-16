@@ -4,9 +4,11 @@ import { Wrench, ArrowRight, Lock, ShieldCheck } from 'lucide-react';
 import { useAuth } from '../lib/auth';
 import { AuthShell, AuthCard } from '../components/ui/AuthShell';
 
-const PLANS: Record<string, { name: string; price: string; interval: string }> = {
-  monthly: { name: 'Monthly', price: '$29.99', interval: '/mo' },
-  annual: { name: 'Annual', price: '$199.99', interval: '/yr' },
+const PLANS: Record<string, { name: string; price: string; interval: string; tagline?: string }> = {
+  monthly: { name: 'Contractor Monthly', price: '$29.99', interval: '/mo' },
+  annual: { name: 'Contractor Annual', price: '$199.99', interval: '/yr', tagline: 'Save $160/yr' },
+  sub_pro_monthly: { name: 'Sub Pro Monthly', price: '$14.99', interval: '/mo' },
+  sub_pro_annual: { name: 'Sub Pro Annual', price: '$99', interval: '/yr', tagline: 'Save $80/yr' },
 };
 
 export function Checkout() {
@@ -91,6 +93,11 @@ export function Checkout() {
                 </div>
                 <p className="text-xs text-gray-600 dark:text-gray-300">
                   14-day free trial · Cancel anytime
+                  {plan.tagline && (
+                    <span className="ml-2 text-emerald-700 dark:text-emerald-300 font-semibold">
+                      {plan.tagline}
+                    </span>
+                  )}
                 </p>
               </div>
               <div className="text-right flex-shrink-0">

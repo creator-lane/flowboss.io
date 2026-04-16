@@ -18,45 +18,64 @@ import {
   MoreHorizontal,
   Moon,
   Sun,
+  Lock,
+  Sparkles,
 } from 'lucide-react';
 import { useAuth } from '../../lib/auth';
 import { useProfile } from '../../hooks/useProfile';
 import { useTheme } from '../../hooks/useTheme';
+import { useSubscriptionTier } from '../../hooks/useSubscriptionTier';
 import { GlobalSearch } from './GlobalSearch';
+import { UpgradeGateProvider, useUpgradeGate } from '../upgrade/UpgradeGateProvider';
+
+type ProFeature = 'jobs' | 'customers' | 'invoices' | 'financials' | 'insights' | 'quickbooks' | 'marketplace' | 'generic';
 
 interface NavItem {
   to: string;
   label: string;
   icon: React.ElementType;
+  /** If set, this nav item is gated behind Sub Pro for free subs. */
+  proGate?: ProFeature;
+  /** If true, this item is locked for the current user (Sub Free) — display as dimmed + lock icon. */
+  locked?: boolean;
 }
 
 const BASE_NAV: NavItem[] = [
   { to: '/dashboard/home', label: 'Home', icon: Home },
   { to: '/dashboard/schedule', label: 'Schedule', icon: Calendar },
-  { to: '/dashboard/jobs', label: 'Jobs', icon: Briefcase },
-  { to: '/dashboard/customers', label: 'Customers', icon: Users },
-  { to: '/dashboard/invoices', label: 'Invoices', icon: FileText },
+  { to: '/dashboard/jobs', label: 'Jobs', icon: Briefcase, proGate: 'jobs' },
+  { to: '/dashboard/customers', label: 'Customers', icon: Users, proGate: 'customers' },
+  { to: '/dashboard/invoices', label: 'Invoices', icon: FileText, proGate: 'invoices' },
   { to: '/dashboard/projects', label: 'Projects', icon: FolderKanban },
   { to: '/dashboard/contractors', label: 'Contractors', icon: HardHat },
-  { to: '/dashboard/financials', label: 'Financials', icon: BarChart3 },
-  { to: '/dashboard/insights', label: 'Insights', icon: Lightbulb },
+  { to: '/dashboard/financials', label: 'Financials', icon: BarChart3, proGate: 'financials' },
+  { to: '/dashboard/insights', label: 'Insights', icon: Lightbulb, proGate: 'insights' },
   { to: '/dashboard/settings', label: 'Settings', icon: Settings },
 ];
 
 /**
- * Reorder sidebar nav based on onboarding data.
+ * Reorder sidebar nav based on onboarding data + subscription tier.
  *
  * - GC: Projects + Contractors move up right after Home
  * - Sub: Schedule + Jobs first, Projects hidden (they see assigned projects inline)
  * - Solo: Contractors hidden (no crew to manage)
  * - Priorities bump matching items higher in the list
+ * - Free subs (`isFreeSub`): Pro-gated items stay visible but get a lock icon.
+ *   Clicking triggers the upgrade modal (handled in the render path).
  */
 function personaliseNav(
   role: string | undefined,
   isSolo: boolean,
   priorities: string[],
+  isFreeSub: boolean,
 ): NavItem[] {
   let items = [...BASE_NAV];
+
+  // Mark Pro-gated items as locked for free subs. We keep them visible — the lock
+  // is part of the upsell surface (see memory: freemium_sub_business_model.md).
+  if (isFreeSub) {
+    items = items.map((i) => (i.proGate ? { ...i, locked: true } : i));
+  }
 
   // Map priority labels → nav labels for promotion
   const PRIORITY_TO_NAV: Record<string, string> = {
@@ -176,17 +195,28 @@ function useVisitedPages() {
   return { hasVisited, isNewUser };
 }
 
+// Outer wrapper that provides the upgrade-gate context. Inner does the real work.
 export function DashboardLayout() {
+  return (
+    <UpgradeGateProvider>
+      <DashboardLayoutInner />
+    </UpgradeGateProvider>
+  );
+}
+
+function DashboardLayoutInner() {
   const { user, signOut } = useAuth();
-  const { profile, isGC, isSub, isSolo, priorities } = useProfile();
+  const { profile, isSolo, priorities } = useProfile();
   const { theme, toggle: toggleTheme, isDark } = useTheme();
   const { hasVisited, isNewUser } = useVisitedPages();
+  const { isFreeSub } = useSubscriptionTier();
+  const { openUpgrade } = useUpgradeGate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
 
   const navItems = useMemo(
-    () => personaliseNav(profile?.business_role, isSolo, priorities),
-    [profile?.business_role, isSolo, priorities],
+    () => personaliseNav(profile?.business_role, isSolo, priorities, isFreeSub),
+    [profile?.business_role, isSolo, priorities, isFreeSub],
   );
 
   const mobilePrimaryItems = navItems.filter((item) => item.label !== 'Settings').slice(0, MOBILE_PRIMARY_COUNT);
@@ -229,8 +259,29 @@ export function DashboardLayout() {
 
         {/* Nav */}
         <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
-          {navItems.map(({ to, label, icon: Icon }) => {
+          {navItems.map((item) => {
+            const { to, label, icon: Icon, locked, proGate } = item;
             const showDot = isNewUser && label !== 'Home' && label !== 'Settings' && !hasVisited(label);
+
+            // Locked item — render as button that opens upgrade modal.
+            if (locked) {
+              return (
+                <button
+                  key={to}
+                  type="button"
+                  onClick={() => {
+                    setSidebarOpen(false);
+                    openUpgrade(proGate ?? 'generic');
+                  }}
+                  className="group w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-500 hover:text-slate-300 hover:bg-white/[0.04] transition-all duration-150"
+                >
+                  <Icon className="w-5 h-5 flex-shrink-0 opacity-60" />
+                  <span className="opacity-70">{label}</span>
+                  <Lock className="ml-auto w-3.5 h-3.5 text-indigo-400/80 group-hover:text-indigo-300 transition-colors" />
+                </button>
+              );
+            }
+
             return (
               <NavLink
                 key={to}
@@ -253,6 +304,28 @@ export function DashboardLayout() {
             );
           })}
         </nav>
+
+        {/* Sub Free upgrade nudge */}
+        {isFreeSub && (
+          <div className="px-3 pb-3">
+            <button
+              type="button"
+              onClick={() => openUpgrade('generic')}
+              className="group w-full rounded-xl bg-gradient-to-br from-indigo-500/20 to-blue-500/10 border border-indigo-400/30 px-3 py-3 text-left hover:from-indigo-500/30 hover:to-blue-500/20 transition-all"
+            >
+              <div className="flex items-center gap-2 mb-1">
+                <Sparkles className="w-3.5 h-3.5 text-indigo-300" />
+                <span className="text-[10px] font-bold tracking-wider uppercase text-indigo-300">Sub Pro</span>
+              </div>
+              <p className="text-xs text-white leading-snug font-semibold mb-0.5">
+                Run your own shop
+              </p>
+              <p className="text-[11px] text-slate-400 leading-relaxed">
+                Direct jobs + invoicing + QBO for $19.99/mo
+              </p>
+            </button>
+          </div>
+        )}
 
         {/* User section + sign out */}
         <div className="px-3 py-4 border-t border-white/[0.08]">
@@ -322,28 +395,67 @@ export function DashboardLayout() {
           <>
             <div className="fixed inset-0 z-20" onClick={() => setMoreMenuOpen(false)} />
             <div className="absolute bottom-16 right-2 z-30 bg-white dark:bg-gray-900 dark:border-white/10 rounded-xl shadow-xl dark:shadow-black/50 border border-gray-200 py-2 min-w-[180px]">
-              {mobileOverflowItems.map(({ to, label, icon: Icon }) => (
-                <NavLink
-                  key={to}
-                  to={to}
-                  onClick={() => setMoreMenuOpen(false)}
-                  className={({ isActive }) =>
-                    `flex items-center gap-3 px-4 py-2.5 text-sm transition-colors ${
-                      isActive
-                        ? 'text-brand-600 dark:text-blue-300 bg-brand-50 dark:bg-blue-500/20 font-medium'
-                        : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/10'
-                    }`
-                  }
-                >
-                  <Icon className="w-4 h-4" />
-                  {label}
-                </NavLink>
-              ))}
+              {mobileOverflowItems.map((item) => {
+                const { to, label, icon: Icon, locked, proGate } = item;
+                if (locked) {
+                  return (
+                    <button
+                      key={to}
+                      type="button"
+                      onClick={() => {
+                        setMoreMenuOpen(false);
+                        openUpgrade(proGate ?? 'generic');
+                      }}
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-400 dark:text-gray-500 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+                    >
+                      <Icon className="w-4 h-4 opacity-60" />
+                      <span className="opacity-70">{label}</span>
+                      <Lock className="ml-auto w-3 h-3 text-indigo-500/80" />
+                    </button>
+                  );
+                }
+                return (
+                  <NavLink
+                    key={to}
+                    to={to}
+                    onClick={() => setMoreMenuOpen(false)}
+                    className={({ isActive }) =>
+                      `flex items-center gap-3 px-4 py-2.5 text-sm transition-colors ${
+                        isActive
+                          ? 'text-brand-600 dark:text-blue-300 bg-brand-50 dark:bg-blue-500/20 font-medium'
+                          : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/10'
+                      }`
+                    }
+                  >
+                    <Icon className="w-4 h-4" />
+                    {label}
+                  </NavLink>
+                );
+              })}
             </div>
           </>
         )}
         <div className="flex items-center justify-around h-16">
-          {mobilePrimaryItems.map(({ to, label, icon: Icon }) => (
+          {mobilePrimaryItems.map((item) => {
+            const { to, label, icon: Icon, locked, proGate } = item;
+            if (locked) {
+              return (
+                <button
+                  key={to}
+                  type="button"
+                  onClick={() => {
+                    setMoreMenuOpen(false);
+                    openUpgrade(proGate ?? 'generic');
+                  }}
+                  className="flex flex-col items-center justify-center gap-0.5 flex-1 h-full text-xs text-gray-400 dark:text-gray-500 relative"
+                >
+                  <Icon className="w-5 h-5 opacity-60" />
+                  <span className="opacity-70">{label}</span>
+                  <Lock className="absolute top-1.5 right-1/4 w-2.5 h-2.5 text-indigo-500" />
+                </button>
+              );
+            }
+            return (
             <NavLink
               key={to}
               to={to}
@@ -359,7 +471,8 @@ export function DashboardLayout() {
               <Icon className="w-5 h-5" />
               <span>{label}</span>
             </NavLink>
-          ))}
+            );
+          })}
           <button
             type="button"
             onClick={() => setMoreMenuOpen((v) => !v)}

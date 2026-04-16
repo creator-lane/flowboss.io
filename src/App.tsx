@@ -18,6 +18,7 @@ import { RequireAuth } from './components/auth/RequireAuth';
 import { RequireSubscription } from './components/auth/RequireSubscription';
 import { DashboardLayout } from './components/layout/DashboardLayout';
 import { InviteLanding } from './pages/InviteLanding';
+import { ProGate } from './components/upgrade/ProGate';
 
 // Lazy-loaded dashboard pages for code-splitting
 const SchedulePage = lazy(() => import('./pages/dashboard/SchedulePage').then(m => ({ default: m.SchedulePage })));
@@ -86,12 +87,12 @@ export default function App() {
       >
         <Route index element={<Navigate to="/dashboard/home" replace />} />
         <Route path="schedule" element={<Lazy><SchedulePage /></Lazy>} />
-        <Route path="jobs" element={<Lazy><JobsPage /></Lazy>} />
-        <Route path="jobs/:id" element={<Lazy><JobDetailPage /></Lazy>} />
-        <Route path="customers" element={<Lazy><CustomersPage /></Lazy>} />
-        <Route path="customers/:id" element={<Lazy><CustomerDetailPage /></Lazy>} />
-        <Route path="invoices" element={<Lazy><InvoicesPage /></Lazy>} />
-        <Route path="invoices/:id" element={<Lazy><InvoiceDetailPage /></Lazy>} />
+        <Route path="jobs" element={<ProGate feature="jobs"><Lazy><JobsPage /></Lazy></ProGate>} />
+        <Route path="jobs/:id" element={<ProGate feature="jobs"><Lazy><JobDetailPage /></Lazy></ProGate>} />
+        <Route path="customers" element={<ProGate feature="customers"><Lazy><CustomersPage /></Lazy></ProGate>} />
+        <Route path="customers/:id" element={<ProGate feature="customers"><Lazy><CustomerDetailPage /></Lazy></ProGate>} />
+        <Route path="invoices" element={<ProGate feature="invoices"><Lazy><InvoicesPage /></Lazy></ProGate>} />
+        <Route path="invoices/:id" element={<ProGate feature="invoices"><Lazy><InvoiceDetailPage /></Lazy></ProGate>} />
         <Route path="home" element={<Lazy><CommandCenterPage /></Lazy>} />
         <Route path="contractors" element={<Lazy><ContractorsPage /></Lazy>} />
         <Route path="contractors/:id" element={<Lazy><ContractorDetailPage /></Lazy>} />
@@ -99,8 +100,8 @@ export default function App() {
         <Route path="projects/:id" element={<Lazy><GCProjectDetailPage /></Lazy>} />
         <Route path="projects/assigned/:id" element={<Lazy><SubProjectViewPage /></Lazy>} />
         <Route path="subs/:subId" element={<Lazy><SubProfilePage /></Lazy>} />
-        <Route path="financials" element={<Lazy><FinancialsPage /></Lazy>} />
-        <Route path="insights" element={<Lazy><InsightsPage /></Lazy>} />
+        <Route path="financials" element={<ProGate feature="financials"><Lazy><FinancialsPage /></Lazy></ProGate>} />
+        <Route path="insights" element={<ProGate feature="insights"><Lazy><InsightsPage /></Lazy></ProGate>} />
         <Route path="settings" element={<Lazy><SettingsPage /></Lazy>} />
         {/* 404 catch-all within dashboard */}
         <Route path="*" element={<Navigate to="/dashboard/home" replace />} />

@@ -321,7 +321,7 @@ function DashboardLayoutInner() {
                 Run your own shop
               </p>
               <p className="text-[11px] text-slate-400 leading-relaxed">
-                Direct jobs + invoicing + QBO for $19.99/mo
+                Direct jobs + invoicing + QBO for $14.99/mo
               </p>
             </button>
           </div>

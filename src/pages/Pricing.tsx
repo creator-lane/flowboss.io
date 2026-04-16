@@ -93,12 +93,23 @@ export function Pricing() {
   const subProHref = session ? '/checkout?plan=sub_pro_monthly' : '/signup?plan=sub_pro_monthly';
   const [billing, setBilling] = useState<'monthly' | 'annual'>('annual');
 
-  const gcPrice = billing === 'annual' ? '$16.67' : '$29.99';
-  const gcSubtext = billing === 'annual' ? 'Billed $199.99/yr — save $160' : 'Billed monthly · Cancel anytime';
+  // Transparent pricing: the big number is always what you're actually charged
+  // at the selected billing interval. The subtext shows the other option + honest
+  // savings. No per-month-equivalent math tricks in the headline.
+  const gcPrice = billing === 'annual' ? '$199.99' : '$29.99';
+  const gcInterval = billing === 'annual' ? '/yr' : '/mo';
+  const gcSubtext = billing === 'annual'
+    ? 'Works out to $16.67/mo · save $160 vs monthly'
+    : 'or $199.99/yr (save $160) · cancel anytime';
   const gcHref = billing === 'annual' ? gcAnnualHref : gcMonthlyHref;
 
-  const subProPrice = billing === 'annual' ? '$12.50' : '$19.99';
-  const subProSubtext = billing === 'annual' ? 'Billed $149.99/yr — save $89' : 'Billed monthly · Cancel anytime';
+  const subProPrice = billing === 'annual' ? '$99' : '$14.99';
+  const subProInterval = billing === 'annual' ? '/yr' : '/mo';
+  const subProSubtext = billing === 'annual'
+    ? 'Works out to $8.25/mo · save $80 vs monthly'
+    : 'or $99/yr (save $80) · cancel anytime';
+  const subProAnnualHref = session ? '/checkout?plan=sub_pro_annual' : '/signup?plan=sub_pro_annual';
+  const subProBtnHref = billing === 'annual' ? subProAnnualHref : subProHref;
 
   return (
     <div className="relative min-h-screen overflow-x-hidden bg-white dark:bg-gray-950">
@@ -170,7 +181,7 @@ export function Pricing() {
                 : 'text-gray-500 dark:text-gray-400'
             }`}
           >
-            Annual <span className="text-green-600 dark:text-green-400 ml-1">·saves 45%</span>
+            Annual <span className="text-green-600 dark:text-green-400 ml-1">· save ~45%</span>
           </button>
         </div>
       </section>
@@ -229,7 +240,7 @@ export function Pricing() {
 
             <div className="mt-4 flex items-baseline gap-1">
               <span className="text-4xl sm:text-5xl font-extrabold text-gray-900 dark:text-white tracking-tight">{gcPrice}</span>
-              <span className="text-gray-500 text-sm dark:text-gray-400">/mo</span>
+              <span className="text-gray-500 text-sm dark:text-gray-400">{gcInterval}</span>
             </div>
             <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">{gcSubtext}</p>
 
@@ -264,7 +275,7 @@ export function Pricing() {
 
             <div className="mt-4 flex items-baseline gap-1">
               <span className="text-4xl sm:text-5xl font-extrabold text-gray-900 dark:text-white tracking-tight">{subProPrice}</span>
-              <span className="text-gray-500 text-sm dark:text-gray-400">/mo</span>
+              <span className="text-gray-500 text-sm dark:text-gray-400">{subProInterval}</span>
             </div>
             <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">{subProSubtext}</p>
 
@@ -282,7 +293,7 @@ export function Pricing() {
             </ul>
 
             <Link
-              to={subProHref}
+              to={subProBtnHref}
               className="group mt-6 inline-flex items-center justify-center gap-2 py-3 px-6 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 transition-colors dark:bg-white/10 dark:hover:bg-white/20"
             >
               Start 14-day Pro trial
@@ -319,7 +330,7 @@ export function Pricing() {
                 <p className="font-semibold text-gray-900 dark:text-white">You run a GC business</p>
               </div>
               <p className="text-gray-600 dark:text-gray-400 leading-relaxed pl-8">
-                You manage projects, crew, subs, and customers. $29.99/mo (or $16.67/mo annual).
+                You manage projects, crew, subs, and customers. $29.99/mo or $199.99/yr.
               </p>
             </div>
             <div>
@@ -330,7 +341,7 @@ export function Pricing() {
                 <p className="font-semibold text-gray-900 dark:text-white">You also want direct customers</p>
               </div>
               <p className="text-gray-600 dark:text-gray-400 leading-relaxed pl-8">
-                Sub Pro unlocks your own shop — direct jobs, invoicing, QBO, analytics. $19.99/mo.
+                Sub Pro unlocks your own shop — direct jobs, invoicing, QBO, analytics. $14.99/mo or $99/yr.
               </p>
             </div>
           </div>

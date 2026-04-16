@@ -318,7 +318,7 @@ export function InviteLanding() {
 
           {/* Optional Pro upsell — tiny, not distracting */}
           <p className="text-xs text-gray-400 text-center mt-4 leading-relaxed">
-            Run your own customers too? <Link to="/pricing" className="text-indigo-600 hover:text-indigo-700 font-medium underline decoration-dotted">Sub Pro</Link> adds direct jobs + invoicing for $19.99/mo. You'll get a 14-day free trial.
+            Run your own customers too? <Link to="/pricing" className="text-indigo-600 hover:text-indigo-700 font-medium underline decoration-dotted">Sub Pro</Link> adds direct jobs + invoicing for $14.99/mo. You'll get a 14-day free trial.
           </p>
         </main>
         <Footer />

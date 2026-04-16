@@ -8,7 +8,7 @@ import { supabase } from '../lib/supabase';
  * Three possible states (matches the public business model):
  *
  *  1. 'gc'         — paid $29.99/mo Contractor plan (or in trial). Full product.
- *  2. 'sub_pro'    — paid $19.99/mo Sub Pro plan (or in trial). Own shop + GC work.
+ *  2. 'sub_pro'    — paid $14.99/mo Sub Pro plan (or in trial). Own shop + GC work.
  *  3. 'sub_free'   — unpaid, but assigned to at least one gc_project_trade. Gets GC-work
  *                    features free forever; Pro features (Jobs/Customers/Invoices/etc.)
  *                    are locked behind an upgrade modal.

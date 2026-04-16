@@ -145,21 +145,21 @@ export function UpgradeModal({ open, onClose, feature = 'generic' }: UpgradeModa
             ))}
           </ul>
 
-          {/* Price + reassurance */}
+          {/* Price + reassurance — transparent: real billable numbers, no /12 math */}
           <div className="rounded-2xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/[0.03] p-4 mb-5">
             <div className="flex items-center justify-between mb-2">
               <div>
                 <div className="text-[10px] font-bold tracking-wider uppercase text-indigo-600 dark:text-indigo-400 mb-0.5">Sub Pro</div>
                 <div className="flex items-baseline gap-1">
-                  <span className="text-2xl font-extrabold text-gray-900 dark:text-white">$19.99</span>
+                  <span className="text-2xl font-extrabold text-gray-900 dark:text-white">$14.99</span>
                   <span className="text-sm text-gray-500 dark:text-gray-400">/mo</span>
                 </div>
               </div>
               <div className="text-right">
                 <div className="text-[10px] font-bold tracking-wider uppercase text-gray-400 dark:text-gray-500">Or annual</div>
                 <div className="flex items-baseline gap-1 justify-end">
-                  <span className="text-lg font-bold text-gray-700 dark:text-gray-300">$12.50</span>
-                  <span className="text-xs text-gray-500 dark:text-gray-400">/mo</span>
+                  <span className="text-lg font-bold text-gray-700 dark:text-gray-300">$99</span>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">/yr</span>
                 </div>
               </div>
             </div>

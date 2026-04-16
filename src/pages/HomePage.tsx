@@ -1397,10 +1397,10 @@ export function HomePage() {
                 <h3 className="text-lg font-bold text-gray-900">Contractor</h3>
                 <p className="text-sm text-gray-500 mt-1">Run projects, crew, and your whole shop</p>
                 <div className="mt-4 flex items-baseline gap-1">
-                  <span className="text-4xl font-extrabold text-gray-900">$16.67</span>
+                  <span className="text-4xl font-extrabold text-gray-900">$29.99</span>
                   <span className="text-gray-500 text-sm">/mo</span>
                 </div>
-                <p className="mt-1 text-xs text-gray-500">Billed $199.99/yr · or $29.99/mo</p>
+                <p className="mt-1 text-xs text-gray-500">or $199.99/yr (save $160)</p>
                 <ul className="mt-6 space-y-2.5 flex-1">
                   {gcFeatures.map((f) => (
                     <li key={f} className="flex items-start gap-2.5 text-sm text-gray-700">
@@ -1428,10 +1428,10 @@ export function HomePage() {
                 <h3 className="text-lg font-bold text-gray-900">Sub Pro</h3>
                 <p className="text-sm text-gray-500 mt-1">For subs who also run their own shop</p>
                 <div className="mt-4 flex items-baseline gap-1">
-                  <span className="text-4xl font-extrabold text-gray-900">$12.50</span>
+                  <span className="text-4xl font-extrabold text-gray-900">$14.99</span>
                   <span className="text-gray-500 text-sm">/mo</span>
                 </div>
-                <p className="mt-1 text-xs text-gray-500">Billed $149.99/yr · or $19.99/mo</p>
+                <p className="mt-1 text-xs text-gray-500">or $99/yr (save $80)</p>
                 <ul className="mt-6 space-y-2.5 flex-1">
                   {subProFeatures.map((f, i) => (
                     <li key={f} className={`flex items-start gap-2.5 text-sm ${i === 0 ? 'font-semibold text-gray-900' : 'text-gray-700'}`}>
@@ -1478,7 +1478,7 @@ export function HomePage() {
                   <p className="font-semibold text-gray-900">You run a GC business</p>
                 </div>
                 <p className="text-gray-600 leading-relaxed pl-9">
-                  You manage projects, crew, subs, and customers. $29.99/mo (or $16.67/mo annual).
+                  You manage projects, crew, subs, and customers. $29.99/mo or $199.99/yr.
                 </p>
               </div>
               <div>
@@ -1489,7 +1489,7 @@ export function HomePage() {
                   <p className="font-semibold text-gray-900">You also want direct customers</p>
                 </div>
                 <p className="text-gray-600 leading-relaxed pl-9">
-                  Sub Pro unlocks your own shop — direct jobs, invoicing, QBO. $19.99/mo.
+                  Sub Pro unlocks your own shop — direct jobs, invoicing, QBO. $14.99/mo or $99/yr.
                 </p>
               </div>
             </div>

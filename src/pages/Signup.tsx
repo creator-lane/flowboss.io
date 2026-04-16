@@ -60,10 +60,28 @@ export function Signup() {
     justSignedUp.current = true;
 
     try {
+      // Persist pending invite BEFORE sign-up so it survives email confirmation redirect
+      if (isInvite) {
+        try {
+          localStorage.setItem('pendingInvite', JSON.stringify({
+            projectId: inviteProjectId,
+            tradeId: inviteTradeId,
+            businessName,
+          }));
+        } catch { /* ignore */ }
+      }
+
+      // After email confirmation, Supabase redirects here. For invited subs, land
+      // them back on /invite/:projectId/:tradeId so InviteLanding completes the link.
+      const postConfirmUrl = isInvite
+        ? `${window.location.origin}/invite/${inviteProjectId}/${inviteTradeId}`
+        : `${window.location.origin}/onboarding?plan=${encodeURIComponent(plan)}`;
+
       // 1. Create the auth user
       const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
+        options: { emailRedirectTo: postConfirmUrl },
       });
 
       if (signUpError) {
@@ -77,7 +95,14 @@ export function Signup() {
         // Email confirmation is on — tell the user
         setSubmitting(false);
         setError('');
-        addToast('Check your email to confirm your account, then log in.', 'success');
+        if (isInvite) {
+          addToast(
+            `Check your email to confirm, then you'll join ${inviteProjectName || 'the project'} automatically.`,
+            'success'
+          );
+        } else {
+          addToast('Check your email to confirm your account, then log in.', 'success');
+        }
         // Stash signup data (incl. selected plan) for after confirmation
         try {
           localStorage.setItem('flowboss-signup', JSON.stringify({ businessName, plan }));

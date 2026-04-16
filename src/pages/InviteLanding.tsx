@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { api } from '../lib/api';
@@ -37,8 +37,8 @@ const FEATURES = [
   },
   {
     icon: <Gift className="w-5 h-5 text-purple-600" />,
-    title: 'Free for invited subs',
-    desc: 'No cost to you. Your GC handles the account.',
+    title: 'Free forever — no credit card',
+    desc: 'No cost for GC-invited work. No trial timer. Ever.',
   },
 ];
 
@@ -52,6 +52,8 @@ export function InviteLanding() {
   const [assignError, setAssignError] = useState<string | null>(null);
 
   const isLoggedIn = !!user;
+
+  const autoAcceptTried = useRef(false);
 
   // Store pending invite in localStorage so it survives login/signup redirect
   useEffect(() => {
@@ -114,6 +116,24 @@ export function InviteLanding() {
     setAssignError(null);
     assignMutation.mutate();
   }
+
+  // Auto-accept on arrival if the sub just came back from email confirmation or login:
+  // they're already logged in AND we have a stored pending invite matching this URL.
+  useEffect(() => {
+    if (autoAcceptTried.current) return;
+    if (!isLoggedIn || !projectId || !tradeId) return;
+    if (accepted || alreadyAssigned || assignMutation.isPending) return;
+    try {
+      const pending = localStorage.getItem(PENDING_INVITE_KEY);
+      if (!pending) return;
+      const p = JSON.parse(pending);
+      if (p.projectId === projectId && p.tradeId === tradeId) {
+        autoAcceptTried.current = true;
+        assignMutation.mutate();
+      }
+    } catch { /* ignore */ }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoggedIn, projectId, tradeId, alreadyAssigned, accepted]);
 
   const inviteUrl = `/invite/${projectId}/${tradeId}`;
   const signupUrl = `/signup?invite=${projectId}&trade=${tradeId}`;
@@ -269,6 +289,14 @@ export function InviteLanding() {
             </div>
           )}
 
+          {/* Free-forever reassurance */}
+          <div className="mb-4 flex items-start gap-2.5 px-4 py-3 rounded-xl bg-green-50 border border-green-200 text-sm">
+            <Gift className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
+            <p className="text-green-800 leading-relaxed">
+              <strong>This is completely free for you.</strong> GC-invited work — tasks, messages, earnings view — stays free forever. No credit card, no trial timer.
+            </p>
+          </div>
+
           {/* Accept button */}
           <button
             onClick={handleAccept}
@@ -287,6 +315,11 @@ export function InviteLanding() {
               </>
             )}
           </button>
+
+          {/* Optional Pro upsell — tiny, not distracting */}
+          <p className="text-xs text-gray-400 text-center mt-4 leading-relaxed">
+            Run your own customers too? <Link to="/pricing" className="text-indigo-600 hover:text-indigo-700 font-medium underline decoration-dotted">Sub Pro</Link> adds direct jobs + invoicing for $19.99/mo. You'll get a 14-day free trial.
+          </p>
         </main>
         <Footer />
       </div>

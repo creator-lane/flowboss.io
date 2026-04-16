@@ -19,6 +19,14 @@ export function Login() {
     if (redirectTo) return redirectTo;
     const fromState = (location.state as any)?.from?.pathname;
     if (fromState && fromState !== '/login') return fromState;
+    // Check for pending invite (sub arrived via invite link, then chose to log in)
+    try {
+      const pending = localStorage.getItem('pendingInvite');
+      if (pending) {
+        const { projectId, tradeId } = JSON.parse(pending);
+        if (projectId && tradeId) return `/invite/${projectId}/${tradeId}`;
+      }
+    } catch { /* ignore */ }
     return '/dashboard';
   };
 

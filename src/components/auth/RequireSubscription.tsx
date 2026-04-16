@@ -2,6 +2,7 @@ import { ReactNode, useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../lib/api';
+import { supabase } from '../../lib/supabase';
 
 // Web launch date — existing mobile users created before this date get access
 const WEB_LAUNCH_DATE = new Date('2026-04-13T00:00:00Z');
@@ -32,6 +33,27 @@ export function RequireSubscription({ children }: Props) {
     refetchOnMount: justCheckedOut ? 'always' : true,
   });
 
+  // Core homepage promise: "Invited subs are always free." If the current user
+  // is assigned to at least one gc_project_trade (i.e. a GC invited them to a
+  // trade and they accepted), let them into the dashboard without a Stripe
+  // subscription. Subs shouldn't see the paywall — ever.
+  const { data: invitedSubData, isLoading: invitedSubLoading } = useQuery({
+    queryKey: ['is-invited-sub'],
+    queryFn: async () => {
+      const { data: auth } = await supabase.auth.getUser();
+      const userId = auth?.user?.id;
+      if (!userId) return { isInvitedSub: false };
+      const { data, error } = await supabase
+        .from('gc_project_trades')
+        .select('id')
+        .eq('assigned_user_id', userId)
+        .limit(1);
+      if (error) return { isInvitedSub: false };
+      return { isInvitedSub: (data?.length ?? 0) > 0 };
+    },
+    staleTime: 60_000,
+  });
+
   // On first mount after checkout, force-refetch immediately (don't trust the
   // cache from before the Stripe redirect) and start the grace-period timer.
   useEffect(() => {
@@ -42,7 +64,7 @@ export function RequireSubscription({ children }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [justCheckedOut]);
 
-  if (isLoading) {
+  if (isLoading || invitedSubLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="w-8 h-8 border-4 border-brand-500 border-t-transparent rounded-full animate-spin" />
@@ -54,6 +76,13 @@ export function RequireSubscription({ children }: Props) {
   const status = settings?.subscription_status ?? settings?.subscriptionStatus;
   const provider = settings?.subscription_provider ?? settings?.subscriptionProvider;
   const createdAt = settings?.created_at ?? settings?.createdAt;
+  const isInvitedSub = invitedSubData?.isInvitedSub ?? false;
+
+  // Invited subs are always free — if they're assigned to any GC project trade,
+  // they get full dashboard access without paying.
+  if (isInvitedSub) {
+    return <>{children}</>;
+  }
 
   // Active or trialing — full access
   if (status === 'active' || status === 'trialing') {

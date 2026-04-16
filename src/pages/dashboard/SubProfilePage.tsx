@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useSafeBack } from '../../hooks/useSafeBack';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../../lib/api';
 import {
@@ -52,6 +53,7 @@ const formatCurrency = (n: number) =>
 export function SubProfilePage() {
   const { subId } = useParams<{ subId: string }>();
   const navigate = useNavigate();
+  const safeBack = useSafeBack('/dashboard/contractors');
 
   // subId could be a UUID (real sub) or a URL-encoded placeholder name
   const isPlaceholder = subId ? !subId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i) : true;
@@ -246,7 +248,7 @@ export function SubProfilePage() {
 
       {/* Back */}
       <button
-        onClick={() => navigate(-1)}
+        onClick={safeBack}
         className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 mb-6 transition-colors dark:text-gray-400 dark:hover:text-gray-200"
       >
         <ArrowLeft className="w-4 h-4" />

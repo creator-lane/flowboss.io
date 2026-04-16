@@ -14,6 +14,7 @@ import {
 import { CreateInvoiceModal } from '../../components/invoices/CreateInvoiceModal';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { SpotlightTip } from '../../components/ui/SpotlightTip';
+import { isOverdue, isPaid, isDraft, isSent } from '../../lib/invoiceStatus';
 
 type FilterTab = 'all' | 'draft' | 'sent' | 'paid' | 'overdue';
 
@@ -87,38 +88,45 @@ export function InvoicesPage() {
 
   const invoices = data?.data || [];
 
-  // Compute summary
+  // Compute summary — use the shared helpers so this agrees with CommandCenter.
   const summary = useMemo(() => {
     let totalOutstanding = 0;
     let totalPaid = 0;
     let overdueCount = 0;
     let unpaidCount = 0;
     let paidCount = 0;
+    const now = new Date();
 
     for (const inv of invoices) {
       const total = Number(inv.total || 0);
       const balance = Number(inv.balanceDue ?? inv.balance_due ?? total);
-      const status = (inv.status || 'draft').toLowerCase();
 
-      if (status === 'paid') {
+      if (isPaid(inv)) {
         totalPaid += total;
         paidCount++;
       } else {
         totalOutstanding += balance;
         unpaidCount++;
-        if (status === 'overdue') overdueCount++;
+        if (isOverdue(inv, now)) overdueCount++;
       }
     }
 
     return { totalOutstanding, totalPaid, overdueCount, unpaidCount, paidCount };
   }, [invoices]);
 
-  // Client-side filter
+  // Client-side filter — matches the tab count logic (treat viewed as sent, use
+  // date-based overdue detection instead of status-string literal).
   const filtered = useMemo(() => {
     if (filter === 'all') return invoices;
+    const now = new Date();
     return invoices.filter((inv: any) => {
-      const status = (inv.status || 'draft').toLowerCase();
-      return status === filter;
+      switch (filter) {
+        case 'paid': return isPaid(inv);
+        case 'draft': return isDraft(inv);
+        case 'sent': return isSent(inv);
+        case 'overdue': return isOverdue(inv, now);
+        default: return true;
+      }
     });
   }, [invoices, filter]);
 
@@ -127,14 +135,12 @@ export function InvoicesPage() {
     {
       key: 'draft',
       label: 'Draft',
-      count: invoices.filter((i: any) => i.status === 'draft').length,
+      count: invoices.filter((i: any) => isDraft(i)).length,
     },
     {
       key: 'sent',
       label: 'Sent',
-      count: invoices.filter(
-        (i: any) => i.status === 'sent' || i.status === 'viewed'
-      ).length,
+      count: invoices.filter((i: any) => isSent(i)).length,
     },
     { key: 'paid', label: 'Paid', count: summary.paidCount },
     { key: 'overdue', label: 'Overdue', count: summary.overdueCount },
@@ -262,8 +268,12 @@ export function InvoicesPage() {
                   </tr>
                 ))
               : filtered.map((inv: any) => {
-                  const status = (inv.status || 'draft').toLowerCase();
-                  const style = STATUS_STYLE[status] || STATUS_STYLE.draft;
+                  const rawStatus = (inv.status || 'draft').toLowerCase();
+                  // Treat date-past-due invoices as overdue visually even if the
+                  // server hasn't flipped the status flag yet. Consistent with
+                  // CommandCenterPage and the tab count.
+                  const effectiveStatus = isOverdue(inv) ? 'overdue' : rawStatus;
+                  const style = STATUS_STYLE[effectiveStatus] || STATUS_STYLE.draft;
                   const dueDate = inv.dueDate || inv.due_date;
 
                   return (
@@ -272,7 +282,7 @@ export function InvoicesPage() {
                       onClick={() =>
                         navigate(`/dashboard/invoices/${inv.id}`)
                       }
-                      className={`hover:bg-neutral-50 cursor-pointer transition-colors dark:hover:bg-white/10${style.row || ''} dark:hover:bg-white/10`}
+                      className={`hover:bg-neutral-50 cursor-pointer transition-colors dark:hover:bg-white/10 ${style.row || ''}`}
                     >
                       <td className="px-6 py-4">
                         <span className="text-sm font-medium text-brand-600 dark:text-blue-300">
@@ -292,7 +302,7 @@ export function InvoicesPage() {
                           className={`inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full font-semibold capitalize ${style.badge}`}
                         >
                           <span className={`w-1.5 h-1.5 rounded-full ${style.dot}`} />
-                          {status.replace(/_/g, ' ')}
+                          {effectiveStatus.replace(/_/g, ' ')}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-sm text-neutral-500 dark:text-gray-400">
@@ -332,8 +342,9 @@ export function InvoicesPage() {
               </div>
             ))
           : filtered.map((inv: any) => {
-              const status = (inv.status || 'draft').toLowerCase();
-              const style = STATUS_STYLE[status] || STATUS_STYLE.draft;
+              const rawStatus = (inv.status || 'draft').toLowerCase();
+              const effectiveStatus = isOverdue(inv) ? 'overdue' : rawStatus;
+              const style = STATUS_STYLE[effectiveStatus] || STATUS_STYLE.draft;
               const dueDate = inv.dueDate || inv.due_date;
 
               return (
@@ -342,7 +353,7 @@ export function InvoicesPage() {
                   onClick={() =>
                     navigate(`/dashboard/invoices/${inv.id}`)
                   }
-                  className={`w-full text-left bg-white rounded-xl border border-neutral-200 p-4 hover:border-brand-300 hover:shadow-lg hover:shadow-gray-200/50 hover:-translate-y-0.5 transition-all duration-200 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10${style.row || ''} dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10`}
+                  className={`w-full text-left bg-white rounded-xl border border-neutral-200 p-4 hover:border-brand-300 hover:shadow-lg hover:shadow-gray-200/50 hover:-translate-y-0.5 transition-all duration-200 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10 ${style.row || ''}`}
                 >
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-sm font-medium text-brand-600 dark:text-blue-300">
@@ -354,7 +365,7 @@ export function InvoicesPage() {
                       className={`inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full font-semibold capitalize ${style.badge}`}
                     >
                       <span className={`w-1.5 h-1.5 rounded-full ${style.dot}`} />
-                      {status.replace(/_/g, ' ')}
+                      {effectiveStatus.replace(/_/g, ' ')}
                     </span>
                   </div>
                   <p className="text-sm text-neutral-900 mb-1 dark:text-white">

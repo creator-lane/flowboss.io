@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useSafeBack } from '../../hooks/useSafeBack';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../lib/api';
 import { format } from 'date-fns';
@@ -82,6 +83,7 @@ function Section({
 export function JobDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const safeBack = useSafeBack('/dashboard/jobs');
   const queryClient = useQueryClient();
   const { addToast } = useToast();
 
@@ -214,6 +216,16 @@ export function JobDetailPage() {
     if (!scheduleDate || !scheduleStartTime) return;
     const startStr = `${scheduleDate}T${scheduleStartTime}:00`;
     const endStr = scheduleEndTime ? `${scheduleDate}T${scheduleEndTime}:00` : `${scheduleDate}T${scheduleStartTime}:00`;
+    // Guard against negative-duration jobs. When end time is provided, enforce
+    // end > start. If end is omitted, we fall back to start=end (already handled above).
+    if (scheduleEndTime) {
+      const startMs = new Date(startStr).getTime();
+      const endMs = new Date(endStr).getTime();
+      if (endMs <= startMs) {
+        addToast('End time must be after start time.', 'error');
+        return;
+      }
+    }
     scheduleMutation.mutate({
       scheduled_start: new Date(startStr).toISOString(),
       scheduled_end: new Date(endStr).toISOString(),
@@ -289,7 +301,7 @@ export function JobDetailPage() {
       {/* Back button */}
       <button
         type="button"
-        onClick={() => navigate(-1)}
+        onClick={safeBack}
         className="inline-flex items-center gap-1.5 text-sm text-neutral-500 hover:text-neutral-700 transition-colors dark:text-gray-400"
       >
         <ArrowLeft className="w-4 h-4" />

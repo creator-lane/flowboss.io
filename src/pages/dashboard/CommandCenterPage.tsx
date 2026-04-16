@@ -29,6 +29,7 @@ import { CreateInvoiceModal } from '../../components/invoices/CreateInvoiceModal
 import { CreateJobModal } from '../../components/jobs/CreateJobModal';
 import { SetupChecklist } from '../../components/dashboard/SetupChecklist';
 import { SpotlightTip } from '../../components/ui/SpotlightTip';
+import { isOverdue as isInvoiceOverdue } from '../../lib/invoiceStatus';
 
 // ── Helpers ──────────────────────────────────────────────────────────
 
@@ -142,12 +143,7 @@ export function CommandCenterPage() {
 
   const overdueInvoices = useMemo(() => {
     const now = new Date();
-    return invoices.filter((inv: any) => {
-      if (inv.status === 'overdue') return true;
-      if (inv.status === 'paid') return false;
-      const due = inv.dueDate || inv.due_date;
-      return due && isBefore(parseISO(due), now);
-    });
+    return invoices.filter((inv: any) => isInvoiceOverdue(inv, now));
   }, [invoices]);
 
   const alerts = useMemo(() => {

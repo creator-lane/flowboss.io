@@ -62,7 +62,7 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
-function ProjectCard({ project, onClick, onDelete }: { project: any; onClick: () => void; onDelete: () => void }) {
+function ProjectCard({ project, onClick, onDelete }: { project: any; onClick: () => void; onDelete?: () => void }) {
   const trades: any[] = project.trades || [];
   const totalTasks = trades.reduce((s: number, t: any) => s + (t.tasks?.length || 0), 0);
   const doneTasks = trades.reduce(
@@ -81,13 +81,15 @@ function ProjectCard({ project, onClick, onDelete }: { project: any; onClick: ()
         <h3 className="text-base font-semibold text-gray-900 line-clamp-1 dark:text-white">{project.name}</h3>
         <div className="flex items-center gap-2">
           <StatusBadge status={project.status} />
-          <button
-            onClick={(e) => { e.stopPropagation(); onDelete(); }}
-            className="opacity-0 group-hover:opacity-100 text-gray-300 hover:text-red-500 transition-all p-0.5"
-            title="Delete project"
-          >
-            <Trash2 className="w-3.5 h-3.5" />
-          </button>
+          {onDelete && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onDelete(); }}
+              className="opacity-0 group-hover:opacity-100 text-gray-300 hover:text-red-500 transition-all p-0.5"
+              title="Delete project"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
       </div>
 
@@ -717,8 +719,18 @@ export function GCDashboardPage() {
 
   // Demo data loader — full business data
   const [demoProgress, setDemoProgress] = useState<string | null>(null);
+  // Idempotency: if the user already loaded the demo (or any project with the
+  // Henderson name exists), bail instead of creating duplicates. Covers both
+  // "user double-clicks on slow network" AND "user comes back later and forgot".
+  const demoAlreadyLoaded = useMemo(
+    () => projects.some((p: any) => p.name === DEMO_PROJECT.name),
+    [projects],
+  );
   const loadDemoMutation = useMutation({
     mutationFn: async () => {
+      if (demoAlreadyLoaded) {
+        return { alreadyLoaded: true } as const;
+      }
       // First load the Henderson Estate (original demo)
       setDemoProgress('Creating Henderson Estate project...');
       const result = await api.createGCProject(DEMO_PROJECT);
@@ -733,7 +745,12 @@ export function GCDashboardPage() {
       const stats = await loadAllDemoData((msg) => setDemoProgress(msg));
       return stats;
     },
-    onSuccess: (stats) => {
+    onSuccess: (result: any) => {
+      if (result?.alreadyLoaded) {
+        setDemoProgress(null);
+        addToast('Demo data already loaded', 'info');
+        return;
+      }
       queryClient.invalidateQueries({ queryKey: ['gc-projects'] });
       queryClient.invalidateQueries({ queryKey: ['gc-sub-directory'] });
       queryClient.invalidateQueries({ queryKey: ['contractors'] });
@@ -745,7 +762,7 @@ export function GCDashboardPage() {
       queryClient.invalidateQueries({ queryKey: ['insights'] });
       setDemoProgress(null);
       addToast(
-        `Demo loaded! 3 projects ($3.2M), ${stats?.jobs || 0} jobs, ${stats?.invoices || 0} invoices, ${stats?.expenses || 0} expenses`,
+        `Demo loaded! 3 projects ($3.2M), ${result?.jobs || 0} jobs, ${result?.invoices || 0} invoices, ${result?.expenses || 0} expenses`,
         'success',
       );
     },
@@ -833,11 +850,16 @@ export function GCDashboardPage() {
           <div className="flex items-center gap-2">
             <button
               onClick={() => loadDemoMutation.mutate()}
-              disabled={loadDemoMutation.isPending}
+              disabled={loadDemoMutation.isPending || demoAlreadyLoaded}
               className="flex items-center gap-2 px-3 py-2 border border-gray-200 text-gray-500 rounded-lg text-xs font-medium hover:bg-gray-50 transition-colors disabled:opacity-50 dark:border-white/10 dark:text-gray-400 dark:hover:bg-white/10"
+              title={demoAlreadyLoaded ? 'Demo data is already loaded' : undefined}
             >
               <Zap className="w-3.5 h-3.5" />
-              {loadDemoMutation.isPending ? (demoProgress || 'Loading...') : 'Load Demo Data'}
+              {loadDemoMutation.isPending
+                ? (demoProgress || 'Loading...')
+                : demoAlreadyLoaded
+                ? 'Demo Loaded'
+                : 'Load Demo Data'}
             </button>
             <button
               onClick={() => setShowCreate(true)}
@@ -942,8 +964,10 @@ export function GCDashboardPage() {
                   <ProjectCard
                     key={project.id}
                     project={project}
-                    onClick={() => navigate(`/dashboard/projects/${project.id}`)}
-                    onDelete={() => handleDeleteProject(project.id, project.name)}
+                    // Subs see the assigned-view (their zones/tasks), not the GC view.
+                    onClick={() => navigate(`/dashboard/projects/assigned/${project.id}`)}
+                    // Intentionally no onDelete — you cannot delete a project
+                    // you were invited to. Only the owning GC can.
                   />
                 ))}
               </div>
@@ -970,11 +994,16 @@ export function GCDashboardPage() {
                 </button>
                 <button
                   onClick={() => loadDemoMutation.mutate()}
-                  disabled={loadDemoMutation.isPending}
+                  disabled={loadDemoMutation.isPending || demoAlreadyLoaded}
                   className="inline-flex items-center gap-2 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors disabled:opacity-50 dark:border-white/10 dark:text-gray-200 dark:hover:bg-white/10"
+                  title={demoAlreadyLoaded ? 'Demo data is already loaded' : undefined}
                 >
                   <Zap className="w-4 h-4" />
-                  {loadDemoMutation.isPending ? (demoProgress || 'Loading...') : 'Load Demo Data'}
+                  {loadDemoMutation.isPending
+                    ? (demoProgress || 'Loading...')
+                    : demoAlreadyLoaded
+                    ? 'Demo Loaded'
+                    : 'Load Demo Data'}
                 </button>
               </div>
             </div>

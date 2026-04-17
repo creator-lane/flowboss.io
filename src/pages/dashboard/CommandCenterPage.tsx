@@ -94,28 +94,29 @@ export function CommandCenterPage() {
   const { isGC, isSub, isSolo, hasPriority, profile } = useProfile();
   const [showNewProject, setShowNewProject] = useState(false);
   const [showNewInvoice, setShowNewInvoice] = useState(false);
+  const [invoicePrefillJobId, setInvoicePrefillJobId] = useState<string | undefined>(undefined);
   const [showNewJob, setShowNewJob] = useState(false);
   const [dismissedBanners, setDismissedBanners] = useState<Set<string>>(new Set());
 
   // Data queries
-  const { data: projectsData, isLoading: loadingProjects } = useQuery({
+  const { data: projectsData, isLoading: loadingProjects, error: errProjects } = useQuery({
     queryKey: ['gc-projects'],
     queryFn: () => api.getGCProjects(),
   });
 
-  const { data: jobsData, isLoading: loadingJobs } = useQuery({
+  const { data: jobsData, isLoading: loadingJobs, error: errJobs } = useQuery({
     // Compute the date at query time so a tab left open past midnight refetches
     // for the new day instead of staying pinned to yesterday.
     queryKey: ['jobs', todayString()],
     queryFn: () => api.getTodaysJobs(undefined, 'today'),
   });
 
-  const { data: invoicesData, isLoading: loadingInvoices } = useQuery({
+  const { data: invoicesData, isLoading: loadingInvoices, error: errInvoices } = useQuery({
     queryKey: ['invoices'],
     queryFn: () => api.getInvoices(),
   });
 
-  const { data: settingsData, isLoading: loadingSettings } = useQuery({
+  const { data: settingsData, isLoading: loadingSettings, error: errSettings } = useQuery({
     queryKey: ['settings'],
     queryFn: () => api.getSettings(),
   });
@@ -144,6 +145,11 @@ export function CommandCenterPage() {
   const allJobs: any[] = allJobsData?.data || [];
 
   const isLoading = loadingProjects || loadingJobs || loadingInvoices || loadingSettings || loadingInvited;
+  // Any of the critical queries fail → surface a recoverable banner. We don't
+  // fail-hard on this; a partial home page is still useful. But the user
+  // needs to know something's off so they don't assume the app is empty.
+  const anyError: Error | null =
+    (errProjects || errJobs || errInvoices || errSettings) as Error | null;
 
   // ── Computed values ──────────────────────────────────────────────
 
@@ -270,6 +276,27 @@ export function CommandCenterPage() {
 
   return (
     <div className="relative p-4 lg:p-6 max-w-5xl mx-auto space-y-6 dark:before:pointer-events-none dark:before:absolute dark:before:inset-0 dark:before:bg-[radial-gradient(circle_at_70%_10%,rgba(59,130,246,0.12),transparent_55%)] dark:before:-z-10">
+      {/* Global error banner — partial data is still useful, but tell the
+          user something's wrong so they don't think their dashboard is empty. */}
+      {anyError && (
+        <div className="flex items-start gap-3 px-4 py-3 bg-red-50 border border-red-200 rounded-lg dark:bg-red-500/10 dark:border-red-500/30">
+          <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5 dark:text-red-300" />
+          <div className="flex-1 text-sm text-red-800 dark:text-red-200">
+            <p className="font-semibold">Couldn't load everything on this page.</p>
+            <p className="text-xs mt-0.5 text-red-700 dark:text-red-300">
+              {anyError.message || 'Try refreshing in a moment.'}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            className="text-xs font-semibold text-red-700 dark:text-red-300 hover:underline shrink-0"
+          >
+            Refresh
+          </button>
+        </div>
+      )}
+
       {/* 0. Urgent GC Project Banners */}
       {urgentBanners.filter((b) => !dismissedBanners.has(b.id)).length > 0 && (
         <div className="space-y-2">
@@ -355,16 +382,22 @@ export function CommandCenterPage() {
           });
         }
 
-        // Has completed jobs but no invoices
+        // Has completed jobs but no invoices — prefill the modal with the
+        // first unbilled completed job so the user doesn't have to re-select
+        // from scratch after we just told them "3 jobs are ready to bill".
         const completedJobs = allJobs.filter((j: any) => j.status === 'COMPLETED');
         if (completedJobs.length > 0 && invoices.length === 0) {
+          const firstCompletedJobId = completedJobs[0]?.id;
           nudges.push({
             id: 'no-invoices',
             icon: FileText,
             color: 'emerald',
             message: `${completedJobs.length} completed job${completedJobs.length > 1 ? 's' : ''} without an invoice. Time to get paid!`,
             cta: 'Create Invoice',
-            onClick: () => setShowNewInvoice(true),
+            onClick: () => {
+              setInvoicePrefillJobId(firstCompletedJobId);
+              setShowNewInvoice(true);
+            },
           });
         }
 
@@ -758,10 +791,12 @@ export function CommandCenterPage() {
         </div>
       </div>
 
-      {/* 5b. FlowBoss Score teaser for subs */}
+      {/* 5b. FlowBoss Score teaser for subs — links to the sub's own profile
+          page (which shows their score + project history). Falls back to
+          settings if we somehow don't know the user id. */}
       {isSub && (
         <Link
-          to="/dashboard/settings"
+          to={settings?.id ? `/dashboard/subs/${settings.id}` : '/dashboard/settings'}
           className="flex items-center gap-4 bg-gradient-to-r from-amber-50 via-white to-white rounded-xl border border-amber-200/60 p-4 hover:border-amber-300 hover:shadow-md transition-all group"
         >
           <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-400 to-amber-500 flex items-center justify-center shadow-sm shadow-amber-400/20 shrink-0 dark:shadow-black/30">
@@ -839,7 +874,14 @@ export function CommandCenterPage() {
 
       {/* Modals */}
       <CreateGCProjectModal open={showNewProject} onClose={() => setShowNewProject(false)} />
-      <CreateInvoiceModal open={showNewInvoice} onClose={() => setShowNewInvoice(false)} />
+      <CreateInvoiceModal
+        open={showNewInvoice}
+        onClose={() => {
+          setShowNewInvoice(false);
+          setInvoicePrefillJobId(undefined);
+        }}
+        prefillJobId={invoicePrefillJobId}
+      />
       <CreateJobModal open={showNewJob} onClose={() => setShowNewJob(false)} />
     </div>
   );

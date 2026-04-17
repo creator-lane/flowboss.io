@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../lib/api';
@@ -149,24 +149,39 @@ function ProjectCard({ project, onClick, onDelete }: { project: any; onClick: ()
 /** Simple org check — creates org on first visit if needed */
 function useAutoOrg() {
   const [ready, setReady] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+  const [retryTick, setRetryTick] = useState(0);
   const didRun = useRef(false);
+
+  useEffect(() => {
+    // Each retry resets the "did run" gate.
+    didRun.current = false;
+  }, [retryTick]);
 
   useEffect(() => {
     if (didRun.current) return;
     didRun.current = true;
 
     (async () => {
+      setError(null);
       try {
         const { data: org } = await api.getOrganization();
         if (!org) {
-          await api.createOrganization({ name: 'My Company', type: 'gc' }).catch(() => {});
+          // Intentionally NOT silent anymore — if createOrganization fails,
+          // we surface it so the user isn't stuck on a permanent empty
+          // dashboard with no idea why nothing loads.
+          await api.createOrganization({ name: 'My Company', type: 'gc' });
         }
-      } catch {}
-      setReady(true);
+        setReady(true);
+      } catch (e: any) {
+        setError(e instanceof Error ? e : new Error(String(e?.message || e)));
+      }
     })();
-  }, []);
+  }, [retryTick]);
 
-  return { ready, isLoading: !ready };
+  const retry = useCallback(() => setRetryTick((t) => t + 1), []);
+
+  return { ready, isLoading: !ready && !error, error, retry };
 }
 
 type GCTab = 'projects' | 'subs';
@@ -694,7 +709,7 @@ export function GCDashboardPage() {
   const queryClient = useQueryClient();
   const { addToast } = useToast();
 
-  const { ready: orgReady, isLoading: orgLoading } = useAutoOrg();
+  const { ready: orgReady, isLoading: orgLoading, error: orgError, retry: retryOrg } = useAutoOrg();
 
   const projectsQuery = useQuery({
     queryKey: ['gc-projects'],
@@ -823,6 +838,28 @@ export function GCDashboardPage() {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="w-8 h-8 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (orgError) {
+    return (
+      <div className="max-w-md mx-auto p-6 mt-16">
+        <div className="rounded-2xl border border-red-200 bg-red-50 p-6 dark:bg-red-500/10 dark:border-red-500/20">
+          <h2 className="text-lg font-semibold text-red-900 dark:text-red-200 mb-2">
+            We couldn't finish setting up your workspace
+          </h2>
+          <p className="text-sm text-red-800 dark:text-red-300 leading-relaxed mb-4">
+            {orgError.message || "Something went wrong. This is usually a temporary network hiccup."}
+          </p>
+          <button
+            type="button"
+            onClick={retryOrg}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white text-sm font-semibold rounded-lg hover:bg-red-700 transition-colors"
+          >
+            Try again
+          </button>
+        </div>
       </div>
     );
   }

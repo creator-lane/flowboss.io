@@ -26,9 +26,14 @@ export default {
           '30%': { backgroundColor: 'rgb(187 247 208 / 0.5)' },
           '100%': { backgroundColor: 'transparent' },
         },
+        'toast-in': {
+          '0%': { opacity: '0', transform: 'translateX(24px) scale(0.96)' },
+          '100%': { opacity: '1', transform: 'translateX(0) scale(1)' },
+        },
       },
       animation: {
         'check-flash': 'check-flash 0.6s ease-out',
+        'toast-in': 'toast-in 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
       },
       colors: {
         brand: {

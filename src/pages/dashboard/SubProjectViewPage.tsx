@@ -128,13 +128,34 @@ export function SubProjectViewPage() {
   );
   const visibleTrades = myTrades.length > 0 ? myTrades : trades;
 
-  // Find the zone for the first visible trade
-  const primaryTrade = visibleTrades[0];
-  const primaryZone = primaryTrade
-    ? zones.find((z: any) => z.id === (primaryTrade.zoneId || primaryTrade.zone_id))
-    : null;
+  // Group my trades by zone so a multi-trade / multi-zone sub sees distinct
+  // sections. Pre-refactor this picked visibleTrades[0]'s zone as "the" zone,
+  // which broke the hero + timeline for a plumber working Kitchen + Bath.
+  type ZoneGroup = { zoneId: string | null; zoneName: string; trades: any[] };
+  const zoneGroups: ZoneGroup[] = (() => {
+    const byZone = new Map<string, ZoneGroup>();
+    const unzoned: any[] = [];
+    for (const t of visibleTrades) {
+      const zid = t.zoneId || t.zone_id || null;
+      if (!zid) { unzoned.push(t); continue; }
+      const zone = zones.find((z: any) => z.id === zid);
+      const key = zid;
+      if (!byZone.has(key)) {
+        byZone.set(key, { zoneId: zid, zoneName: zone?.name || 'Zone', trades: [] });
+      }
+      byZone.get(key)!.trades.push(t);
+    }
+    const result: ZoneGroup[] = Array.from(byZone.values());
+    if (unzoned.length > 0) {
+      result.push({ zoneId: null, zoneName: 'General', trades: unzoned });
+    }
+    return result;
+  })();
 
-  // Stats across all visible trades
+  const myZoneIds = zoneGroups.map((g) => g.zoneId).filter(Boolean) as string[];
+
+  // Stats across all visible trades — this is correct aggregate regardless of
+  // how many zones the sub owns.
   const allTasks = visibleTrades.flatMap((t: any) => t.tasks || []);
   const doneTasks = allTasks.filter((t: any) => t.done).length;
   const totalTasks = allTasks.length;
@@ -146,13 +167,20 @@ export function SubProjectViewPage() {
     .filter(Boolean)
     .map((d: string) => new Date(d).getTime());
   const earliestDue = dueDates.length > 0 ? new Date(Math.min(...dueDates)) : null;
-  // Also use trade end date as fallback
-  const tradeEndDate = primaryTrade?.endDate || primaryTrade?.end_date;
+  // Earliest trade end date as fallback (across all of my trades, not just first)
+  const tradeEndDates = visibleTrades
+    .map((t: any) => t.endDate || t.end_date)
+    .filter(Boolean)
+    .map((d: string) => new Date(d).getTime());
+  const tradeEndDate = tradeEndDates.length > 0 ? new Date(Math.min(...tradeEndDates)).toISOString() : null;
 
-  const zoneName = primaryZone?.name || 'General';
-  const tradeName = visibleTrades.map((t: any) => t.trade).join(', ') || 'Your Assignment';
-  const accent = getZoneAccentClasses(zoneName);
-  const emoji = ZONE_EMOJI[zoneName] || '\u{1F527}';
+  // Hero accent: if sub is in just one zone, use that zone's color. If multi-zone,
+  // use the first zone's color but the hero makes clear they span several zones.
+  const heroZoneName = zoneGroups[0]?.zoneName || 'General';
+  const uniqueTrades = Array.from(new Set(visibleTrades.map((t: any) => t.trade))).filter(Boolean);
+  const tradeName = uniqueTrades.length > 0 ? uniqueTrades.join(', ') : 'Your Assignment';
+  const accent = getZoneAccentClasses(heroZoneName);
+  const emoji = ZONE_EMOJI[heroZoneName] || '\u{1F527}';
 
   if (projectQuery.isLoading) {
     return (
@@ -187,10 +215,28 @@ export function SubProjectViewPage() {
       {/* ── 1. Hero Banner ── */}
       <div className={`rounded-2xl bg-gradient-to-br ${accent.bg} border border-gray-200 p-6 lg:p-8 dark:border-white/10`}>
         <div className="flex items-start justify-between gap-4 mb-5">
-          <div>
+          <div className="min-w-0">
             <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-1 dark:text-white">
-              {emoji} {zoneName} — {tradeName}
+              {emoji} {zoneGroups.length === 1
+                ? <>{zoneGroups[0].zoneName} — {tradeName}</>
+                : <>{tradeName} — {zoneGroups.length} zones</>}
             </h1>
+            {zoneGroups.length > 1 && (
+              <div className="flex flex-wrap gap-1.5 mt-2 mb-1">
+                {zoneGroups.map((g) => {
+                  const color = ZONE_COLORS[g.zoneName] || DEFAULT_ZONE_COLOR;
+                  return (
+                    <span
+                      key={g.zoneId || g.zoneName}
+                      className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-white/70 text-gray-800 dark:bg-white/10 dark:text-gray-200"
+                    >
+                      <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: color }} />
+                      {ZONE_EMOJI[g.zoneName] || ''} {g.zoneName}
+                    </span>
+                  );
+                })}
+              </div>
+            )}
             <p className="text-sm text-gray-500 dark:text-gray-400">
               {project.name}
               {project.gcBusinessName ? ` \u00B7 Assigned by ${project.gcBusinessName}` : ''}
@@ -218,15 +264,42 @@ export function SubProjectViewPage() {
         </div>
       </div>
 
-      {/* ── 2. My Tasks ── */}
-      {visibleTrades.map((trade: any) => (
-        <TaskSection
-          key={trade.id}
-          trade={trade}
-          projectId={id!}
-          accent={accent}
-        />
-      ))}
+      {/* ── 2. My Tasks — grouped by zone when the sub is in more than one ── */}
+      {zoneGroups.length === 1 ? (
+        // Single-zone: flat list of task sections per trade (legacy layout).
+        zoneGroups[0].trades.map((trade: any) => (
+          <TaskSection
+            key={trade.id}
+            trade={trade}
+            projectId={id!}
+            accent={accent}
+          />
+        ))
+      ) : (
+        zoneGroups.map((group) => {
+          const zoneAccent = getZoneAccentClasses(group.zoneName);
+          const zoneColor = ZONE_COLORS[group.zoneName] || DEFAULT_ZONE_COLOR;
+          const zoneEmoji = ZONE_EMOJI[group.zoneName] || '';
+          return (
+            <div key={group.zoneId || group.zoneName} className="space-y-3">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: zoneColor }} />
+                <h2 className="text-sm font-bold tracking-wide uppercase text-gray-500 dark:text-gray-400">
+                  {zoneEmoji} {group.zoneName}
+                </h2>
+              </div>
+              {group.trades.map((trade: any) => (
+                <TaskSection
+                  key={trade.id}
+                  trade={trade}
+                  projectId={id!}
+                  accent={zoneAccent}
+                />
+              ))}
+            </div>
+          );
+        })
+      )}
 
       {/* ── 3. My Budget ── */}
       <BudgetCard trades={visibleTrades} accent={accent} />
@@ -238,7 +311,7 @@ export function SubProjectViewPage() {
       <ProjectTimeline
         zones={zones}
         trades={trades}
-        myZoneId={primaryZone?.id}
+        myZoneIds={myZoneIds}
         accent={accent}
       />
 
@@ -573,14 +646,16 @@ function SubProjectBanner({ project }: { project: any }) {
 function ProjectTimeline({
   zones,
   trades,
-  myZoneId,
+  myZoneIds,
   accent,
 }: {
   zones: any[];
   trades: any[];
-  myZoneId: string | null | undefined;
+  /** Zones owned by the current sub — can be multiple. All get highlighted. */
+  myZoneIds: string[];
   accent: ReturnType<typeof getZoneAccentClasses>;
 }) {
+  const myZoneSet = new Set(myZoneIds);
   // Group trades by zone
   const zoneMap = new Map<string, { name: string; trades: any[] }>();
 
@@ -620,7 +695,7 @@ function ProjectTimeline({
           const done = allZoneTasks.filter((t: any) => t.done).length;
           const total = allZoneTasks.length;
           const pct = total > 0 ? Math.round((done / total) * 100) : 0;
-          const isMyZone = entry.id === myZoneId;
+          const isMyZone = myZoneSet.has(entry.id);
           const zoneColor = ZONE_COLORS[entry.name] || DEFAULT_ZONE_COLOR;
 
           return (

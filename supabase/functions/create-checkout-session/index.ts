@@ -71,12 +71,31 @@ serve(async (req) => {
     const { data: { user }, error: authError } = await supabase.auth.getUser(authHeader.replace('Bearer ', ''));
     if (authError || !user) throw new Error('Not authenticated');
 
-    // Check if user already has a Stripe customer
+    // Check if user already has a Stripe customer + read business_role so we
+    // can enforce plan-vs-role match.
     const { data: profile } = await supabase
       .from('profiles')
-      .select('stripe_customer_id')
+      .select('stripe_customer_id, business_role')
       .eq('id', user.id)
       .single();
+
+    // Server-side guardrail: a GC-role user cannot buy the Sub Pro plan
+    // (Sub Pro is specifically for self-employed subs without crews). The
+    // UpgradeModal hides the option for GCs, but someone constructing the
+    // /checkout URL by hand could still bypass the UI. Reject here to keep
+    // the tier logic honest.
+    if (resolved.tier === 'sub_pro') {
+      const role = profile?.business_role;
+      if (role === 'gc' || role === 'both') {
+        return new Response(
+          JSON.stringify({
+            error:
+              'Sub Pro is for self-employed subs. Your account is set up as a General Contractor — use the Contractor plan instead.',
+          }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        );
+      }
+    }
 
     let customerId = profile?.stripe_customer_id;
 

@@ -174,13 +174,20 @@ export function SubProjectViewPage() {
     .map((d: string) => new Date(d).getTime());
   const tradeEndDate = tradeEndDates.length > 0 ? new Date(Math.min(...tradeEndDates)).toISOString() : null;
 
-  // Hero accent: if sub is in just one zone, use that zone's color. If multi-zone,
-  // use the first zone's color but the hero makes clear they span several zones.
+  // Hero accent: single-zone subs get that zone's color (kitchen amber, bath
+  // cyan, etc). Multi-zone subs get a neutral brand blue — pre-fix, the hero
+  // gradient was kitchen-amber for a "Kitchen + Master Bath" sub, which read
+  // as inconsistent with the per-zone chips below. Brand blue avoids picking
+  // a winner. Per-section accents (task cards) still use each zone's color,
+  // so the visual signal of "these are different zones" is preserved.
+  const isMultiZone = zoneGroups.length > 1;
   const heroZoneName = zoneGroups[0]?.zoneName || 'General';
   const uniqueTrades = Array.from(new Set(visibleTrades.map((t: any) => t.trade))).filter(Boolean);
   const tradeName = uniqueTrades.length > 0 ? uniqueTrades.join(', ') : 'Your Assignment';
-  const accent = getZoneAccentClasses(heroZoneName);
-  const emoji = ZONE_EMOJI[heroZoneName] || '\u{1F527}';
+  const accent = isMultiZone
+    ? { bg: 'from-blue-500/15 to-blue-600/5', bar: 'bg-blue-500', badge: 'bg-blue-100 text-blue-800', ring: 'ring-blue-200', text: 'text-blue-700' }
+    : getZoneAccentClasses(heroZoneName);
+  const emoji = isMultiZone ? '\u{1F527}' : (ZONE_EMOJI[heroZoneName] || '\u{1F527}');
 
   if (projectQuery.isLoading) {
     return (

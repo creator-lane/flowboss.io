@@ -167,9 +167,17 @@ export function Login() {
                 />
               </div>
               <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1.5 dark:text-gray-300">
-                  Password
-                </label>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Password
+                  </label>
+                  <Link
+                    to={`/forgot-password${email ? `?email=${encodeURIComponent(email)}` : ''}`}
+                    className="text-xs font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
+                  >
+                    Forgot password?
+                  </Link>
+                </div>
                 <input
                   id="password"
                   type="password"

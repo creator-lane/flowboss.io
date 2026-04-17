@@ -69,9 +69,13 @@ export function UpgradeModal({ open, onClose, feature = 'generic' }: UpgradeModa
   const copy = FEATURE_COPY[feature];
 
   // If the user registered as a GC (or "both"), they should pay for the
-  // Contractor plan, not Sub Pro. Show both, recommend Contractor. Marketplace
-  // is Sub-Pro-only territory so keep the single-card layout there.
-  const dualOffer = isGC && feature !== 'marketplace';
+  // Contractor plan — Sub Pro is specifically for self-employed subs who
+  // don't manage crews. Show ONLY Contractor for GCs; no "Or just Sub Pro"
+  // escape hatch, because that flow let GCs accidentally buy a cheaper plan
+  // while keeping all their GC features (leaky). If a GC genuinely only
+  // wants Sub Pro functionality, that's a role-change conversation, not an
+  // upgrade-modal click.
+  const gcOnly = isGC && feature !== 'marketplace';
 
   useEffect(() => {
     if (!open) return;
@@ -147,48 +151,37 @@ export function UpgradeModal({ open, onClose, feature = 'generic' }: UpgradeModa
             ))}
           </ul>
 
-          {/* Price cards — transparent: real billable numbers. Dual-offer for GCs. */}
-          {dualOffer ? (
+          {/* Price cards — transparent: real billable numbers. GCs see the
+              Contractor plan only; subs see Sub Pro. */}
+          {gcOnly ? (
             <>
               <p className="text-[11px] text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wider font-bold">
-                You set up as a GC — Contractor plan is likely the right fit
+                You set up as a GC — this unlocks your full toolkit
               </p>
-              <div className="grid grid-cols-2 gap-2.5 mb-5">
-                {/* Sub Pro (secondary) */}
-                <div className="relative rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/[0.03] p-3">
-                  <div className="flex items-center gap-1.5 mb-1">
-                    <Sparkles className="w-3 h-3 text-indigo-500" />
-                    <div className="text-[10px] font-bold tracking-wider uppercase text-indigo-600 dark:text-indigo-400">Sub Pro</div>
+              <div className="rounded-2xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/[0.03] p-4 mb-5">
+                <div className="flex items-center justify-between mb-2">
+                  <div>
+                    <div className="flex items-center gap-1.5 mb-0.5">
+                      <HardHat className="w-3 h-3 text-blue-600" />
+                      <div className="text-[10px] font-bold tracking-wider uppercase text-blue-600 dark:text-blue-300">Contractor</div>
+                    </div>
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-2xl font-extrabold text-gray-900 dark:text-white">$29.99</span>
+                      <span className="text-sm text-gray-500 dark:text-gray-400">/mo</span>
+                    </div>
                   </div>
-                  <div className="flex items-baseline gap-0.5">
-                    <span className="text-xl font-extrabold text-gray-900 dark:text-white">$14.99</span>
-                    <span className="text-xs text-gray-500 dark:text-gray-400">/mo</span>
+                  <div className="text-right">
+                    <div className="text-[10px] font-bold tracking-wider uppercase text-gray-400 dark:text-gray-500">Or annual</div>
+                    <div className="flex items-baseline gap-1 justify-end">
+                      <span className="text-lg font-bold text-gray-700 dark:text-gray-300">$199.99</span>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">/yr</span>
+                    </div>
                   </div>
-                  <p className="text-[10px] text-gray-500 dark:text-gray-500 mt-1 leading-snug">
-                    Own shop only · no sub invites
-                  </p>
                 </div>
-                {/* Contractor (recommended) */}
-                <div className="relative rounded-xl border-2 border-blue-500 dark:border-blue-400 bg-blue-50/50 dark:bg-blue-500/10 p-3">
-                  <div className="absolute -top-2 left-2 px-1.5 py-0.5 rounded text-[9px] font-bold tracking-wider uppercase bg-blue-600 text-white">
-                    Recommended
-                  </div>
-                  <div className="flex items-center gap-1.5 mb-1">
-                    <HardHat className="w-3 h-3 text-blue-600" />
-                    <div className="text-[10px] font-bold tracking-wider uppercase text-blue-700 dark:text-blue-300">Contractor</div>
-                  </div>
-                  <div className="flex items-baseline gap-0.5">
-                    <span className="text-xl font-extrabold text-gray-900 dark:text-white">$29.99</span>
-                    <span className="text-xs text-gray-500 dark:text-gray-400">/mo</span>
-                  </div>
-                  <p className="text-[10px] text-gray-500 dark:text-gray-500 mt-1 leading-snug">
-                    Full tools + invite unlimited subs
-                  </p>
-                </div>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  14-day free trial · Full tools + invite unlimited subs · Cancel anytime
+                </p>
               </div>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mb-5">
-                14-day free trial on both plans · Cancel anytime
-              </p>
             </>
           ) : (
             <>
@@ -226,24 +219,15 @@ export function UpgradeModal({ open, onClose, feature = 'generic' }: UpgradeModa
           )}
 
           {/* CTAs */}
-          {dualOffer ? (
-            <>
-              <Link
-                to="/checkout?plan=monthly"
-                onClick={onClose}
-                className="group w-full flex items-center justify-center gap-2 py-3 bg-gradient-to-br from-blue-500 to-blue-600 text-white text-sm font-semibold rounded-xl shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 transition-all"
-              >
-                Start 14-day Contractor trial
-                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
-              </Link>
-              <Link
-                to="/checkout?plan=sub_pro_monthly"
-                onClick={onClose}
-                className="w-full mt-2 py-2.5 text-center block text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 underline decoration-dotted underline-offset-4 transition-colors"
-              >
-                Or just Sub Pro ($14.99/mo) →
-              </Link>
-            </>
+          {gcOnly ? (
+            <Link
+              to="/checkout?plan=monthly"
+              onClick={onClose}
+              className="group w-full flex items-center justify-center gap-2 py-3 bg-gradient-to-br from-blue-500 to-blue-600 text-white text-sm font-semibold rounded-xl shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 transition-all"
+            >
+              Start 14-day Contractor trial
+              <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
+            </Link>
           ) : (
             <Link
               to="/checkout?plan=sub_pro_monthly"

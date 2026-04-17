@@ -11,6 +11,8 @@ import { StripeConnect } from './pages/StripeConnect';
 import { Layout } from './pages/Layout';
 import { Login } from './pages/Login';
 import { Signup } from './pages/Signup';
+import { ForgotPassword } from './pages/ForgotPassword';
+import { ResetPassword } from './pages/ResetPassword';
 import { Onboarding } from './pages/Onboarding';
 import { Pricing } from './pages/Pricing';
 import { Checkout } from './pages/Checkout';
@@ -69,6 +71,8 @@ export default function App() {
       {/* Auth & public pages */}
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/onboarding" element={<Onboarding />} />
       <Route path="/pricing" element={<Pricing />} />
       <Route path="/checkout" element={<Checkout />} />

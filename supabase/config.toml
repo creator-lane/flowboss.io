@@ -8,5 +8,10 @@
 verify_jwt = false
 
 [functions.create-checkout-session]
-# User's own auth — keep JWT on
-verify_jwt = true
+# verify_jwt = false because Supabase's edge gateway currently doesn't support
+# ES256 tokens (the new asymmetric JWT algorithm Supabase rolled out). Without
+# this, every checkout request 401s with "UNAUTHORIZED_UNSUPPORTED_TOKEN_ALGORITHM".
+# The function still validates auth via supabase.auth.getUser(token) internally,
+# so we aren't exposing anything — we're just moving the JWT check from the
+# gateway to the Auth API where it handles ES256 correctly.
+verify_jwt = false

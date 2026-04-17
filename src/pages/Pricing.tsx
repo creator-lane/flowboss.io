@@ -159,15 +159,21 @@ export function Pricing() {
           Invited subs are always free. GCs get the full command center. Self-employed subs get their own shop for less.
         </p>
 
-        {/* Billing toggle */}
-        <div className="mt-8 inline-flex items-center gap-1 p-1 rounded-full bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10">
+        {/* Billing toggle — bumped contrast so it reads as an actual interactive
+            control. The selected option now sits on FlowBoss blue with white
+            text; the off option stays readable but obviously inactive. */}
+        <div className="mt-4 mb-1 text-[11px] font-semibold tracking-wider uppercase text-gray-500 dark:text-gray-500">
+          Choose billing period
+        </div>
+        <div className="inline-flex items-center gap-1 p-1 rounded-full bg-white dark:bg-white/5 border-2 border-gray-200 dark:border-white/10 shadow-sm">
           <button
             type="button"
             onClick={() => setBilling('monthly')}
-            className={`px-4 py-1.5 text-xs sm:text-sm font-semibold rounded-full transition-all ${
+            aria-pressed={billing === 'monthly'}
+            className={`px-5 py-2 text-sm font-semibold rounded-full transition-all ${
               billing === 'monthly'
-                ? 'bg-white text-gray-900 shadow-sm dark:bg-white/15 dark:text-white'
-                : 'text-gray-500 dark:text-gray-400'
+                ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-md shadow-blue-500/30'
+                : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'
             }`}
           >
             Monthly
@@ -175,13 +181,21 @@ export function Pricing() {
           <button
             type="button"
             onClick={() => setBilling('annual')}
-            className={`px-4 py-1.5 text-xs sm:text-sm font-semibold rounded-full transition-all ${
+            aria-pressed={billing === 'annual'}
+            className={`px-5 py-2 text-sm font-semibold rounded-full transition-all flex items-center gap-1.5 ${
               billing === 'annual'
-                ? 'bg-white text-gray-900 shadow-sm dark:bg-white/15 dark:text-white'
-                : 'text-gray-500 dark:text-gray-400'
+                ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-md shadow-blue-500/30'
+                : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'
             }`}
           >
-            Annual <span className="text-green-600 dark:text-green-400 ml-1">· save ~45%</span>
+            Annual
+            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+              billing === 'annual'
+                ? 'bg-white/20 text-white'
+                : 'bg-green-100 text-green-700 dark:bg-green-500/15 dark:text-green-400'
+            }`}>
+              SAVE ~45%
+            </span>
           </button>
         </div>
       </section>

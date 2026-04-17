@@ -21,6 +21,7 @@ import { RequireSubscription } from './components/auth/RequireSubscription';
 import { DashboardLayout } from './components/layout/DashboardLayout';
 import { InviteLanding } from './pages/InviteLanding';
 import { ProGate } from './components/upgrade/ProGate';
+import { LazyChunkBoundary } from './components/LazyChunkBoundary';
 
 // Lazy-loaded dashboard pages for code-splitting
 const SchedulePage = lazy(() => import('./pages/dashboard/SchedulePage').then(m => ({ default: m.SchedulePage })));
@@ -50,7 +51,15 @@ function LazyFallback() {
 }
 
 function Lazy({ children }: { children: React.ReactNode }) {
-  return <Suspense fallback={<LazyFallback />}>{children}</Suspense>;
+  // LazyChunkBoundary catches ChunkLoadError (stale bundle after deploy) and
+  // recovers by reloading the page once. Before this, navigating to a lazy
+  // route after we'd deployed a new build would hang in Suspense forever
+  // and render a black screen until the user manually refreshed.
+  return (
+    <LazyChunkBoundary>
+      <Suspense fallback={<LazyFallback />}>{children}</Suspense>
+    </LazyChunkBoundary>
+  );
 }
 
 export default function App() {

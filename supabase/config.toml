@@ -15,3 +15,8 @@ verify_jwt = false
 # so we aren't exposing anything — we're just moving the JWT check from the
 # gateway to the Auth API where it handles ES256 correctly.
 verify_jwt = false
+
+[functions.create-billing-portal]
+# Same reason as create-checkout-session above — gateway JWT verification
+# doesn't support ES256 yet. Function validates auth internally.
+verify_jwt = false

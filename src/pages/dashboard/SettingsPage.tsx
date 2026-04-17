@@ -68,6 +68,7 @@ const SUB_STATUS_LABELS: Record<string, { label: string; color: string }> = {
 
 function SubscriptionCard() {
   const { session } = useAuth();
+  const { addToast } = useToast();
   const { data: settings } = useQuery({ queryKey: ['settings'], queryFn: () => api.getSettings() });
   const [portalUrl, setPortalUrl] = useState('');
   const [loadingPortal, setLoadingPortal] = useState(false);
@@ -92,11 +93,21 @@ function SubscriptionCard() {
           },
         }
       );
-      if (resp.ok) {
-        const { url } = await resp.json();
-        if (url) setPortalUrl(url);
+      const body = await resp.json().catch(() => ({}));
+      if (resp.ok && body.url) {
+        // Open the Stripe portal in a new tab directly instead of going
+        // through the intermediate "Open Billing Portal" button — one less
+        // click for the user, matches how most SaaS do it.
+        window.open(body.url, '_blank', 'noopener,noreferrer');
+        setPortalUrl(body.url); // also keep the button around as a fallback
+      } else {
+        // Surface the real error instead of silently failing — previously
+        // a bad response here just disabled the button with no feedback.
+        addToast(body.error || 'Could not open billing portal. Try again?', 'error');
       }
-    } catch { /* edge function not deployed */ }
+    } catch (err: any) {
+      addToast(err?.message || 'Network error opening billing portal', 'error');
+    }
     setLoadingPortal(false);
   };
 

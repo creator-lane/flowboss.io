@@ -54,6 +54,8 @@ export function InviteLanding() {
   const isLoggedIn = !!user;
 
   const autoAcceptTried = useRef(false);
+  const acceptButtonRef = useRef<HTMLButtonElement | null>(null);
+  const [autoFocus, setAutoFocus] = useState(false);
 
   // Store pending invite in localStorage so it survives login/signup redirect
   useEffect(() => {
@@ -117,8 +119,11 @@ export function InviteLanding() {
     assignMutation.mutate();
   }
 
-  // Auto-accept on arrival if the sub just came back from email confirmation or login:
-  // they're already logged in AND we have a stored pending invite matching this URL.
+  // Pre-focus the Accept button when the sub returns from signup/login with a
+  // matching pending invite. Previously we silently auto-mutated — which
+  // worked most of the time but risked auto-assigning a stale invite or one
+  // the sub didn't mean to click. One explicit Enter/click is worth the
+  // clarity; the accept button is big and already centered.
   useEffect(() => {
     if (autoAcceptTried.current) return;
     if (!isLoggedIn || !projectId || !tradeId) return;
@@ -129,11 +134,18 @@ export function InviteLanding() {
       const p = JSON.parse(pending);
       if (p.projectId === projectId && p.tradeId === tradeId) {
         autoAcceptTried.current = true;
-        assignMutation.mutate();
+        setAutoFocus(true);
       }
     } catch { /* ignore */ }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoggedIn, projectId, tradeId, alreadyAssigned, accepted]);
+
+  // Pre-focus Accept button so returning users can hit Enter to confirm.
+  useEffect(() => {
+    if (autoFocus && acceptButtonRef.current) {
+      acceptButtonRef.current.focus();
+    }
+  }, [autoFocus]);
 
   const inviteUrl = `/invite/${projectId}/${tradeId}`;
   const signupUrl = `/signup?invite=${projectId}&trade=${tradeId}`;
@@ -297,11 +309,14 @@ export function InviteLanding() {
             </p>
           </div>
 
-          {/* Accept button */}
+          {/* Accept button — pre-focused when returning from signup so the
+              user can hit Enter once to confirm instead of us silently
+              auto-accepting. */}
           <button
+            ref={acceptButtonRef}
             onClick={handleAccept}
             disabled={assignMutation.isPending}
-            className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-gray-900 text-white rounded-xl text-base font-semibold hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-gray-900/20 transition-all hover:shadow-xl"
+            className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-gray-900 text-white rounded-xl text-base font-semibold hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-gray-900/20 transition-all hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-gray-900/30 focus:ring-offset-2"
           >
             {assignMutation.isPending ? (
               <>

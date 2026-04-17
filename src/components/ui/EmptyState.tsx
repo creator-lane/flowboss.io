@@ -9,6 +9,10 @@ interface EmptyStateProps {
   onAction?: () => void;
   secondaryLabel?: string;
   secondaryHref?: string;
+  /** Optional click handler for the secondary action. Preferred over secondaryHref when the secondary action is a button (e.g. "Load Demo Data"). */
+  onSecondaryAction?: () => void;
+  /** When true, disable the secondary action (e.g. already-performed demo load). */
+  secondaryDisabled?: boolean;
   accentColor?: string;
 }
 
@@ -34,6 +38,8 @@ export function EmptyState({
   onAction,
   secondaryLabel,
   secondaryHref,
+  onSecondaryAction,
+  secondaryDisabled,
   accentColor = 'brand',
 }: EmptyStateProps) {
   const colors = COLOR_MAP[accentColor] || COLOR_MAP.brand;
@@ -88,15 +94,25 @@ export function EmptyState({
         </button>
       )}
 
-      {/* Secondary link */}
-      {secondaryLabel && secondaryHref && (
+      {/* Secondary action — button wins over href since we want to drive
+          in-app mutations (e.g. "Load Demo Data") without full-page reloads. */}
+      {secondaryLabel && onSecondaryAction ? (
+        <button
+          type="button"
+          onClick={onSecondaryAction}
+          disabled={secondaryDisabled}
+          className="mt-3 text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 underline decoration-dotted underline-offset-4 transition-colors disabled:opacity-50 disabled:no-underline"
+        >
+          {secondaryLabel}
+        </button>
+      ) : secondaryLabel && secondaryHref ? (
         <a
           href={secondaryHref}
           className="mt-3 text-xs text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
         >
           {secondaryLabel}
         </a>
-      )}
+      ) : null}
     </div>
   );
 }

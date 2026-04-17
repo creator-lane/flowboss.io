@@ -273,6 +273,8 @@ function StepBusinessInfo({
           onChange={(v) => onChange({ zip: v })}
           placeholder="90210"
           maxLength={10}
+          inputMode="numeric"
+          pattern="\d{5}(-\d{4})?"
         />
       </div>
     </div>
@@ -288,6 +290,8 @@ function Field({
   placeholder,
   type = 'text',
   maxLength,
+  inputMode,
+  pattern,
 }: {
   label: string;
   required?: boolean;
@@ -297,6 +301,10 @@ function Field({
   placeholder?: string;
   type?: string;
   maxLength?: number;
+  /** Mobile keyboard hint. "numeric" pops the number pad. */
+  inputMode?: 'text' | 'numeric' | 'tel' | 'email' | 'url' | 'decimal' | 'search';
+  /** HTML5 pattern for browser-side validation. */
+  pattern?: string;
 }) {
   return (
     <div>
@@ -316,6 +324,8 @@ function Field({
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         maxLength={maxLength}
+        inputMode={inputMode}
+        pattern={pattern}
         className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-gray-500 dark:focus:ring-blue-400 dark:focus:border-blue-400"
       />
     </div>

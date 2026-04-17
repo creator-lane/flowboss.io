@@ -23,6 +23,7 @@ import {
 import { CreateGCProjectModal } from '../../components/gc/CreateGCProjectModal';
 import { MultiProjectActivityFeed } from '../../components/gc/ProjectActivityFeed';
 import { TypeToConfirmDialog } from '../../components/ui/TypeToConfirmDialog';
+import { EmptyState } from '../../components/ui/EmptyState';
 import { loadAllDemoData } from '../../lib/demoData';
 
 const STATUS_CONFIG: Record<string, { bg: string; text: string; ring: string; dot: string; label: string }> = {
@@ -1017,33 +1018,23 @@ export function GCDashboardPage() {
               <div className="w-6 h-6 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
             </div>
           ) : filtered.length === 0 ? (
-            <div className="text-center py-16">
-              <FolderKanban className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-1 dark:text-white">No projects yet</h3>
-              <p className="text-sm text-gray-500 mb-6 dark:text-gray-400">Create your first project to get started.</p>
-              <div className="flex items-center justify-center gap-3">
-                <button
-                  onClick={() => setShowCreate(true)}
-                  className="inline-flex items-center gap-2 px-4 py-2.5 bg-brand-500 text-white rounded-lg text-sm font-medium hover:bg-brand-600 transition-colors"
-                >
-                  <Plus className="w-4 h-4" />
-                  New Project
-                </button>
-                <button
-                  onClick={() => loadDemoMutation.mutate()}
-                  disabled={loadDemoMutation.isPending || demoAlreadyLoaded}
-                  className="inline-flex items-center gap-2 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors disabled:opacity-50 dark:border-white/10 dark:text-gray-200 dark:hover:bg-white/10"
-                  title={demoAlreadyLoaded ? 'Demo data is already loaded' : undefined}
-                >
-                  <Zap className="w-4 h-4" />
-                  {loadDemoMutation.isPending
-                    ? (demoProgress || 'Loading...')
-                    : demoAlreadyLoaded
-                    ? 'Demo Loaded'
-                    : 'Load Demo Data'}
-                </button>
-              </div>
-            </div>
+            <EmptyState
+              icon={FolderKanban}
+              title="No projects yet"
+              description="Create your first project to get started — or load our demo data to see how FlowBoss looks in action."
+              actionLabel="New Project"
+              onAction={() => setShowCreate(true)}
+              secondaryLabel={
+                loadDemoMutation.isPending
+                  ? (demoProgress || 'Loading demo...')
+                  : demoAlreadyLoaded
+                  ? 'Demo loaded'
+                  : 'Load Demo Data'
+              }
+              onSecondaryAction={() => loadDemoMutation.mutate()}
+              secondaryDisabled={loadDemoMutation.isPending || demoAlreadyLoaded}
+              accentColor="brand"
+            />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
               {filtered.map((project: any) => (

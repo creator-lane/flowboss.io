@@ -401,8 +401,12 @@ function TaskSection({ trade, projectId, accent }: { trade: any; projectId: stri
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10 dark:shadow-black/30">
       <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-2 dark:border-white/10">
-        <h2 className="text-base font-semibold text-gray-900 dark:text-white">My Tasks</h2>
-        <span className="text-xs text-gray-400 dark:text-gray-500">({trade.trade})</span>
+        {/* Lead with the trade — repeating "My Tasks" once per trade reads as
+            copy-paste. "Plumbing tasks" / "Electrical tasks" is clearer when
+            the sub has multiple assignments. */}
+        <h2 className="text-base font-semibold text-gray-900 dark:text-white">
+          {trade.trade ? `${trade.trade} tasks` : 'My Tasks'}
+        </h2>
       </div>
 
       {tasks.length === 0 ? (

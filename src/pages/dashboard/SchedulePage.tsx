@@ -34,10 +34,13 @@ import {
   MapPin,
   DollarSign,
   HardHat,
+  Navigation,
+  ExternalLink,
 } from 'lucide-react';
 import { CreateJobModal } from '../../components/jobs/CreateJobModal';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { SpotlightTip } from '../../components/ui/SpotlightTip';
+import { buildGoogleMapsRouteUrl, formatFullAddress } from '../../lib/routing';
 
 // ── Types & constants ───────────────────────────────────────────────
 type ViewMode = 'day' | 'week' | 'month';
@@ -428,6 +431,21 @@ function DayView({
 
   const isEmpty = jobs.length === 0 && dayGcEvents.length === 0;
 
+  // Route-in-Maps: build a Google Maps multi-stop URL once we have ≥2 jobs
+  // with real addresses, sorted by scheduled start time (so the default order
+  // matches when they're booked; user can still toggle "Optimize waypoints"
+  // inside Maps for the shortest driving distance).
+  const routeUrl = useMemo(() => {
+    const routable = jobs
+      .filter((j) => formatFullAddress(j))
+      .sort((a, b) => {
+        const ta = new Date(a.scheduledStart || a.scheduled_start || 0).getTime();
+        const tb = new Date(b.scheduledStart || b.scheduled_start || 0).getTime();
+        return ta - tb;
+      });
+    return routable.length >= 2 ? buildGoogleMapsRouteUrl(routable) : null;
+  }, [jobs]);
+
   return (
     <div className="space-y-3">
       {isLoading ? (
@@ -447,6 +465,30 @@ function DayView({
         />
       ) : (
         <>
+          {/* Route-in-Maps CTA — shown when the day has 2+ jobs with addresses.
+              Opens Google Maps with the day's stops as a multi-stop trip; user
+              can tap "Optimize waypoints" inside Maps to re-order them for
+              the shortest drive. */}
+          {routeUrl && (
+            <a
+              href={routeUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group flex items-center gap-3 px-4 py-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl text-white shadow-md shadow-blue-500/20 hover:shadow-lg hover:shadow-blue-500/30 transition-all"
+            >
+              <div className="w-9 h-9 rounded-lg bg-white/15 flex items-center justify-center shrink-0">
+                <Navigation className="w-4.5 h-4.5 text-white" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-bold">Optimize today's route in Google Maps</p>
+                <p className="text-[11px] text-blue-100 leading-snug">
+                  One tap → multi-stop directions with real ETAs. Tap "Optimize waypoints" in Maps to reorder for shortest drive.
+                </p>
+              </div>
+              <ExternalLink className="w-4 h-4 text-white/80 shrink-0 group-hover:translate-x-0.5 transition-transform" />
+            </a>
+          )}
+
           {jobs.map((job: any) => {
             const customerName =
               [job.customer?.firstName, job.customer?.lastName]

@@ -152,6 +152,12 @@ export function JobDetailPage() {
     },
     onError: (err: any) => addToast(err.message || 'Failed to save notes', 'error'),
   });
+  // Auto-dismiss the "Saved" indicator after 2s so it doesn't linger forever.
+  useEffect(() => {
+    if (!notesMutation.isSuccess) return;
+    const t = setTimeout(() => notesMutation.reset(), 2000);
+    return () => clearTimeout(t);
+  }, [notesMutation.isSuccess]);
 
   // Delete mutation
   const deleteMutation = useMutation({
@@ -388,10 +394,10 @@ export function JobDetailPage() {
               <button
                 type="button"
                 onClick={initScheduleEdit}
-                className="p-1.5 rounded-md hover:bg-gray-100 text-neutral-400 hover:text-neutral-600 transition-colors dark:hover:bg-white/10 dark:text-gray-500"
+                className="p-2.5 -m-1 rounded-md hover:bg-gray-100 text-neutral-400 hover:text-neutral-600 transition-colors dark:hover:bg-white/10 dark:text-gray-500"
                 aria-label="Edit schedule"
               >
-                <Pencil className="w-3.5 h-3.5" />
+                <Pencil className="w-4 h-4" />
               </button>
             ) : undefined
           }

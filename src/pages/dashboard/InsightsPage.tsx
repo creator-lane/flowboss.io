@@ -48,7 +48,7 @@ const fmtNum = (n: number) =>
 
 // ── Skeleton primitives ─────────────────────────────────────────────
 function SkeletonBlock({ className = '' }: { className?: string }) {
-  return <div className={`bg-gray-200 rounded animate-pulse dark:bg-white/10${className} dark:bg-white/10`} />;
+  return <div className={`bg-gray-200 rounded animate-pulse dark:bg-white/10 ${className}`} />;
 }
 
 function SectionSkeleton({ rows = 5 }: { rows?: number }) {

@@ -111,7 +111,7 @@ function isInRange(dateStr: string | null | undefined, start: Date, end: Date): 
 // ── Skeleton components ───────────────────────────────────────────────
 function SkeletonCard({ className = '' }: { className?: string }) {
   return (
-    <div className={`bg-white rounded-xl border border-neutral-200 p-5 animate-pulse dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10${className} dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10`}>
+    <div className={`bg-white rounded-xl border border-neutral-200 p-5 animate-pulse dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10 ${className}`}>
       <div className="h-3 bg-neutral-200 rounded w-20 mb-3" />
       <div className="h-7 bg-neutral-200 rounded w-28" />
     </div>
@@ -120,9 +120,9 @@ function SkeletonCard({ className = '' }: { className?: string }) {
 
 function SkeletonSection({ className = '', height = 'h-48' }: { className?: string; height?: string }) {
   return (
-    <div className={`bg-white rounded-xl border border-neutral-200 p-5 animate-pulse dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10${className} dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10`}>
+    <div className={`bg-white rounded-xl border border-neutral-200 p-5 animate-pulse dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10 ${className}`}>
       <div className="h-3 bg-neutral-200 rounded w-32 mb-4" />
-      <div className={`bg-neutral-100 rounded dark:bg-white/10${height} dark:bg-white/10`} />
+      <div className={`bg-neutral-100 rounded dark:bg-white/10 ${height}`} />
     </div>
   );
 }

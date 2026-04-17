@@ -286,7 +286,7 @@ export function SchedulePage() {
           </div>
           <div>
             <p className="text-lg font-bold text-green-700 dark:text-green-300">
-              Today&apos;s Earnings: {fmtCurrency.format(dayEarnings.total)}
+              {todaySelected ? "Today's" : `${headerLabel}'s`} Earnings: {fmtCurrency.format(dayEarnings.total)}
             </p>
             <p className="text-sm text-green-600 dark:text-green-300">
               {dayEarnings.count} job{dayEarnings.count !== 1 ? 's' : ''}

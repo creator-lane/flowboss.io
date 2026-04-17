@@ -48,7 +48,11 @@ const fmtCurrency = (n: number) =>
     maximumFractionDigits: 0,
   }).format(n);
 
-const todayStr = format(new Date(), 'yyyy-MM-dd');
+// NB: not a module-level const anymore — tabs left open past midnight kept
+// querying yesterday's date. Callers compute this from inside the component.
+function todayString(): string {
+  return format(new Date(), 'yyyy-MM-dd');
+}
 
 // JOB_STATUS_BADGE imported from constants
 
@@ -100,7 +104,9 @@ export function CommandCenterPage() {
   });
 
   const { data: jobsData, isLoading: loadingJobs } = useQuery({
-    queryKey: ['jobs', todayStr],
+    // Compute the date at query time so a tab left open past midnight refetches
+    // for the new day instead of staying pinned to yesterday.
+    queryKey: ['jobs', todayString()],
     queryFn: () => api.getTodaysJobs(undefined, 'today'),
   });
 

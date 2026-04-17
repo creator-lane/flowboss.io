@@ -151,18 +151,24 @@ serve(async (req) => {
     case 'customer.subscription.deleted': {
       const subscription = event.data.object as Stripe.Subscription;
       const customerId = subscription.customer as string;
+      // Pull business_role so we can set the right post-cancel tier. A GC who
+      // cancels shouldn't flip to 'sub_free' — that triggers sub-focused
+      // upgrade prompts with the wrong persona copy. Let the tier reset to
+      // null and let useSubscriptionTier derive state from status+role.
       const { data: profile } = await supabase
         .from('profiles')
-        .select('id')
+        .select('id, business_role')
         .eq('stripe_customer_id', customerId)
         .single();
 
       if (profile) {
-        // Canceled → drop back to free sub (they keep their account, lose Pro features).
+        const isGcRole = profile.business_role === 'gc' || profile.business_role === 'both';
         await supabase.from('profiles').update({
           subscription_status: 'canceled',
           stripe_subscription_id: null,
-          subscription_tier: 'sub_free',
+          // GCs: clear tier so the app treats them as 'none' (bounced to pricing).
+          // Subs: drop to 'sub_free' so they keep invited-project access.
+          subscription_tier: isGcRole ? null : 'sub_free',
         }).eq('id', profile.id);
       }
       break;

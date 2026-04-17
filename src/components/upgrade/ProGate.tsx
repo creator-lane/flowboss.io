@@ -102,14 +102,21 @@ export function ProGate({ feature, children, pageName }: ProGateProps) {
   );
 }
 
-const PRO_BULLETS = [
-  'Your own jobs & customers',
-  'Stripe payment links',
+// Shared list so ProGate and UpgradeModal can't drift out of sync. Both the
+// locked page AND the upgrade modal now show the exact same bullets.
+// NOTE: Kept to features that actually exist. Marketplace was previously
+// listed but the UI isn't built — removing until it ships so we don't
+// promise something users can't find after they pay.
+export const SUB_PRO_BENEFITS = [
+  'Your own direct jobs & customers',
+  'Send Stripe invoices',
   'QuickBooks sync',
-  'Financial insights & reports',
-  'Unlimited invoices',
+  'Revenue-per-hour analytics',
   'Route optimization',
+  'Auto-learning pricebook',
 ];
+
+const PRO_BULLETS = SUB_PRO_BENEFITS;
 
 function featureLabel(f: Feature): string {
   switch (f) {

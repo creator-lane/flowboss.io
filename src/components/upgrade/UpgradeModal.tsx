@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { X, Sparkles, CheckCircle2, ArrowRight, Lock, HardHat } from 'lucide-react';
 import { useEffect } from 'react';
 import { useProfile } from '../../hooks/useProfile';
+import { SUB_PRO_BENEFITS } from './ProGate';
 
 interface UpgradeModalProps {
   open: boolean;
@@ -60,14 +61,8 @@ const FEATURE_COPY: Record<NonNullable<UpgradeModalProps['feature']>, { title: s
   },
 };
 
-const BENEFITS = [
-  'Direct jobs & customer CRM',
-  'Send Stripe invoices',
-  'QuickBooks sync',
-  'Revenue-per-hour analytics',
-  'Auto-learning pricebook',
-  'Marketplace listing priority',
-];
+// Shared with ProGate so the two copy surfaces can't drift.
+const BENEFITS = SUB_PRO_BENEFITS;
 
 export function UpgradeModal({ open, onClose, feature = 'generic' }: UpgradeModalProps) {
   const { isGC } = useProfile();

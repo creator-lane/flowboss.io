@@ -14,6 +14,12 @@ const PLANS: Record<string, { name: string; price: string; interval: string; tag
 export function Checkout() {
   const { session, loading: authLoading } = useAuth();
   const [searchParams] = useSearchParams();
+  // All hooks must run BEFORE any conditional early return, otherwise React's
+  // hook count changes between renders and the component crashes with
+  // "Rendered fewer hooks than expected" once auth resolves.
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
   const planKey = searchParams.get('plan') || 'monthly';
   const plan = PLANS[planKey] || PLANS.monthly;
 
@@ -21,9 +27,6 @@ export function Checkout() {
   if (!authLoading && !session) {
     return <Navigate to={`/signup?plan=${planKey}`} replace />;
   }
-
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
 
   // Explicit button click → create Stripe session and redirect. No auto-fire on mount:
   // that would yank users to Stripe any time routing happens to land on /checkout.

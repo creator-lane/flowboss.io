@@ -44,20 +44,38 @@ export function formatFullAddress(job: JobLike): string | null {
 }
 
 /**
+ * Google Maps caps multi-stop trips at 10 total stops (9 waypoints + 1
+ * destination). Beyond this, Maps silently truncates or errors.
+ */
+export const MAX_ROUTE_STOPS = 10;
+
+/**
  * Build a Google Maps URL that opens a multi-stop trip starting from the
  * user's current location, with every job in the given list as a waypoint.
  *
- * Returns null if fewer than one job has a usable address.
+ * Returns `{ url, includedCount, truncatedCount }` — the URL plus how many
+ * stops actually made it in vs. were dropped for exceeding Maps' cap, so
+ * callers can show a "+N more (Maps limit)" hint. Returns null if fewer
+ * than one job has a usable address.
  *
  * Uses Google's public maps.google.com/maps/dir/ path format, which doesn't
  * require an API key and lets Maps auto-geocode the string addresses.
  */
-export function buildGoogleMapsRouteUrl(jobs: JobLike[]): string | null {
-  const stops = jobs
+export function buildGoogleMapsRouteUrl(jobs: JobLike[]): {
+  url: string;
+  includedCount: number;
+  truncatedCount: number;
+} | null {
+  const allStops = jobs
     .map((j) => formatFullAddress(j))
     .filter((a): a is string => Boolean(a));
 
-  if (stops.length === 0) return null;
+  if (allStops.length === 0) return null;
+
+  // Truncate to Maps' cap. Keep the first N in order — since the caller sorts
+  // by scheduledStart, that means we prioritize the earlier stops.
+  const stops = allStops.slice(0, MAX_ROUTE_STOPS);
+  const truncatedCount = allStops.length - stops.length;
 
   // Origin = My Location (Google Maps picks up the browser's geolocation).
   // Destination = last stop. Waypoints = everything in between.
@@ -69,11 +87,12 @@ export function buildGoogleMapsRouteUrl(jobs: JobLike[]): string | null {
     .join('|');
 
   const params = new URLSearchParams({ api: '1', origin, destination });
-  // URLSearchParams will percent-encode the pipes, but Google accepts both
-  // raw and encoded pipes in waypoints. Setting via set() is simpler than
-  // template string + raw pipes.
   if (waypoints) params.set('waypoints', waypoints);
   params.set('travelmode', 'driving');
 
-  return `https://www.google.com/maps/dir/?${params.toString()}`;
+  return {
+    url: `https://www.google.com/maps/dir/?${params.toString()}`,
+    includedCount: stops.length,
+    truncatedCount,
+  };
 }

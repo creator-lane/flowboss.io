@@ -232,7 +232,11 @@ export function SchedulePage() {
         )
       );
     }, 0);
-    return { total, count: jobList.length };
+    // Count only completed jobs — the banner's $ total only sums completed
+    // revenue, so the "X jobs" count next to it needs to agree. Previously
+    // used jobList.length which showed "$0 — 4 jobs" on a day with no
+    // completed work.
+    return { total, count: completedToday.length };
   }, [jobList, view]);
 
   // ── Header label ───────────────────────────────────────────────
@@ -435,7 +439,7 @@ function DayView({
   // with real addresses, sorted by scheduled start time (so the default order
   // matches when they're booked; user can still toggle "Optimize waypoints"
   // inside Maps for the shortest driving distance).
-  const routeUrl = useMemo(() => {
+  const routeInfo = useMemo(() => {
     const routable = jobs
       .filter((j) => formatFullAddress(j))
       .sort((a, b) => {
@@ -468,10 +472,11 @@ function DayView({
           {/* Route-in-Maps CTA — shown when the day has 2+ jobs with addresses.
               Opens Google Maps with the day's stops as a multi-stop trip; user
               can tap "Optimize waypoints" inside Maps to re-order them for
-              the shortest drive. */}
-          {routeUrl && (
+              the shortest drive. Capped at 10 stops (Maps' limit); any beyond
+              that are noted inline. */}
+          {routeInfo && (
             <a
-              href={routeUrl}
+              href={routeInfo.url}
               target="_blank"
               rel="noopener noreferrer"
               className="group flex items-center gap-3 px-4 py-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl text-white shadow-md shadow-blue-500/20 hover:shadow-lg hover:shadow-blue-500/30 transition-all"
@@ -480,9 +485,18 @@ function DayView({
                 <Navigation className="w-4.5 h-4.5 text-white" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold">Optimize today's route in Google Maps</p>
+                <p className="text-sm font-bold">
+                  Optimize today's route in Google Maps
+                  {routeInfo.truncatedCount > 0 && (
+                    <span className="ml-2 text-[11px] font-semibold bg-white/20 px-1.5 py-0.5 rounded">
+                      +{routeInfo.truncatedCount} more won't fit
+                    </span>
+                  )}
+                </p>
                 <p className="text-[11px] text-blue-100 leading-snug">
-                  One tap → multi-stop directions with real ETAs. Tap "Optimize waypoints" in Maps to reorder for shortest drive.
+                  {routeInfo.truncatedCount > 0
+                    ? `Google Maps caps multi-stop trips at ${routeInfo.includedCount} stops. Starting with the earliest ${routeInfo.includedCount} — tap "Optimize waypoints" in Maps to reorder.`
+                    : 'One tap → multi-stop directions with real ETAs. Tap "Optimize waypoints" in Maps to reorder for shortest drive.'}
                 </p>
               </div>
               <ExternalLink className="w-4 h-4 text-white/80 shrink-0 group-hover:translate-x-0.5 transition-transform" />

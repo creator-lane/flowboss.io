@@ -14,7 +14,6 @@ import {
   DollarSign,
   Phone,
   Mail,
-  Camera,
   StickyNote,
   Megaphone,
   AlertTriangle,
@@ -87,15 +86,12 @@ function formatCurrency(amount: number) {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
 }
 
-/* ─── Task Notes (localStorage) ─── */
-
-function getTaskNote(taskId: string): string {
-  try { return localStorage.getItem(`fb-task-note-${taskId}`) || ''; } catch { return ''; }
-}
-
-function setTaskNote(taskId: string, note: string) {
-  try { localStorage.setItem(`fb-task-note-${taskId}`, note); } catch { /* noop */ }
-}
+/* ─── Task notes ─────────────────────────────────────────────────────────
+   Previously stored in localStorage, which meant:
+     - The GC never saw the sub's notes.
+     - The sub lost them when switching browsers or phones.
+   Now persisted server-side on phase_tasks.notes (see task-notes-migration.sql).
+   ─── */
 
 /* ========================================================================= */
 /*  Main Page                                                                 */
@@ -296,6 +292,39 @@ function TaskSection({ trade, projectId, accent }: { trade: any; projectId: stri
     },
   });
 
+  // Persist task notes server-side with optimistic update so the GC sees them
+  // and the sub keeps them across devices. (Was localStorage — lost everywhere.)
+  const saveNote = useMutation({
+    mutationFn: ({ taskId, notes }: { taskId: string; notes: string }) =>
+      api.updateTask(taskId, { notes }),
+    onMutate: async ({ taskId, notes }) => {
+      await queryClient.cancelQueries({ queryKey: ['gc-project', projectId] });
+      const prev = queryClient.getQueryData(['gc-project', projectId]);
+      queryClient.setQueryData(['gc-project', projectId], (old: any) => {
+        if (!old?.data?.trades) return old;
+        return {
+          ...old,
+          data: {
+            ...old.data,
+            trades: old.data.trades.map((t: any) =>
+              t.id === trade.id
+                ? { ...t, tasks: t.tasks.map((tk: any) => tk.id === taskId ? { ...tk, notes } : tk) }
+                : t
+            ),
+          },
+        };
+      });
+      return { prev };
+    },
+    onError: (_err, _vars, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(['gc-project', projectId], ctx.prev);
+      addToast('Failed to save note', 'error');
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['gc-project', projectId] });
+    },
+  });
+
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10 dark:shadow-black/30">
       <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-2 dark:border-white/10">
@@ -315,6 +344,7 @@ function TaskSection({ trade, projectId, accent }: { trade: any; projectId: stri
               task={task}
               accent={accent}
               onToggle={(done) => toggleTask.mutate({ taskId: task.id, done })}
+              onSaveNote={(notes) => saveNote.mutate({ taskId: task.id, notes })}
             />
           ))}
         </div>
@@ -325,15 +355,34 @@ function TaskSection({ trade, projectId, accent }: { trade: any; projectId: stri
 
 /* ─── Individual Task Card ─── */
 
-function TaskCard({ task, accent, onToggle }: { task: any; accent: ReturnType<typeof getZoneAccentClasses>; onToggle: (done: boolean) => void }) {
-  const [note, setNote] = useState(() => getTaskNote(task.id));
+function TaskCard({
+  task,
+  accent,
+  onToggle,
+  onSaveNote,
+}: {
+  task: any;
+  accent: ReturnType<typeof getZoneAccentClasses>;
+  onToggle: (done: boolean) => void;
+  onSaveNote: (notes: string) => void;
+}) {
+  // Server-backed note — stays in sync with the task row so the GC sees the
+  // sub's notes and the sub keeps them across devices.
+  const serverNote: string = task.notes ?? '';
+  const [note, setNote] = useState(serverNote);
   const [editing, setEditing] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  // If the server version changes (refetch, another device), pick it up —
+  // but don't clobber an in-progress edit.
+  useEffect(() => {
+    if (!editing) setNote(serverNote);
+  }, [serverNote, editing]);
+
   const handleSaveNote = useCallback(() => {
-    setTaskNote(task.id, note);
     setEditing(false);
-  }, [task.id, note]);
+    if (note !== serverNote) onSaveNote(note);
+  }, [note, serverNote, onSaveNote]);
 
   useEffect(() => {
     if (editing && textareaRef.current) {
@@ -408,7 +457,7 @@ function TaskCard({ task, accent, onToggle }: { task: any; accent: ReturnType<ty
                   Save
                 </button>
                 <button
-                  onClick={() => { setNote(getTaskNote(task.id)); setEditing(false); }}
+                  onClick={() => { setNote(serverNote); setEditing(false); }}
                   className="text-xs text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
                 >
                   Cancel
@@ -424,10 +473,11 @@ function TaskCard({ task, accent, onToggle }: { task: any; accent: ReturnType<ty
                 <StickyNote className="w-3 h-3" />
                 {note ? 'Edit note' : 'Add note...'}
               </button>
-              <button className="text-xs text-gray-400 hover:text-gray-600 flex items-center gap-1 transition-colors dark:text-gray-500 dark:hover:text-gray-300">
-                <Camera className="w-3 h-3" />
-                Photo
-              </button>
+              {/* TODO(photo-upload): Re-enable when task photo upload is wired
+                  to a storage bucket + task_photos table. The button used to
+                  render here with no onClick — removing until it actually works
+                  so we're not advertising a dead feature. See the product
+                  audit (AUDIT_2026-04-16) finding B2 for scope. */}
             </div>
           )}
         </div>

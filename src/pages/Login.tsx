@@ -63,7 +63,15 @@ export function Login() {
     setError('');
     setSubmitting(true);
 
-    const { error } = await supabase.auth.signInWithOtp({ email });
+    // Explicit redirect target — without this, Supabase falls back to the
+    // "Site URL" configured in the dashboard. If that's ever set to localhost
+    // (default during initial setup), every magic link in production lands on
+    // localhost and the user is dead in the water. Anchoring to the current
+    // origin guarantees dev → dev, prod → prod.
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: `${window.location.origin}/dashboard` },
+    });
 
     if (error) {
       setError(error.message);

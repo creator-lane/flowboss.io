@@ -1,9 +1,20 @@
 import { supabase } from './supabase';
 
-// Normalize Supabase snake_case to camelCase for UI consumption
-function camelify(obj: any): any {
-  if (!obj || typeof obj !== 'object') return obj;
-  if (Array.isArray(obj)) return obj.map(camelify);
+// Domain types live in `src/types/database.ts`. `camelify<T>()` below accepts
+// a generic so call sites can opt into typing. The api.ts endpoints return
+// `{ data }` with implicit types on purpose — tightening api.ts's public
+// surface cascades into 40+ consumer files that rely on dual camelCase +
+// snake_case access. New code should prefer `camelify<Foo>(row)` at the
+// consumer boundary, which gives IDE autocomplete without forcing every
+// existing reader to migrate.
+
+// Normalize Supabase snake_case to camelCase for UI consumption.
+// The generic `T` defaults to `any` so existing callers keep working, but new
+// callers can annotate the expected shape: `camelify<Job>(row)` gives typed
+// access without changing the runtime transform.
+function camelify<T = any>(obj: any): T {
+  if (!obj || typeof obj !== 'object') return obj as T;
+  if (Array.isArray(obj)) return obj.map((item) => camelify<T>(item)) as unknown as T;
   const out: any = {};
   for (const [k, v] of Object.entries(obj)) {
     const camel = k.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
@@ -11,7 +22,7 @@ function camelify(obj: any): any {
     // Also keep original key for backwards compat
     if (camel !== k) out[k] = out[camel];
   }
-  return out;
+  return out as T;
 }
 
 // Convert camelCase keys to snake_case for Supabase writes
@@ -969,9 +980,17 @@ export const api = {
 
   sendInviteEmail: async (data: { email: string; subName?: string; projectName: string; tradeName: string; inviteUrl: string; gcCompanyName?: string }) => {
     try {
+      // Use the caller's session token — the edge function verifies it, so
+      // only authenticated FlowBoss users can trigger invite emails. The
+      // anon key was sufficient for the old permissive check but that let
+      // anyone who knew the URL spam FlowBoss-branded mail.
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        return { success: false, error: 'You must be signed in to send an invite.' };
+      }
       const resp = await fetch(`${SUPABASE_FN_URL}/send-invite-email`, {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${ANON_KEY}`, 'Content-Type': 'application/json' },
+        headers: { 'Authorization': `Bearer ${session.access_token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
       if (!resp.ok) {

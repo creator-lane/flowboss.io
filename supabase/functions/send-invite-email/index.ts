@@ -1,10 +1,17 @@
 // Deploy to Supabase Edge Functions as "send-invite-email"
 // Uses Resend (same provider as invoice emails)
-// Environment: RESEND_API_KEY
+// Environment: RESEND_API_KEY, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
+//
+// Auth: requires a valid user session (Bearer <session.access_token>).
+// Previously accepted the public anon key which meant anyone could spam
+// FlowBoss-branded emails to any address — closed that vector.
 
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 
 const resendKey = Deno.env.get('RESEND_API_KEY')!;
+const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
 serve(async (req) => {
   const corsHeaders = {
@@ -14,6 +21,26 @@ serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
   try {
+    // --- Auth check ----------------------------------------------------------
+    const authHeader = req.headers.get('Authorization') || '';
+    const token = authHeader.replace('Bearer ', '').trim();
+    if (!token) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    if (authError || !user) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // --- Payload -------------------------------------------------------------
     // Note: `tradeName` may be present in the request body from older clients
     // but we intentionally do NOT render it in the email. Subs are
     // professionals — they know what they do and don't need the GC's

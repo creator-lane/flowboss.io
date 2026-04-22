@@ -14,9 +14,21 @@ serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
   try {
-    const { email, subName, projectName, tradeName, inviteUrl, gcCompanyName } = await req.json();
+    // Note: `tradeName` may be present in the request body from older clients
+    // but we intentionally do NOT render it in the email. Subs are
+    // professionals — they know what they do and don't need the GC's
+    // internal trade label shown back at them.
+    const { email, subName, projectName, inviteUrl, gcCompanyName } = await req.json();
 
     if (!email) throw new Error('Email is required');
+
+    const greeting = subName ? `Hey ${subName},` : 'Hey,';
+    const gcLine = gcCompanyName
+      ? `<strong>${gcCompanyName}</strong> has invited you to join`
+      : 'A general contractor has invited you to join';
+    const projectLine = projectName
+      ? `<strong>${projectName}</strong>.`
+      : '<strong>their project</strong>.';
 
     await fetch('https://api.resend.com/emails', {
       method: 'POST',
@@ -24,7 +36,9 @@ serve(async (req) => {
       body: JSON.stringify({
         from: 'FlowBoss <invites@flowboss.io>',
         to: [email],
-        subject: `You've been invited to a project on FlowBoss`,
+        subject: projectName
+          ? `You've been invited to ${projectName} on FlowBoss`
+          : `You've been invited to a project on FlowBoss`,
         html: `
           <div style="font-family:-apple-system,sans-serif;max-width:500px;margin:0 auto;padding:24px;">
             <div style="text-align:center;margin-bottom:24px;">
@@ -32,13 +46,13 @@ serve(async (req) => {
             </div>
             <h2 style="color:#1e293b;margin-bottom:8px;">You've been invited to a project</h2>
             <p style="color:#64748b;font-size:14px;line-height:1.6;">
-              <strong>${gcCompanyName || 'A general contractor'}</strong> has invited you to join
-              <strong>${projectName || 'a project'}</strong> as the <strong>${tradeName || 'assigned trade'}</strong>.
+              ${greeting} ${gcLine} ${projectLine}
             </p>
+            ${projectName ? `
             <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:16px;margin:20px 0;">
-              <p style="color:#1e293b;font-weight:600;margin:0 0 4px;">Project: ${projectName || 'Unnamed'}</p>
-              <p style="color:#64748b;font-size:13px;margin:0;">Trade: ${tradeName || 'Not specified'}</p>
+              <p style="color:#1e293b;font-weight:600;margin:0;">Project: ${projectName}</p>
             </div>
+            ` : ''}
             <div style="text-align:center;margin:24px 0;">
               <a href="${inviteUrl}" style="display:inline-block;background:#2563eb;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;">Join Project</a>
             </div>

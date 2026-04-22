@@ -16,7 +16,25 @@ import {
   Download,
 } from 'lucide-react';
 
-const TRADE_OPTIONS = ['Plumbing', 'HVAC', 'Electrical'] as const;
+// Keep in sync with TRADE_PRICEBOOKS in src/lib/api.ts (seedDefaultPricebook).
+// Any trade listed here must have a matching seed array there, otherwise the
+// seed falls back to plumbing.
+const TRADE_OPTIONS = [
+  'Plumbing',
+  'HVAC',
+  'Electrical',
+  'Framing',
+  'Drywall',
+  'Painting',
+  'Roofing',
+  'Concrete',
+  'Flooring',
+  'Landscaping',
+  'Tiling',
+  'Siding',
+  'Insulation',
+  'Cabinetry',
+] as const;
 
 const formatCurrency = (n: number) =>
   new Intl.NumberFormat('en-US', {

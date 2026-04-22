@@ -140,7 +140,7 @@ export function CreateCustomerModal({ open, onClose }: { open: boolean; onClose:
           className="flex items-center gap-1.5 text-sm font-medium text-brand-600 hover:text-brand-700 transition-colors"
         >
           {showProperty ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-          {showProperty ? 'Remove Property' : 'Add Property'}
+          {showProperty ? 'Remove Address' : 'Add Address'}
         </button>
 
         {/* Property fields */}

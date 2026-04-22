@@ -21,16 +21,31 @@ interface ZoneEntry {
 
 /* ─── Templates ─── */
 
-const PROJECT_TYPES = [
-  { value: 'kitchen_remodel', label: 'Kitchen Remodel', icon: '\u{1F373}' },
-  { value: 'bathroom_remodel', label: 'Bathroom Remodel', icon: '\u{1F6BF}' },
-  { value: 'new_construction', label: 'New Construction', icon: '\u{1F3D7}\u{FE0F}' },
-  { value: 'room_addition', label: 'Room Addition', icon: '\u{1F3E0}' },
-  { value: 'hvac_replacement', label: 'HVAC Replacement', icon: '\u{2744}\u{FE0F}' },
-  { value: 'repipe', label: 'Whole House Repipe', icon: '\u{1F527}' },
-  { value: 'panel_upgrade', label: 'Panel Upgrade', icon: '\u{26A1}' },
-  { value: 'custom', label: 'Custom Project', icon: '\u{1F4CB}' },
+// Project type library.
+//
+// Split into two groups so the picker leads with multi-trade GC work (the
+// primary user of this modal is a GC) and keeps the single-trade service-job
+// templates available but secondary. The `group` discriminator is also used
+// below by `generateZones` so, e.g. kitchen_remodel doesn't accidentally
+// seed bathroom + general framing zones meant for a whole-house build.
+type ProjectGroup = 'multi' | 'single';
+type ProjectTypeDef = { value: string; label: string; icon: string; group: ProjectGroup };
+
+const PROJECT_TYPES: ProjectTypeDef[] = [
+  // Multi-trade (GC) — shown first
+  { value: 'kitchen_remodel', label: 'Kitchen Remodel', icon: '\u{1F373}', group: 'multi' },
+  { value: 'bathroom_remodel', label: 'Bathroom Remodel', icon: '\u{1F6BF}', group: 'multi' },
+  { value: 'new_construction', label: 'New Construction', icon: '\u{1F3D7}\u{FE0F}', group: 'multi' },
+  { value: 'room_addition', label: 'Room Addition', icon: '\u{1F3E0}', group: 'multi' },
+  { value: 'custom', label: 'Custom Project', icon: '\u{1F4CB}', group: 'multi' },
+  // Single-trade service jobs — available but secondary
+  { value: 'hvac_replacement', label: 'HVAC Replacement', icon: '\u{2744}\u{FE0F}', group: 'single' },
+  { value: 'repipe', label: 'Whole House Repipe', icon: '\u{1F527}', group: 'single' },
+  { value: 'panel_upgrade', label: 'Panel Upgrade', icon: '\u{26A1}', group: 'single' },
 ];
+
+const PROJECT_TYPES_MULTI = PROJECT_TYPES.filter(p => p.group === 'multi');
+const PROJECT_TYPES_SINGLE = PROJECT_TYPES.filter(p => p.group === 'single');
 
 const STRUCTURE_TYPES = ['House', 'Condo', 'Townhouse', 'Apartment', 'Commercial'];
 
@@ -60,37 +75,66 @@ const DEFAULT_TRADE_RATES: Record<string, { laborHours: number; laborRate: numbe
 /* ─── Zone generator ─── */
 
 function generateZones(bedrooms: number, bathrooms: number, projectType: string): ZoneEntry[] {
-  const zones: ZoneEntry[] = [];
-
-  // Kitchen always present for full remodels / new construction
-  if (['kitchen_remodel', 'new_construction', 'room_addition', 'custom'].includes(projectType)) {
-    zones.push({ name: 'Kitchen', trades: ['Plumbing', 'Electrical', 'HVAC', 'Flooring', 'Painting'] });
+  // Kitchen-only remodel: ONE zone, kitchen-relevant trades only.
+  // Prior behavior leaked bathroom + general framing/drywall/HVAC zones into
+  // every kitchen remodel, which surprised GCs who picked "Kitchen Remodel"
+  // and got a full-house-gut template back. Cabinetry + Tiling are
+  // kitchen-critical; framing/drywall are not auto-added (the GC can drop
+  // them in as a custom zone or trade if they're reframing cabinets).
+  if (projectType === 'kitchen_remodel') {
+    return [
+      {
+        name: 'Kitchen',
+        trades: ['Plumbing', 'Electrical', 'HVAC', 'Cabinetry', 'Tiling', 'Flooring', 'Painting'],
+      },
+    ];
   }
 
-  // Bathrooms
-  if (bathrooms > 0) {
-    if (bathrooms === 1) {
-      zones.push({ name: projectType === 'bathroom_remodel' ? 'Bathroom' : 'Bathroom', trades: ['Plumbing', 'Electrical', 'Tiling', 'Painting'] });
-    } else {
-      zones.push({ name: 'Master Bathroom', trades: ['Plumbing', 'Electrical', 'Tiling', 'Painting'] });
-      for (let i = 2; i <= bathrooms; i++) {
-        zones.push({ name: `Bathroom ${i}`, trades: ['Plumbing', 'Tiling', 'Painting'] });
-      }
+  // Bathroom-only remodel: ONE bathroom zone, same logic as kitchen above.
+  if (projectType === 'bathroom_remodel') {
+    return [
+      {
+        name: 'Bathroom',
+        trades: ['Plumbing', 'Electrical', 'Tiling', 'Flooring', 'Painting'],
+      },
+    ];
+  }
+
+  // Single-trade service jobs: one focused zone, no whole-house scaffolding.
+  if (projectType === 'hvac_replacement') {
+    return [{ name: 'HVAC Replacement', trades: ['HVAC'] }];
+  }
+  if (projectType === 'repipe') {
+    return [{ name: 'Repipe', trades: ['Plumbing'] }];
+  }
+  if (projectType === 'panel_upgrade') {
+    return [{ name: 'Panel Upgrade', trades: ['Electrical'] }];
+  }
+
+  // Multi-zone whole-house templates below (new_construction, room_addition,
+  // custom): keep the richer auto-seed.
+  const zones: ZoneEntry[] = [];
+
+  // Kitchen is expected in most whole-house scopes
+  zones.push({ name: 'Kitchen', trades: ['Plumbing', 'Electrical', 'HVAC', 'Cabinetry', 'Tiling', 'Flooring', 'Painting'] });
+
+  // Bathrooms (only when user has specified 1+)
+  if (bathrooms === 1) {
+    zones.push({ name: 'Bathroom', trades: ['Plumbing', 'Electrical', 'Tiling', 'Painting'] });
+  } else if (bathrooms > 1) {
+    zones.push({ name: 'Master Bathroom', trades: ['Plumbing', 'Electrical', 'Tiling', 'Painting'] });
+    for (let i = 2; i <= bathrooms; i++) {
+      zones.push({ name: `Bathroom ${i}`, trades: ['Plumbing', 'Tiling', 'Painting'] });
     }
   }
 
-  // Bathroom-only remodel with no structure details
-  if (projectType === 'bathroom_remodel' && bathrooms === 0) {
-    zones.push({ name: 'Bathroom', trades: ['Plumbing', 'Electrical', 'Tiling', 'Painting'] });
-  }
-
-  // Exterior + Garage for new construction
+  // Exterior + Garage for new construction only
   if (projectType === 'new_construction') {
     zones.push({ name: 'Exterior', trades: ['Roofing', 'Siding', 'Landscaping'] });
     zones.push({ name: 'Garage', trades: ['Electrical', 'Concrete'] });
   }
 
-  // General always last
+  // General always last (framing/drywall/whole-house HVAC)
   zones.push({ name: 'General', trades: ['Framing', 'Drywall', 'HVAC'] });
 
   return zones;
@@ -285,20 +329,44 @@ export function CreateGCProjectModal({ open, onClose }: { open: boolean; onClose
 
         {/* ── Phase 1: Project type picker ── */}
         {!projectType ? (
-          <div>
-            <p className="text-sm text-gray-500 mb-3 dark:text-gray-400">What kind of project?</p>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              {PROJECT_TYPES.map(pt => (
-                <button
-                  key={pt.value}
-                  type="button"
-                  onClick={() => handleTypeSelect(pt.value)}
-                  className="flex flex-col items-center gap-1.5 p-3 rounded-xl border border-gray-200 hover:border-brand-300 hover:bg-brand-50 transition-all text-center dark:border-white/10 dark:hover:bg-blue-500/20"
-                >
-                  <span className="text-2xl">{pt.icon}</span>
-                  <span className="text-xs font-medium text-gray-700 dark:text-gray-200">{pt.label}</span>
-                </button>
-              ))}
+          <div className="space-y-5">
+            {/* GC / multi-trade templates — lead with these since the primary
+                user of this modal is a general contractor. */}
+            <div>
+              <h3 className="text-sm font-semibold text-gray-900 mb-1 dark:text-white">Multi-trade projects</h3>
+              <p className="text-xs text-gray-500 mb-3 dark:text-gray-400">For GC-run work across multiple trades and zones.</p>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {PROJECT_TYPES_MULTI.map(pt => (
+                  <button
+                    key={pt.value}
+                    type="button"
+                    onClick={() => handleTypeSelect(pt.value)}
+                    className="flex flex-col items-center gap-1.5 p-3 rounded-xl border border-gray-200 hover:border-brand-300 hover:bg-brand-50 transition-all text-center dark:border-white/10 dark:hover:bg-blue-500/20"
+                  >
+                    <span className="text-2xl">{pt.icon}</span>
+                    <span className="text-xs font-medium text-gray-700 dark:text-gray-200">{pt.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Single-trade service jobs — shown second, visually de-emphasized. */}
+            <div>
+              <h3 className="text-sm font-semibold text-gray-600 mb-1 dark:text-gray-300">Single-trade service jobs</h3>
+              <p className="text-xs text-gray-500 mb-3 dark:text-gray-400">For one-trade swaps and upgrades.</p>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {PROJECT_TYPES_SINGLE.map(pt => (
+                  <button
+                    key={pt.value}
+                    type="button"
+                    onClick={() => handleTypeSelect(pt.value)}
+                    className="flex flex-col items-center gap-1.5 p-3 rounded-xl border border-gray-200 bg-gray-50/50 hover:border-brand-300 hover:bg-brand-50 transition-all text-center dark:border-white/10 dark:bg-white/[0.02] dark:hover:bg-blue-500/20"
+                  >
+                    <span className="text-2xl">{pt.icon}</span>
+                    <span className="text-xs font-medium text-gray-700 dark:text-gray-200">{pt.label}</span>
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         ) : (

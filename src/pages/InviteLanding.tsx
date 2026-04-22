@@ -82,7 +82,10 @@ export function InviteLanding() {
   const project = projectQuery.data?.data;
   const trade = project?.trades?.find((t: any) => t.id === tradeId);
   const projectName = project?.name;
-  const tradeName = trade?.trade;
+  // Intentionally not exposing `trade.trade` (plumbing/HVAC/etc) to the sub:
+  // subs are professionals and already know what they do. We also surface only
+  // project-level info (name, address, schedule, task count) so the sub never
+  // sees the GC's internal trade label for their slot.
   const projectAddress = project?.address;
   const taskCount = trade?.tasks?.length || 0;
   const alreadyAssigned = trade?.assignedUserId === user?.id;
@@ -172,8 +175,11 @@ export function InviteLanding() {
             </div>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">You're In!</h1>
             <p className="text-gray-500 mb-2">
-              You've been assigned to <span className="font-semibold text-gray-700">{tradeName || 'this trade'}</span>
-              {projectName && <> on <span className="font-semibold text-gray-700">{projectName}</span></>}.
+              {projectName ? (
+                <>You've joined <span className="font-semibold text-gray-700">{projectName}</span>.</>
+              ) : (
+                <>You've joined the project.</>
+              )}
             </p>
             <p className="text-sm text-gray-400 mb-6">Redirecting to your project...</p>
             <Loader2 className="w-5 h-5 text-gray-400 animate-spin mx-auto" />
@@ -195,8 +201,11 @@ export function InviteLanding() {
             </div>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">Already on This Project</h1>
             <p className="text-gray-500 mb-6">
-              You're already assigned to <span className="font-semibold text-gray-700">{tradeName || 'this trade'}</span>
-              {projectName && <> on <span className="font-semibold text-gray-700">{projectName}</span></>}.
+              {projectName ? (
+                <>You're already on <span className="font-semibold text-gray-700">{projectName}</span>.</>
+              ) : (
+                <>You're already on this project.</>
+              )}
             </p>
             <Link
               to={`/dashboard/projects/assigned/${projectId}`}
@@ -225,11 +234,9 @@ export function InviteLanding() {
             <h1 className="text-3xl font-bold text-gray-900 mb-3">
               {projectName ? `Join ${projectName}` : "You've been invited to a project"}
             </h1>
-            {tradeName && (
-              <p className="text-gray-500 text-lg">
-                as <span className="font-semibold text-gray-700">{tradeName}</span>
-              </p>
-            )}
+            <p className="text-gray-500 text-lg">
+              A general contractor is ready to bring you on.
+            </p>
           </div>
 
           {/* Project details card */}
@@ -255,15 +262,6 @@ export function InviteLanding() {
                     <div>
                       <p className="text-xs text-gray-400 uppercase tracking-wide font-medium">Location</p>
                       <p className="text-sm text-gray-700">{projectAddress}</p>
-                    </div>
-                  </div>
-                )}
-                {tradeName && (
-                  <div className="flex items-start gap-3">
-                    <ClipboardCheck className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
-                    <div>
-                      <p className="text-xs text-gray-400 uppercase tracking-wide font-medium">Your Trade</p>
-                      <p className="text-sm font-semibold text-gray-700">{tradeName}</p>
                     </div>
                   </div>
                 )}

@@ -332,7 +332,6 @@ export function CommandCenterPage() {
             </h1>
             <p className="text-sm text-neutral-500 dark:text-gray-400">
               {formattedDate}
-              {profile?.trade && <span className="ml-2 text-brand-500 font-medium dark:text-blue-300">· {profile.trade}</span>}
             </p>
           </div>
           <div className="flex flex-wrap gap-2">

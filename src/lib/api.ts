@@ -545,9 +545,186 @@ export const api = {
         { name: 'After-Hours Surcharge', default_price: 150, category: 'General', unit: 'ea' },
         { name: 'Labor', default_price: 95, category: 'General', unit: 'hr' },
       ],
+      framing: [
+        { name: 'Wall Framing - Standard', default_price: 8, category: 'Framing', unit: 'sqft' },
+        { name: 'Wall Framing - Load Bearing', default_price: 12, category: 'Framing', unit: 'sqft' },
+        { name: 'Interior Wall Partition', default_price: 6, category: 'Framing', unit: 'sqft' },
+        { name: 'Door Opening - Rough', default_price: 175, category: 'Openings', unit: 'ea' },
+        { name: 'Window Opening - Rough', default_price: 225, category: 'Openings', unit: 'ea' },
+        { name: 'Header Install', default_price: 250, category: 'Openings', unit: 'ea' },
+        { name: 'Floor Joist Install', default_price: 9, category: 'Structural', unit: 'sqft' },
+        { name: 'Ceiling Joist Install', default_price: 8, category: 'Structural', unit: 'sqft' },
+        { name: 'Roof Rafter Install', default_price: 10, category: 'Structural', unit: 'sqft' },
+        { name: 'Subfloor Install', default_price: 4, category: 'Structural', unit: 'sqft' },
+        { name: 'Stair Framing', default_price: 85, category: 'Structural', unit: 'ft' },
+        { name: 'Beam Install - LVL', default_price: 45, category: 'Structural', unit: 'ft' },
+        { name: 'Demo - Non-Load Wall', default_price: 5, category: 'Demolition', unit: 'sqft' },
+        { name: 'Labor', default_price: 65, category: 'General', unit: 'hr' },
+      ],
+      drywall: [
+        { name: 'Drywall Install - 1/2"', default_price: 2.5, category: 'Install', unit: 'sqft' },
+        { name: 'Drywall Install - 5/8" (Ceiling/Fire)', default_price: 3.25, category: 'Install', unit: 'sqft' },
+        { name: 'Moisture Resistant (Bath)', default_price: 3.5, category: 'Install', unit: 'sqft' },
+        { name: 'Tape & Mud - Level 4', default_price: 1.75, category: 'Finishing', unit: 'sqft' },
+        { name: 'Tape & Mud - Level 5 (Smooth)', default_price: 2.5, category: 'Finishing', unit: 'sqft' },
+        { name: 'Corner Bead Install', default_price: 2.5, category: 'Finishing', unit: 'ft' },
+        { name: 'Patch - Small (<12")', default_price: 95, category: 'Repair', unit: 'ea' },
+        { name: 'Patch - Medium (12-36")', default_price: 185, category: 'Repair', unit: 'ea' },
+        { name: 'Patch - Large Cut-In', default_price: 325, category: 'Repair', unit: 'ea' },
+        { name: 'Texture - Knockdown', default_price: 1.25, category: 'Texture', unit: 'sqft' },
+        { name: 'Texture - Orange Peel', default_price: 1, category: 'Texture', unit: 'sqft' },
+        { name: 'Skim Coat', default_price: 1.5, category: 'Texture', unit: 'sqft' },
+        { name: 'Labor', default_price: 55, category: 'General', unit: 'hr' },
+      ],
+      painting: [
+        { name: 'Interior Wall - 1 Coat', default_price: 1.75, category: 'Interior', unit: 'sqft' },
+        { name: 'Interior Wall - 2 Coat', default_price: 2.75, category: 'Interior', unit: 'sqft' },
+        { name: 'Ceiling Paint', default_price: 2.25, category: 'Interior', unit: 'sqft' },
+        { name: 'Trim / Baseboard Paint', default_price: 3.5, category: 'Interior', unit: 'ft' },
+        { name: 'Door Paint - Interior', default_price: 85, category: 'Interior', unit: 'ea' },
+        { name: 'Cabinet Refinish', default_price: 175, category: 'Interior', unit: 'ea' },
+        { name: 'Exterior Siding', default_price: 2.5, category: 'Exterior', unit: 'sqft' },
+        { name: 'Exterior Trim', default_price: 4, category: 'Exterior', unit: 'ft' },
+        { name: 'Front Door Paint', default_price: 225, category: 'Exterior', unit: 'ea' },
+        { name: 'Deck Stain', default_price: 3, category: 'Exterior', unit: 'sqft' },
+        { name: 'Pressure Wash (Prep)', default_price: 0.5, category: 'Prep', unit: 'sqft' },
+        { name: 'Drywall Repair Prep', default_price: 85, category: 'Prep', unit: 'ea' },
+        { name: 'Labor', default_price: 50, category: 'General', unit: 'hr' },
+      ],
+      roofing: [
+        { name: 'Asphalt Shingle Install', default_price: 4.5, category: 'Install', unit: 'sqft' },
+        { name: 'Architectural Shingle Install', default_price: 5.75, category: 'Install', unit: 'sqft' },
+        { name: 'Metal Roof Install', default_price: 10, category: 'Install', unit: 'sqft' },
+        { name: 'Tile / Clay Roof Install', default_price: 12, category: 'Install', unit: 'sqft' },
+        { name: 'Tear Off - Single Layer', default_price: 1.25, category: 'Tear Off', unit: 'sqft' },
+        { name: 'Tear Off - Two Layer', default_price: 2.25, category: 'Tear Off', unit: 'sqft' },
+        { name: 'Underlayment - Felt', default_price: 0.75, category: 'Underlayment', unit: 'sqft' },
+        { name: 'Underlayment - Synthetic', default_price: 1.25, category: 'Underlayment', unit: 'sqft' },
+        { name: 'Ice & Water Shield', default_price: 1.5, category: 'Underlayment', unit: 'sqft' },
+        { name: 'Ridge Vent Install', default_price: 12, category: 'Ventilation', unit: 'ft' },
+        { name: 'Roof Vent - Box', default_price: 175, category: 'Ventilation', unit: 'ea' },
+        { name: 'Flashing Replace', default_price: 18, category: 'Flashing', unit: 'ft' },
+        { name: 'Leak Repair', default_price: 450, category: 'Repair', unit: 'ea' },
+        { name: 'Gutter Install', default_price: 9, category: 'Gutters', unit: 'ft' },
+        { name: 'Labor', default_price: 70, category: 'General', unit: 'hr' },
+      ],
+      concrete: [
+        { name: 'Slab - 4" Standard', default_price: 6.5, category: 'Slab', unit: 'sqft' },
+        { name: 'Slab - 6" Reinforced', default_price: 9, category: 'Slab', unit: 'sqft' },
+        { name: 'Driveway Pour', default_price: 8, category: 'Flatwork', unit: 'sqft' },
+        { name: 'Sidewalk / Walkway', default_price: 7, category: 'Flatwork', unit: 'sqft' },
+        { name: 'Patio Pour', default_price: 8.5, category: 'Flatwork', unit: 'sqft' },
+        { name: 'Stamped Concrete Upcharge', default_price: 5, category: 'Decorative', unit: 'sqft' },
+        { name: 'Footing - Perimeter', default_price: 14, category: 'Footings', unit: 'ft' },
+        { name: 'Footing - Spot', default_price: 225, category: 'Footings', unit: 'ea' },
+        { name: 'Foundation Wall - Poured', default_price: 32, category: 'Foundation', unit: 'ft' },
+        { name: 'Crack Repair', default_price: 275, category: 'Repair', unit: 'ea' },
+        { name: 'Demo & Haul - Slab', default_price: 4.5, category: 'Demo', unit: 'sqft' },
+        { name: 'Rebar / Mesh Install', default_price: 0.85, category: 'Reinforcement', unit: 'sqft' },
+        { name: 'Labor', default_price: 60, category: 'General', unit: 'hr' },
+      ],
+      flooring: [
+        { name: 'LVP / Vinyl Plank Install', default_price: 3.5, category: 'Install', unit: 'sqft' },
+        { name: 'Laminate Install', default_price: 3, category: 'Install', unit: 'sqft' },
+        { name: 'Engineered Hardwood Install', default_price: 5.5, category: 'Install', unit: 'sqft' },
+        { name: 'Solid Hardwood Install', default_price: 6.5, category: 'Install', unit: 'sqft' },
+        { name: 'Carpet Install', default_price: 3.25, category: 'Install', unit: 'sqft' },
+        { name: 'Tile Floor Install', default_price: 9, category: 'Install', unit: 'sqft' },
+        { name: 'Underlayment / Pad', default_price: 0.75, category: 'Prep', unit: 'sqft' },
+        { name: 'Floor Leveler / Self-Level', default_price: 3, category: 'Prep', unit: 'sqft' },
+        { name: 'Demo & Haul - Carpet', default_price: 0.75, category: 'Demo', unit: 'sqft' },
+        { name: 'Demo & Haul - Tile', default_price: 2.5, category: 'Demo', unit: 'sqft' },
+        { name: 'Stair Tread Install', default_price: 65, category: 'Stairs', unit: 'ea' },
+        { name: 'Transition Strip', default_price: 45, category: 'Trim', unit: 'ea' },
+        { name: 'Baseboard Reinstall', default_price: 3, category: 'Trim', unit: 'ft' },
+        { name: 'Labor', default_price: 60, category: 'General', unit: 'hr' },
+      ],
+      landscaping: [
+        { name: 'Sod Install', default_price: 1.75, category: 'Lawn', unit: 'sqft' },
+        { name: 'Seed + Topsoil', default_price: 0.65, category: 'Lawn', unit: 'sqft' },
+        { name: 'Mulch Install', default_price: 2.25, category: 'Beds', unit: 'sqft' },
+        { name: 'Edging Install', default_price: 6.5, category: 'Beds', unit: 'ft' },
+        { name: 'Tree Planting - Small', default_price: 185, category: 'Planting', unit: 'ea' },
+        { name: 'Tree Planting - Mature', default_price: 450, category: 'Planting', unit: 'ea' },
+        { name: 'Shrub Planting', default_price: 85, category: 'Planting', unit: 'ea' },
+        { name: 'Sprinkler Head Replace', default_price: 45, category: 'Irrigation', unit: 'ea' },
+        { name: 'Sprinkler Zone Install', default_price: 650, category: 'Irrigation', unit: 'ea' },
+        { name: 'Drip Line Install', default_price: 5.5, category: 'Irrigation', unit: 'ft' },
+        { name: 'Paver Patio Install', default_price: 18, category: 'Hardscape', unit: 'sqft' },
+        { name: 'Retaining Wall - Block', default_price: 45, category: 'Hardscape', unit: 'sqft' },
+        { name: 'Demo / Haul Debris', default_price: 1.25, category: 'Demo', unit: 'sqft' },
+        { name: 'Labor', default_price: 50, category: 'General', unit: 'hr' },
+      ],
+      tiling: [
+        { name: 'Floor Tile Install - Standard', default_price: 9, category: 'Floor', unit: 'sqft' },
+        { name: 'Floor Tile Install - Large Format', default_price: 12, category: 'Floor', unit: 'sqft' },
+        { name: 'Wall Tile Install - Kitchen', default_price: 11, category: 'Wall', unit: 'sqft' },
+        { name: 'Shower Wall Tile', default_price: 13, category: 'Wall', unit: 'sqft' },
+        { name: 'Shower Pan - Mud Set', default_price: 650, category: 'Shower', unit: 'ea' },
+        { name: 'Shower Niche', default_price: 275, category: 'Shower', unit: 'ea' },
+        { name: 'Shower Curb', default_price: 225, category: 'Shower', unit: 'ea' },
+        { name: 'Tub Surround Tile', default_price: 950, category: 'Wall', unit: 'ea' },
+        { name: 'Backsplash Install', default_price: 14, category: 'Wall', unit: 'sqft' },
+        { name: 'Grout & Seal', default_price: 1.5, category: 'Finishing', unit: 'sqft' },
+        { name: 'Schluter / Edge Trim', default_price: 12, category: 'Finishing', unit: 'ft' },
+        { name: 'Regrout Service', default_price: 4.5, category: 'Repair', unit: 'sqft' },
+        { name: 'Tile Demo & Haul', default_price: 2.5, category: 'Demo', unit: 'sqft' },
+        { name: 'Labor', default_price: 65, category: 'General', unit: 'hr' },
+      ],
+      siding: [
+        { name: 'Vinyl Siding Install', default_price: 4.5, category: 'Install', unit: 'sqft' },
+        { name: 'Fiber Cement (Hardie) Install', default_price: 7, category: 'Install', unit: 'sqft' },
+        { name: 'Wood / Cedar Siding', default_price: 9, category: 'Install', unit: 'sqft' },
+        { name: 'Engineered Wood (LP) Install', default_price: 6.5, category: 'Install', unit: 'sqft' },
+        { name: 'Stone Veneer Install', default_price: 22, category: 'Install', unit: 'sqft' },
+        { name: 'Stucco Install - 3-Coat', default_price: 9.5, category: 'Install', unit: 'sqft' },
+        { name: 'Tear Off - Vinyl', default_price: 1, category: 'Tear Off', unit: 'sqft' },
+        { name: 'Tear Off - Wood', default_price: 1.5, category: 'Tear Off', unit: 'sqft' },
+        { name: 'House Wrap / Tyvek', default_price: 0.75, category: 'Wrap', unit: 'sqft' },
+        { name: 'Trim - Corner Board', default_price: 6, category: 'Trim', unit: 'ft' },
+        { name: 'Soffit Install', default_price: 7.5, category: 'Trim', unit: 'sqft' },
+        { name: 'Fascia Install', default_price: 8, category: 'Trim', unit: 'ft' },
+        { name: 'Caulk & Seal', default_price: 2.5, category: 'Finishing', unit: 'ft' },
+        { name: 'Labor', default_price: 60, category: 'General', unit: 'hr' },
+      ],
+      insulation: [
+        { name: 'Fiberglass Batt - R13 Walls', default_price: 1.5, category: 'Batt', unit: 'sqft' },
+        { name: 'Fiberglass Batt - R19 Walls', default_price: 1.85, category: 'Batt', unit: 'sqft' },
+        { name: 'Fiberglass Batt - R30 Ceiling', default_price: 2.25, category: 'Batt', unit: 'sqft' },
+        { name: 'Blown-In Cellulose - Attic', default_price: 1.75, category: 'Blown-In', unit: 'sqft' },
+        { name: 'Blown-In Fiberglass - Attic', default_price: 1.5, category: 'Blown-In', unit: 'sqft' },
+        { name: 'Spray Foam - Open Cell', default_price: 1.85, category: 'Spray Foam', unit: 'bdft' },
+        { name: 'Spray Foam - Closed Cell', default_price: 3.25, category: 'Spray Foam', unit: 'bdft' },
+        { name: 'Rim Joist Foam', default_price: 7, category: 'Spray Foam', unit: 'ft' },
+        { name: 'Attic Baffle Install', default_price: 25, category: 'Prep', unit: 'ea' },
+        { name: 'Vapor Barrier', default_price: 0.85, category: 'Prep', unit: 'sqft' },
+        { name: 'Air Seal - Attic Pen', default_price: 45, category: 'Air Seal', unit: 'ea' },
+        { name: 'Rim Joist Air Seal', default_price: 6, category: 'Air Seal', unit: 'ft' },
+        { name: 'Labor', default_price: 55, category: 'General', unit: 'hr' },
+      ],
+      cabinetry: [
+        { name: 'Base Cabinet - Stock', default_price: 275, category: 'Cabinets', unit: 'ft' },
+        { name: 'Base Cabinet - Semi-Custom', default_price: 450, category: 'Cabinets', unit: 'ft' },
+        { name: 'Base Cabinet - Custom', default_price: 850, category: 'Cabinets', unit: 'ft' },
+        { name: 'Wall Cabinet - Stock', default_price: 225, category: 'Cabinets', unit: 'ft' },
+        { name: 'Wall Cabinet - Semi-Custom', default_price: 350, category: 'Cabinets', unit: 'ft' },
+        { name: 'Pantry / Tall Cabinet', default_price: 650, category: 'Cabinets', unit: 'ea' },
+        { name: 'Kitchen Island Install', default_price: 1800, category: 'Islands', unit: 'ea' },
+        { name: 'Bath Vanity Install', default_price: 750, category: 'Vanity', unit: 'ea' },
+        { name: 'Countertop - Laminate', default_price: 35, category: 'Countertops', unit: 'sqft' },
+        { name: 'Countertop - Quartz', default_price: 85, category: 'Countertops', unit: 'sqft' },
+        { name: 'Countertop - Granite', default_price: 75, category: 'Countertops', unit: 'sqft' },
+        { name: 'Countertop Template / Cut', default_price: 225, category: 'Countertops', unit: 'ea' },
+        { name: 'Crown Molding on Cabinets', default_price: 14, category: 'Trim', unit: 'ft' },
+        { name: 'Soft-Close Hinge Upgrade', default_price: 12, category: 'Hardware', unit: 'ea' },
+        { name: 'Cabinet Hardware Install', default_price: 8, category: 'Hardware', unit: 'ea' },
+        { name: 'Labor', default_price: 70, category: 'General', unit: 'hr' },
+      ],
     };
 
-    const defaults = TRADE_PRICEBOOKS[trade] || TRADE_PRICEBOOKS.plumbing;
+    // Trade keys are always lowercased before lookup; fall back to plumbing
+    // if someone passes an unknown trade (legacy seed paths, etc).
+    const defaults = TRADE_PRICEBOOKS[trade.toLowerCase()] || TRADE_PRICEBOOKS.plumbing;
     const items = defaults.map(d => ({ ...d, user_id: userId }));
     await supabase.from('pricebook_items').insert(items);
   },
@@ -2203,15 +2380,28 @@ export const api = {
     if (error) throw new Error(error.message);
   },
 
-  // Assign an existing sub to a trade on a project
+  // Assign an existing sub to a trade on a project.
+  //
+  // Uses .maybeSingle() not .single(): if the tradeId is stale (trade was
+  // deleted, assignedUserId got claimed by someone else, RLS blocks this
+  // user from the row, etc.) the UPDATE returns 0 rows and Postgrest's
+  // .single() blows up with "cannot coerce the result to a single JSON
+  // object" — an opaque error we've seen surface to subs accepting invites
+  // on mobile web. maybeSingle() returns null for that case so we can throw
+  // a readable message instead.
   assignSubToTrade: async (tradeId: string, userId: string) => {
     const { data, error } = await supabase
       .from('gc_project_trades')
       .update({ assigned_user_id: userId })
       .eq('id', tradeId)
       .select()
-      .single();
+      .maybeSingle();
     if (error) throw new Error(error.message);
+    if (!data) {
+      throw new Error(
+        'This invite is no longer active. The trade may have been reassigned or removed. Ask the GC to send a fresh invite.'
+      );
+    }
     return { data: camelify(data) };
   },
 };

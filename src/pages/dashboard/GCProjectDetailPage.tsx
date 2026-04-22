@@ -176,6 +176,69 @@ export function GCProjectDetailPage() {
   const trades: any[] = project?.trades || [];
   const zones: any[] = project?.zones || [];
 
+  // Board view needs ONE column per trade name, not one per
+  // gc_project_trades row: when the same trade (e.g. Plumbing) is assigned
+  // across multiple zones (Kitchen + Master Bath + Bath 2), each zone gets
+  // its own row in the table, which surfaced in Board view as three
+  // identical "Plumbing" columns. Collapse rows here by trade name and
+  // merge their tasks + budget. We pick a representative underlying row
+  // (prefer any assigned row so "Invite Sub" doesn't re-prompt when one
+  // zone is already covered) and let per-row detail still live in the
+  // zone slide-in panels on the Visual view.
+  const boardTrades = useMemo(() => {
+    const byName = new Map<string, any>();
+    for (const t of trades) {
+      const key = String(t.trade || 'Unnamed').toLowerCase();
+      const laborHours = t.laborHours || t.labor_hours || 0;
+      const laborRate = t.laborRate || t.labor_rate || 0;
+      const materialsBudget = t.materialsBudget || t.materials_budget || 0;
+      const rowBudget = t.budget || (laborHours * laborRate) + materialsBudget;
+
+      const existing = byName.get(key);
+      if (!existing) {
+        byName.set(key, {
+          ...t,
+          tasks: [...(t.tasks || [])],
+          sourceIds: [t.id],
+          budget: rowBudget,
+          laborHours,
+          materialsBudget,
+        });
+        continue;
+      }
+
+      existing.tasks.push(...(t.tasks || []));
+      existing.sourceIds.push(t.id);
+      existing.budget = (existing.budget || 0) + rowBudget;
+      existing.laborHours += laborHours;
+      existing.materialsBudget += materialsBudget;
+
+      // Earliest start, latest end — roll the dates up across zones.
+      if (t.startDate && (!existing.startDate || t.startDate < existing.startDate)) {
+        existing.startDate = t.startDate;
+      }
+      if (t.endDate && (!existing.endDate || t.endDate > existing.endDate)) {
+        existing.endDate = t.endDate;
+      }
+
+      // Prefer an assigned row as the representative so mutations and the
+      // "Invite Sub" affordance target the right record.
+      if (!existing.assignedUserId && t.assignedUserId) {
+        existing.id = t.id;
+        existing.assignedUserId = t.assignedUserId;
+        existing.assignedOrgId = t.assignedOrgId;
+        existing.assignedBusinessName = t.assignedBusinessName;
+      }
+
+      // Status roll-up: in_progress > blocked > completed > not_started.
+      const rank: Record<string, number> = { not_started: 0, completed: 1, blocked: 2, in_progress: 3 };
+      if ((rank[t.status] ?? 0) > (rank[existing.status] ?? 0)) {
+        existing.status = t.status;
+      }
+    }
+    return Array.from(byName.values());
+  }, [trades]);
+
   const totalTasks = trades.reduce((s: number, t: any) => s + (t.tasks?.length || 0), 0);
   const doneTasks = trades.reduce((s: number, t: any) => s + (t.tasks?.filter((tk: any) => tk.done).length || 0), 0);
 
@@ -429,12 +492,15 @@ export function GCProjectDetailPage() {
       )}
 
       {/* ─── Board View (original trade lane board) ─── */}
+      {/* Uses boardTrades (grouped by trade name) instead of raw trades so a
+          trade assigned across multiple zones renders as a single column
+          with merged tasks + budget, not one duplicate column per zone. */}
       {viewMode === 'board' && (
         <div className="mb-8">
           <div className="overflow-x-auto pb-4 -mx-4 px-4 lg:mx-0 lg:px-0">
             <div className="flex gap-4" style={{ minWidth: 'max-content' }}>
-              {trades.map((trade: any) => (
-                <TradeColumn key={trade.id} trade={trade} projectId={id!} onInviteSub={(tradeId, tradeName) => setInviteModalTrade({ id: tradeId, name: tradeName })} />
+              {boardTrades.map((trade: any) => (
+                <TradeColumn key={trade.sourceIds?.join('-') || trade.id} trade={trade} projectId={id!} onInviteSub={(tradeId, tradeName) => setInviteModalTrade({ id: tradeId, name: tradeName })} />
               ))}
               <AddTradeColumn projectId={id!} />
             </div>
@@ -928,7 +994,7 @@ function ZoneDetailPanel({
               <span className="text-xl">{zoneEmoji}</span>
               <div className="min-w-0">
                 <h2 className="text-lg font-bold text-gray-900 truncate dark:text-white">{zoneName}</h2>
-                <p className="text-xs text-gray-400 dark:text-gray-500">{zoneTrades.length} trade{zoneTrades.length !== 1 ? 's' : ''}</p>
+                <p className="text-xs text-gray-600 dark:text-gray-500">{zoneTrades.length} trade{zoneTrades.length !== 1 ? 's' : ''}</p>
               </div>
             </div>
             <button
@@ -942,7 +1008,7 @@ function ZoneDetailPanel({
           {/* Zone progress bar */}
           <div className="px-4 pb-3">
             <div className="flex items-center justify-between text-xs mb-1.5">
-              <span className="text-gray-500 dark:text-gray-400">{zoneStats.doneTasks}/{zoneStats.totalTasks} tasks complete</span>
+              <span className="text-gray-700 dark:text-gray-400">{zoneStats.doneTasks}/{zoneStats.totalTasks} tasks complete</span>
               <span className="font-bold" style={{ color: zoneAccent }}>{zoneStats.progress}%</span>
             </div>
             <div className="h-2 bg-gray-100 rounded-full overflow-hidden dark:bg-white/10">
@@ -958,7 +1024,7 @@ function ZoneDetailPanel({
 
         {/* Compact / Expanded Toggle */}
         <div className="px-4 pt-3 pb-1 flex items-center justify-between">
-          <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider dark:text-gray-500">Trades</span>
+          <span className="text-[11px] font-semibold text-gray-600 uppercase tracking-wider dark:text-gray-500">Trades</span>
           <button
             onClick={() => setExpanded(!expanded)}
             className="flex items-center gap-1 text-[11px] font-medium text-brand-600 hover:text-brand-700 transition-colors dark:text-blue-300"
@@ -1127,21 +1193,21 @@ function ZoneDetailPanel({
         {/* Zone Budget Summary */}
         {(zoneStats.allocated > 0) && (
           <div className="mx-4 mb-4 bg-gray-50 rounded-xl p-4 border border-gray-100 dark:bg-white/[0.02] dark:border-white/10">
-            <h4 className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2 dark:text-gray-500">Zone Budget</h4>
+            <h4 className="text-[11px] font-semibold text-gray-600 uppercase tracking-wider mb-2 dark:text-gray-500">Zone Budget</h4>
             <div className="space-y-1.5">
               <div className="flex justify-between text-sm">
-                <span className="text-gray-500 dark:text-gray-400">Total</span>
+                <span className="text-gray-700 dark:text-gray-400">Total</span>
                 <span className="font-semibold text-gray-900 dark:text-white">{formatCurrency(zoneStats.allocated)}</span>
               </div>
               {zoneStats.totalLabor > 0 && (
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-500 dark:text-gray-400">Labor</span>
+                  <span className="text-gray-700 dark:text-gray-400">Labor</span>
                   <span className="font-medium text-gray-700 dark:text-gray-200">{formatCurrency(zoneStats.totalLabor)}</span>
                 </div>
               )}
               {zoneStats.totalMaterials > 0 && (
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-500 dark:text-gray-400">Materials</span>
+                  <span className="text-gray-700 dark:text-gray-400">Materials</span>
                   <span className="font-medium text-gray-700 dark:text-gray-200">{formatCurrency(zoneStats.totalMaterials)}</span>
                 </div>
               )}

@@ -268,6 +268,33 @@ function useInView<T extends HTMLElement>() {
   return [setRef, inView] as const;
 }
 
+/**
+ * Static color class lookup used across the interactive homepage mocks.
+ *
+ * Previously these were constructed dynamically (`bg-${color}-100`, etc) and
+ * relied on the Tailwind safelist to keep them from being tree-shaken. That
+ * pattern is brittle — adding a new color without updating the safelist
+ * silently strips the class from the build. Using a static lookup makes
+ * every class TS-checkable + JIT-visible without any safelist dependency.
+ */
+type ColorKey = 'blue' | 'green' | 'purple' | 'amber' | 'indigo' | 'rose' | 'cyan';
+
+const COLOR_CLASSES: Record<ColorKey, {
+  bg50: string; bg100: string; bg500_30: string;
+  text300: string; text500: string; text600: string;
+}> = {
+  blue:   { bg50: 'bg-blue-50',   bg100: 'bg-blue-100',   bg500_30: 'bg-blue-500/30',   text300: 'text-blue-300',   text500: 'text-blue-500',   text600: 'text-blue-600'   },
+  green:  { bg50: 'bg-green-50',  bg100: 'bg-green-100',  bg500_30: 'bg-green-500/30',  text300: 'text-green-300',  text500: 'text-green-500',  text600: 'text-green-600'  },
+  purple: { bg50: 'bg-purple-50', bg100: 'bg-purple-100', bg500_30: 'bg-purple-500/30', text300: 'text-purple-300', text500: 'text-purple-500', text600: 'text-purple-600' },
+  amber:  { bg50: 'bg-amber-50',  bg100: 'bg-amber-100',  bg500_30: 'bg-amber-500/30',  text300: 'text-amber-300',  text500: 'text-amber-500',  text600: 'text-amber-600'  },
+  indigo: { bg50: 'bg-indigo-50', bg100: 'bg-indigo-100', bg500_30: 'bg-indigo-500/30', text300: 'text-indigo-300', text500: 'text-indigo-500', text600: 'text-indigo-600' },
+  rose:   { bg50: 'bg-rose-50',   bg100: 'bg-rose-100',   bg500_30: 'bg-rose-500/30',   text300: 'text-rose-300',   text500: 'text-rose-500',   text600: 'text-rose-600'   },
+  cyan:   { bg50: 'bg-cyan-50',   bg100: 'bg-cyan-100',   bg500_30: 'bg-cyan-500/30',   text300: 'text-cyan-300',   text500: 'text-cyan-500',   text600: 'text-cyan-600'   },
+};
+
+const colorOf = (c: string): (typeof COLOR_CLASSES)[ColorKey] =>
+  COLOR_CLASSES[c as ColorKey] ?? COLOR_CLASSES.blue;
+
 /* Live activity feed — ticks new entries every few seconds */
 function LiveActivityFeed() {
   const events = [
@@ -303,7 +330,7 @@ function LiveActivityFeed() {
             key={`${e.who}-${e.time}-${i}`}
             className={`flex items-start gap-2 p-2 rounded-lg ${i === 0 ? 'bg-blue-50 border border-blue-100 animate-[slideIn_0.4s_ease-out]' : 'bg-gray-50'}`}
           >
-            <div className={`w-6 h-6 rounded-full bg-${e.color}-100 text-${e.color}-600 flex items-center justify-center shrink-0`}>
+            <div className={`w-6 h-6 rounded-full ${colorOf(e.color).bg100} ${colorOf(e.color).text600} flex items-center justify-center shrink-0`}>
               <e.icon className="w-3 h-3" />
             </div>
             <div className="flex-1 min-w-0">
@@ -459,7 +486,7 @@ function InsightsMock() {
         {kpis.map((k) => (
           <div key={k.label} className="bg-white rounded-xl p-3 border border-gray-200 shadow-sm">
             <div className="flex items-center gap-1.5 mb-1">
-              <k.icon className={`w-3.5 h-3.5 text-${k.color}-500`} />
+              <k.icon className={`w-3.5 h-3.5 ${colorOf(k.color).text500}`} />
               <span className="text-[10px] text-gray-500 uppercase tracking-wide font-medium">{k.label}</span>
             </div>
             <div className="text-lg font-bold text-gray-900">{k.value}</div>
@@ -769,8 +796,8 @@ function LiveActivityFeedDark() {
           key={i}
           className="flex items-center gap-2 p-2 bg-white/10 rounded-lg animate-[slideIn_0.4s_ease-out]"
         >
-          <div className={`w-6 h-6 rounded-full bg-${e.color}-500/30 flex items-center justify-center shrink-0`}>
-            <CheckCircle2 className={`w-3 h-3 text-${e.color}-300`} />
+          <div className={`w-6 h-6 rounded-full ${colorOf(e.color).bg500_30} flex items-center justify-center shrink-0`}>
+            <CheckCircle2 className={`w-3 h-3 ${colorOf(e.color).text300}`} />
           </div>
           <div className="flex-1 min-w-0">
             <div className="text-xs text-white font-semibold">{e.who}</div>
@@ -945,7 +972,7 @@ export function HomePage() {
               },
             ].map((f) => (
               <div key={f.title} className="group bg-white rounded-2xl border border-gray-200 p-6 hover:border-blue-300 hover:shadow-xl transition-all">
-                <div className={`w-12 h-12 rounded-xl bg-${f.color}-50 text-${f.color}-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
+                <div className={`w-12 h-12 rounded-xl ${colorOf(f.color).bg50} ${colorOf(f.color).text600} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
                   <f.icon className="w-6 h-6" />
                 </div>
                 <h3 className="text-lg font-bold text-gray-900 mb-2">{f.title}</h3>
@@ -1166,7 +1193,7 @@ export function HomePage() {
                   { stat: '18 min', label: 'Saved per invoice vs paper + QuickBooks entry', color: 'amber' },
                 ].map((r) => (
                   <div key={r.label} className="flex items-center gap-4 p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
-                    <div className={`text-3xl font-extrabold text-${r.color}-600 min-w-[80px]`}>{r.stat}</div>
+                    <div className={`text-3xl font-extrabold ${colorOf(r.color).text600} min-w-[80px]`}>{r.stat}</div>
                     <div className="text-sm text-gray-700 font-medium">{r.label}</div>
                   </div>
                 ))}
@@ -1208,7 +1235,7 @@ export function HomePage() {
               { icon: Hammer, name: 'General Contracting', desc: 'Multi-phase builds, zone-based project tracking.', color: 'purple' },
             ].map((t) => (
               <div key={t.name} className="bg-white rounded-2xl p-6 border border-gray-200 hover:border-blue-300 hover:shadow-lg transition-all">
-                <div className={`w-12 h-12 rounded-xl bg-${t.color}-50 text-${t.color}-600 flex items-center justify-center mb-4`}>
+                <div className={`w-12 h-12 rounded-xl ${colorOf(t.color).bg50} ${colorOf(t.color).text600} flex items-center justify-center mb-4`}>
                   <t.icon className="w-6 h-6" />
                 </div>
                 <h3 className="text-lg font-bold text-gray-900 mb-2">{t.name}</h3>

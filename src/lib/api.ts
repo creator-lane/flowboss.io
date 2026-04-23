@@ -93,13 +93,18 @@ export const api = {
   },
 
   getJob: async (id: string) => {
+    // maybeSingle() not single(): the UI routes on :id from URLs that can be
+    // stale (notifications, bookmarks, deleted jobs). .single() throws on 0
+    // rows and the detail page shows a scary red error; .maybeSingle() lets
+    // the caller render a clean "not found" state instead.
     const { data, error } = await supabase
       .from('jobs')
       .select('*, customer:customers(*), property:properties(*), lineItems:job_line_items(*)')
       .eq('id', id)
-      .single();
+      .maybeSingle();
 
     if (error) throw new Error(error.message);
+    if (!data) throw new Error('Job not found');
     return { data: camelify(data) };
   },
 
@@ -283,13 +288,17 @@ export const api = {
   },
 
   getCustomer: async (id: string) => {
+    // maybeSingle: customer detail pages are reached from stale bookmarks,
+    // deleted records, or team members whose RLS blocks the row. Show a
+    // proper "not found" instead of a Postgrest coerce error.
     const { data, error } = await supabase
       .from('customers')
       .select('*, properties(*), jobs(*), invoices(*), projects(*)')
       .eq('id', id)
-      .single();
+      .maybeSingle();
 
     if (error) throw new Error(error.message);
+    if (!data) throw new Error('Customer not found');
     return { data: camelify(data) };
   },
 
@@ -752,13 +761,17 @@ export const api = {
   },
 
   getInvoice: async (id: string) => {
+    // maybeSingle: invoice links get emailed to customers and lived forever
+    // in inboxes. When the invoice is deleted or voided, single() throws a
+    // confusing error; maybeSingle() + null check lets us show "not found".
     const { data, error } = await supabase
       .from('invoices')
       .select('*, customer:customers(*), lineItems:invoice_line_items(*)')
       .eq('id', id)
-      .single();
+      .maybeSingle();
 
     if (error) throw new Error(error.message);
+    if (!data) throw new Error('Invoice not found');
     return { data: camelify(data) };
   },
 
@@ -844,11 +857,15 @@ export const api = {
   createPaymentLink: async (invoiceId: string, invoice?: any, companyName?: string) => {
     // Fetch the contractor's Stripe account ID -- required to route money correctly
     const userId = await getUserId();
+    // maybeSingle: brand-new users may not have a profile row yet; the code
+    // below already handles null-ish via optional chaining. .single() would
+    // throw a Postgrest coerce error instead of our helpful "Connect Stripe"
+    // message.
     const { data: profile } = await supabase
       .from('profiles')
       .select('stripe_account_id, stripe_onboarding_complete')
       .eq('id', userId)
-      .single();
+      .maybeSingle();
 
     if (!profile?.stripe_account_id || !profile?.stripe_onboarding_complete) {
       throw new Error('Connect your Stripe account first -- go to Settings -> Payment Processing.');
@@ -1169,26 +1186,31 @@ export const api = {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) throw new Error('Not authenticated');
 
+    // maybeSingle: profile row is created on first signup via a trigger but
+    // there's a race window where auth succeeds before the profile lands.
+    // Return an empty-ish profile so callers can route to onboarding instead
+    // of crashing the shell.
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', session.user.id)
-      .single();
+      .maybeSingle();
 
     if (error) throw new Error(error.message);
-    return { data: { ...data, email: session.user.email } };
+    return { data: { ...(data || { id: session.user.id }), email: session.user.email } };
   },
 
   getSettings: async () => {
     const userId = await getUserId();
+    // maybeSingle: same rationale as getMe — profile may not exist yet.
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', userId)
-      .single();
+      .maybeSingle();
 
     if (error) throw new Error(error.message);
-    return { data };
+    return { data: data || { id: userId } };
   },
 
   updateSettings: async (data: any) => {
@@ -1337,13 +1359,16 @@ export const api = {
   },
 
   getContractor: async (id: string) => {
+    // maybeSingle: stale URLs / deleted contractors. Fail with a clean
+    // "not found" instead of a Postgrest coerce error.
     const { data, error } = await supabase
       .from('contractors')
       .select('*')
       .eq('id', id)
-      .single();
+      .maybeSingle();
 
     if (error) throw new Error(error.message);
+    if (!data) throw new Error('Contractor not found');
     return { data: camelify(data) };
   },
 
@@ -1500,6 +1525,7 @@ export const api = {
   },
 
   getProject: async (id: string) => {
+    // maybeSingle: stale URLs / deleted projects.
     const { data, error } = await supabase
       .from('projects')
       .select(`
@@ -1513,9 +1539,10 @@ export const api = {
         )
       `)
       .eq('id', id)
-      .single();
+      .maybeSingle();
 
     if (error) throw new Error(error.message);
+    if (!data) throw new Error('Project not found');
     return { data: camelify(data) };
   },
 
@@ -1851,28 +1878,35 @@ export const api = {
   },
 
   getGCProject: async (id: string) => {
+    // maybeSingle: GC project detail is deep-linked from subs/invites; row
+    // may be deleted or the user's org membership revoked. Clean "not found"
+    // beats a Postgrest coerce error.
     const { data, error } = await supabase
       .from('gc_projects')
       .select('*, zones:gc_project_zones(*), trades:gc_project_trades(*, tasks:gc_project_tasks(*)), messages:gc_project_messages(*)')
       .eq('id', id)
-      .single();
+      .maybeSingle();
     if (error) throw new Error(error.message);
+    if (!data) throw new Error('Project not found');
     return { data: camelify(data) };
   },
 
   createGCProject: async (projectData: any) => {
     const userId = await getUserId();
 
-    // Get or create org
+    // Get or create org. maybeSingle() not single(): first-time GCs have no
+    // org row yet, and .single() throws on 0 rows — which made the `if (!org)`
+    // fallback below unreachable. That was a silent "cannot create projects
+    // until you manually create an org" bug for every new GC signup.
     let { data: org } = await supabase
       .from('organizations')
       .select('id')
       .eq('owner_id', userId)
-      .single();
+      .maybeSingle();
 
     if (!org) {
-      // Auto-create org for this GC
-      const { data: settings } = await supabase.from('profiles').select('business_name').eq('id', userId).single();
+      // Auto-create org for this GC. profile may not exist yet either.
+      const { data: settings } = await supabase.from('profiles').select('business_name').eq('id', userId).maybeSingle();
       const { data: newOrg } = await supabase
         .from('organizations')
         .insert({ name: settings?.business_name || 'My Company', owner_id: userId, type: 'gc' })
@@ -2329,12 +2363,14 @@ export const api = {
   getTeamMembersWeb: async () => {
     try {
       const userId = await getUserId();
-      // Get user's org first
+      // Get user's org first. maybeSingle(): new users without an org should
+      // see an empty team list, not a thrown Postgrest error. With .single()
+      // the `if (!org)` branch was unreachable.
       const { data: org } = await supabase
         .from('organizations')
         .select('id')
         .eq('owner_id', userId)
-        .single();
+        .maybeSingle();
       if (!org) return { data: [] };
 
       const { data, error } = await supabase
@@ -2352,11 +2388,14 @@ export const api = {
   addTeamMember: async (member: { name: string; email?: string; phone?: string; role: string }) => {
     try {
       const userId = await getUserId();
+      // maybeSingle: surfaces the "No organization found" message cleanly
+      // for users who haven't set up an org yet. .single() would throw
+      // "cannot coerce to single JSON object" instead.
       const { data: org } = await supabase
         .from('organizations')
         .select('id')
         .eq('owner_id', userId)
-        .single();
+        .maybeSingle();
       if (!org) throw new Error('No organization found');
 
       const { data, error } = await supabase

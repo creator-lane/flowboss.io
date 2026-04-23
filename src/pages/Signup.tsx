@@ -33,7 +33,7 @@ export function Signup() {
       .from('gc_projects')
       .select('name')
       .eq('id', inviteProjectId)
-      .single()
+      .maybeSingle()
       .then(({ data }) => {
         if (data?.name) setInviteProjectName(data.name);
       });
@@ -127,12 +127,17 @@ export function Signup() {
         try {
           const newUserId = signUpData.user.id;
 
-          // Get the project to find the org_id
+          // Get the project to find the org_id. maybeSingle(): if the
+          // invite URL points at a deleted project, .single() would throw
+          // and the outer try/catch swallows it silently — sub gets an
+          // account but never linked to a trade. maybeSingle returns null
+          // and we fall through with no row-linking, same net effect but
+          // without the confusing error.
           const { data: project } = await supabase
             .from('gc_projects')
             .select('id, org_id, name')
             .eq('id', inviteProjectId)
-            .single();
+            .maybeSingle();
 
           if (project) {
             // Assign the sub to the trade

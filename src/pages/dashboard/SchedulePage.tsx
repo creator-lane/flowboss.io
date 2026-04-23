@@ -672,21 +672,27 @@ function WeekView({
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-7 gap-2">
-        {Array.from({ length: 7 }).map((_, i) => (
-          <div key={i} className="space-y-2">
-            <div className="h-6 bg-gray-200 rounded animate-pulse dark:bg-white/10" />
-            <div className="h-20 bg-gray-100 rounded animate-pulse dark:bg-white/10" />
-            <div className="h-20 bg-gray-100 rounded animate-pulse dark:bg-white/10" />
-          </div>
-        ))}
+      // Mobile: 7-col week with gap-2 crushes to ~47px cells on 375px —
+      // unreadable. Wrap in overflow-x-auto + min-w so contractors on
+      // phones can swipe the calendar sideways instead.
+      <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
+        <div className="grid grid-cols-7 gap-2 min-w-[640px] md:min-w-0">
+          {Array.from({ length: 7 }).map((_, i) => (
+            <div key={i} className="space-y-2">
+              <div className="h-6 bg-gray-200 rounded animate-pulse dark:bg-white/10" />
+              <div className="h-20 bg-gray-100 rounded animate-pulse dark:bg-white/10" />
+              <div className="h-20 bg-gray-100 rounded animate-pulse dark:bg-white/10" />
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="grid grid-cols-7 gap-2">
-      {days.map((day) => {
+    <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
+      <div className="grid grid-cols-7 gap-2 min-w-[640px] md:min-w-0">
+        {days.map((day) => {
         const key = format(day, 'yyyy-MM-dd');
         const dayJobs = jobsByDay.get(key) || [];
         const today = isToday(day);
@@ -764,6 +770,7 @@ function WeekView({
           </div>
         );
       })}
+      </div>
     </div>
   );
 }
@@ -860,25 +867,29 @@ function MonthView({
 
   if (isLoading) {
     return (
-      <div className="space-y-2">
-        <div className="grid grid-cols-7 gap-2">
-          {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((d) => (
-            <div key={d} className="text-center text-xs font-medium text-neutral-400 py-1 dark:text-gray-500">
-              {d}
-            </div>
-          ))}
-        </div>
-        <div className="grid grid-cols-7 gap-2">
-          {Array.from({ length: 35 }).map((_, i) => (
-            <div key={i} className="h-20 bg-gray-100 rounded-lg animate-pulse dark:bg-white/10" />
-          ))}
+      // Mobile: horizontal scroll rather than crushed 47px cells. See WeekView.
+      <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
+        <div className="space-y-2 min-w-[640px] md:min-w-0">
+          <div className="grid grid-cols-7 gap-2">
+            {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((d) => (
+              <div key={d} className="text-center text-xs font-medium text-neutral-400 py-1 dark:text-gray-500">
+                {d}
+              </div>
+            ))}
+          </div>
+          <div className="grid grid-cols-7 gap-2">
+            {Array.from({ length: 35 }).map((_, i) => (
+              <div key={i} className="h-20 bg-gray-100 rounded-lg animate-pulse dark:bg-white/10" />
+            ))}
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div>
+    <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
+      <div className="min-w-[640px] md:min-w-0">
       {/* Day headers */}
       <div className="grid grid-cols-7 gap-2 mb-2">
         {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((d, i) => (
@@ -972,6 +983,7 @@ function MonthView({
             </button>
           );
         })}
+      </div>
       </div>
     </div>
   );

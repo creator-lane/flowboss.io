@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { api } from '../../lib/api';
 import { CreateCustomerModal } from '../../components/customers/CreateCustomerModal';
 import { EmptyState } from '../../components/ui/EmptyState';
+import { QueryErrorState } from '../../components/ui/QueryErrorState';
 import {
   Search,
   Plus,
@@ -49,13 +50,14 @@ export function CustomersPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const debouncedSearch = useDebounce(search, 300);
 
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ['customers', debouncedSearch],
     queryFn: () =>
       api.getCustomers(
         debouncedSearch ? { search: debouncedSearch } : undefined
       ),
   });
+  void error; // retained for future error-message plumbing; consumed via QueryErrorState
 
   const customers = data?.data || [];
 
@@ -116,6 +118,15 @@ export function CustomersPage() {
             <SkeletonCard key={i} />
           ))}
         </div>
+      )}
+
+      {/* Query error */}
+      {!isLoading && isError && (
+        <QueryErrorState
+          title="Couldn't load customers"
+          description="We hit an error reaching the server. Your customers are safe — this is just a display problem."
+          onRetry={() => refetch()}
+        />
       )}
 
       {/* Customer grid */}
@@ -197,8 +208,8 @@ export function CustomersPage() {
         </div>
       )}
 
-      {/* Empty state */}
-      {!isLoading && customers.length === 0 && (
+      {/* Empty state (only when query succeeded with zero rows — not when it failed) */}
+      {!isLoading && !isError && customers.length === 0 && (
         debouncedSearch ? (
           <div className="text-center py-16">
             <Users className="w-12 h-12 text-neutral-300 mx-auto mb-3" />

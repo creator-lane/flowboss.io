@@ -24,6 +24,7 @@ import { CreateGCProjectModal } from '../../components/gc/CreateGCProjectModal';
 import { MultiProjectActivityFeed } from '../../components/gc/ProjectActivityFeed';
 import { TypeToConfirmDialog } from '../../components/ui/TypeToConfirmDialog';
 import { EmptyState } from '../../components/ui/EmptyState';
+import { QueryErrorState } from '../../components/ui/QueryErrorState';
 import { loadAllDemoData } from '../../lib/demoData';
 
 const STATUS_CONFIG: Record<string, { bg: string; text: string; ring: string; dot: string; label: string }> = {
@@ -1017,6 +1018,13 @@ export function GCDashboardPage() {
             <div className="flex items-center justify-center h-32">
               <div className="w-6 h-6 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
             </div>
+          ) : projectsQuery.isError ? (
+            <QueryErrorState
+              title="Couldn't load projects"
+              description="We hit an error reaching the server. Your projects are safe — this is just a display problem."
+              error={projectsQuery.error}
+              onRetry={() => projectsQuery.refetch()}
+            />
           ) : filtered.length === 0 ? (
             <EmptyState
               icon={FolderKanban}
@@ -1069,6 +1077,13 @@ export function GCDashboardPage() {
             <div className="flex items-center justify-center h-32">
               <div className="w-6 h-6 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
             </div>
+          ) : subsQuery.isError ? (
+            <QueryErrorState
+              title="Couldn't load your subs"
+              description="We hit an error reaching the server. Try again in a moment."
+              error={subsQuery.error}
+              onRetry={() => subsQuery.refetch()}
+            />
           ) : filteredSubs.length === 0 ? (
             <div className="text-center py-16">
               <Users className="w-12 h-12 text-gray-300 mx-auto mb-4" />

@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { CreateJobModal } from '../../components/jobs/CreateJobModal';
 import { EmptyState } from '../../components/ui/EmptyState';
+import { QueryErrorState } from '../../components/ui/QueryErrorState';
 import { SpotlightTip } from '../../components/ui/SpotlightTip';
 
 const STATUS_BADGE = JOB_STATUS_BADGE;
@@ -75,7 +76,7 @@ export function JobsPage() {
   const [viewMonth, setViewMonth] = useState(() => new Date());
 
   // Fetch all jobs when 'all', or use month-based query for month view
-  const { data: rawJobs, isLoading } = useQuery({
+  const { data: rawJobs, isLoading, isError, refetch } = useQuery({
     queryKey: ['jobs', timeRange, timeRange === 'month' ? format(viewMonth, 'yyyy-MM') : 'all'],
     queryFn: () => {
       if (timeRange === 'all') {
@@ -292,6 +293,16 @@ export function JobsPage() {
                 <SkeletonRow />
                 <SkeletonRow />
               </>
+            ) : isError ? (
+              <tr>
+                <td colSpan={5}>
+                  <QueryErrorState
+                    title="Couldn't load jobs"
+                    description="We hit an error reaching the server. Your jobs are safe — this is just a display problem."
+                    onRetry={() => refetch()}
+                  />
+                </td>
+              </tr>
             ) : visibleJobs.length === 0 ? (
               <tr>
                 <td colSpan={5}>
@@ -363,6 +374,12 @@ export function JobsPage() {
               </div>
             </div>
           ))
+        ) : isError ? (
+          <QueryErrorState
+            title="Couldn't load jobs"
+            description="We hit an error reaching the server. Your jobs are safe — this is just a display problem."
+            onRetry={() => refetch()}
+          />
         ) : visibleJobs.length === 0 ? (
           <EmptyState
             icon={Briefcase}

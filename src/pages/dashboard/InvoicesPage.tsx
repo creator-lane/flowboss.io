@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { CreateInvoiceModal } from '../../components/invoices/CreateInvoiceModal';
 import { EmptyState } from '../../components/ui/EmptyState';
+import { QueryErrorState } from '../../components/ui/QueryErrorState';
 import { SpotlightTip } from '../../components/ui/SpotlightTip';
 import { isOverdue, isPaid, isDraft, isSent } from '../../lib/invoiceStatus';
 
@@ -81,10 +82,11 @@ export function InvoicesPage() {
   const [filter, setFilter] = useState<FilterTab>('all');
   const [showCreateModal, setShowCreateModal] = useState(false);
 
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ['invoices'],
     queryFn: () => api.getInvoices(),
   });
+  void error;
 
   const invoices = data?.data || [];
 
@@ -227,13 +229,13 @@ export function InvoicesPage() {
         ))}
       </div>
 
-      {/* Error */}
-      {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 dark:bg-red-500/10 dark:border-red-500/30">
-          <p className="text-sm text-red-700 dark:text-red-300">
-            Failed to load invoices. Please try again.
-          </p>
-        </div>
+      {/* Error — replaces empty state when the fetch failed. */}
+      {isError && (
+        <QueryErrorState
+          title="Couldn't load invoices"
+          description="We hit an error reaching the server. Your invoices are safe — this is just a display problem."
+          onRetry={() => refetch()}
+        />
       )}
 
       {/* Desktop table */}
@@ -316,7 +318,7 @@ export function InvoicesPage() {
           </tbody>
         </table>
 
-        {!isLoading && filtered.length === 0 && (
+        {!isLoading && !isError && filtered.length === 0 && (
           <EmptyState
             icon={FileText}
             title="No invoices yet"
@@ -385,7 +387,7 @@ export function InvoicesPage() {
               );
             })}
 
-        {!isLoading && filtered.length === 0 && (
+        {!isLoading && !isError && filtered.length === 0 && (
           <EmptyState
             icon={FileText}
             title="No invoices yet"

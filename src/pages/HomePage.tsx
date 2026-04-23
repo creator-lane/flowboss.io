@@ -27,6 +27,7 @@ import {
   HardHat,
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { SignatureStripe } from '../components/ui/SignatureStripe';
 
 const screenshots = {
   schedule: '/screenshots/Screenshot_20260327-151517.png',
@@ -870,6 +871,12 @@ export function HomePage() {
       <section className="relative overflow-hidden pt-20 md:pt-28 pb-16">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-indigo-50/40" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(59,130,246,0.08),transparent_50%)]" />
+        {/* Amber hi-vis signature — subtle diagonal tape in the top-right, plus a thin saturated band at the bottom of the hero. */}
+        <div className="absolute top-0 right-0 w-[38rem] h-[24rem] pointer-events-none opacity-80">
+          <SignatureStripe intensity="low" angle={45} />
+        </div>
+        <div className="absolute bottom-0 left-0 right-0 h-2 pointer-events-none">
+          <SignatureStripe intensity="medium" angle={45} /></div>
         <div className="relative max-w-7xl mx-auto px-6">
           <div className="text-center max-w-4xl mx-auto mb-14">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-sm font-medium mb-6 border border-blue-100">

@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { CreateJobModal } from '../../components/jobs/CreateJobModal';
 import { EmptyState } from '../../components/ui/EmptyState';
+import { BlueprintIllustration } from '../../components/ui/illustrations/BlueprintIllustration';
 import { QueryErrorState } from '../../components/ui/QueryErrorState';
 import { SpotlightTip } from '../../components/ui/SpotlightTip';
 
@@ -307,9 +308,9 @@ export function JobsPage() {
               <tr>
                 <td colSpan={5}>
                   <EmptyState
-                    icon={Briefcase}
-                    title="No jobs yet"
-                    description="Jobs are the heart of FlowBoss. Create one to start tracking your work, scheduling your crew, and billing your customers."
+                    illustration={<BlueprintIllustration className="w-full h-full" />}
+                    title="Nothing on the board"
+                    description="Create a job to start the clock — tracking your crew, logging photos, and billing when it's done."
                     actionLabel="Create Your First Job"
                     onAction={() => setShowCreateJob(true)}
                     accentColor="brand"
@@ -382,9 +383,9 @@ export function JobsPage() {
           />
         ) : visibleJobs.length === 0 ? (
           <EmptyState
-            icon={Briefcase}
-            title="No jobs yet"
-            description="Jobs are the heart of FlowBoss. Create one to start tracking your work, scheduling your crew, and billing your customers."
+            illustration={<BlueprintIllustration className="w-full h-full" />}
+            title="Nothing on the board"
+            description="Create a job to start the clock — tracking your crew, logging photos, and billing when it's done."
             actionLabel="Create Your First Job"
             onAction={() => setShowCreateJob(true)}
             accentColor="brand"

@@ -32,6 +32,7 @@ import { ZoneClusterDiagram } from '../../components/gc/ZoneClusterDiagram';
 import { ProjectActivityFeed } from '../../components/gc/ProjectActivityFeed';
 import { OnboardingOverlay } from '../../components/gc/OnboardingOverlay';
 import { ProjectBanner } from '../../components/gc/ProjectBanner';
+import { ProjectCoverUpload } from '../../components/gc/ProjectCoverUpload';
 import { EditGCProjectModal } from '../../components/gc/EditGCProjectModal';
 import { TradeDetailPanel } from '../../components/gc/TradeDetailPanel';
 import { Tooltip } from '../../components/ui/Tooltip';
@@ -277,6 +278,15 @@ export function GCProjectDetailPage() {
         </Link>
         <ChevronRight className="w-3.5 h-3.5 text-gray-400 dark:text-gray-500" />
         <span className="text-gray-900 font-medium truncate max-w-[200px] dark:text-white">{project.name}</span>
+      </div>
+
+      {/* Cover photo — hero slot the GC can swap from their phone. */}
+      <div className="mb-5">
+        <ProjectCoverUpload
+          projectId={id!}
+          coverUrl={project.coverImageUrl}
+          projectName={project.name}
+        />
       </div>
 
       {/* Header */}
@@ -1050,7 +1060,9 @@ function ZoneDetailPanel({
             return (
               <div
                 key={trade.id}
-                className="bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-gray-300 transition-colors dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10"
+                className={`bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-gray-300 transition-colors dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10 ${
+                  trade.status === 'in_progress' ? 'animate-amber-pulse' : ''
+                }`}
                 style={{ borderTop: `3px solid ${accent}` }}
               >
                 <div className="p-3">

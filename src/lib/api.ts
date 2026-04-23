@@ -2001,6 +2001,66 @@ export const api = {
     return { data: camelify(data) };
   },
 
+  // Upload a cover image for a GC project. Stores at
+  // `<org_id>/<project_id>/<timestamp>-<sanitized-filename>` so the storage
+  // RLS policy can key auth on the top-level org folder. Returns the public
+  // URL and writes it to gc_projects.cover_image_url in a single trip so the
+  // UI only needs one mutation.
+  uploadProjectCover: async (projectId: string, file: File) => {
+    // Pull the project's org_id — we use it as the storage path prefix and
+    // the RLS policy expects it to match the uploader's org membership.
+    const { data: project, error: pErr } = await supabase
+      .from('gc_projects')
+      .select('org_id')
+      .eq('id', projectId)
+      .maybeSingle();
+    if (pErr) throw new Error(pErr.message);
+    if (!project?.org_id) throw new Error('Project or org not found');
+
+    // Keep filenames storage-safe but preserve the extension for MIME
+    // sniffing on download.
+    const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+    const path = `${project.org_id}/${projectId}/${Date.now()}.${ext}`;
+
+    const { error: upErr } = await supabase.storage
+      .from('project-covers')
+      .upload(path, file, {
+        cacheControl: '3600',
+        upsert: false,
+        contentType: file.type || `image/${ext}`,
+      });
+    if (upErr) throw new Error(upErr.message);
+
+    const { data: pub } = supabase.storage.from('project-covers').getPublicUrl(path);
+    const publicUrl = pub.publicUrl;
+
+    // Write the URL back to the project row in the same call — the UI expects
+    // a single success/failure boundary per upload.
+    const { data: updated, error: updErr } = await supabase
+      .from('gc_projects')
+      .update({ cover_image_url: publicUrl })
+      .eq('id', projectId)
+      .select()
+      .single();
+    if (updErr) throw new Error(updErr.message);
+
+    return { data: camelify(updated), url: publicUrl };
+  },
+
+  // Remove a project's cover. Nulls the column; we leave the storage object
+  // in place since uploads are cheap and deletes add RLS surface area. A
+  // periodic cleanup can prune orphans if storage costs bite later.
+  clearProjectCover: async (projectId: string) => {
+    const { data, error } = await supabase
+      .from('gc_projects')
+      .update({ cover_image_url: null })
+      .eq('id', projectId)
+      .select()
+      .single();
+    if (error) throw new Error(error.message);
+    return { data: camelify(data) };
+  },
+
   deleteGCProject: async (id: string) => {
     const { error } = await supabase.from('gc_projects').delete().eq('id', id);
     if (error) throw new Error(error.message);

@@ -30,10 +30,24 @@ export default {
           '0%': { opacity: '0', transform: 'translateX(24px) scale(0.96)' },
           '100%': { opacity: '1', transform: 'translateX(0) scale(1)' },
         },
+        // Signature amber breathing pulse on "work is happening" cards.
+        // Kept subtle — 0.35 opacity ring max — so a board full of active
+        // trades doesn't look like a Christmas tree.
+        'amber-pulse': {
+          '0%, 100%': { boxShadow: '0 0 0 0 rgba(245, 158, 11, 0)' },
+          '50%':      { boxShadow: '0 0 0 4px rgba(245, 158, 11, 0.35)' },
+        },
+        // Gentle slide-in for newly-added board cards / list items.
+        'slide-in-up': {
+          '0%':   { opacity: '0', transform: 'translateY(8px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
       },
       animation: {
         'check-flash': 'check-flash 0.6s ease-out',
         'toast-in': 'toast-in 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+        'amber-pulse': 'amber-pulse 2.4s ease-in-out infinite',
+        'slide-in-up': 'slide-in-up 0.28s cubic-bezier(0.16, 1, 0.3, 1)',
       },
       colors: {
         brand: {

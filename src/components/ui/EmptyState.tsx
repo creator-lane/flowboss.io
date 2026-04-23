@@ -1,7 +1,11 @@
 import React from 'react';
+import { SignatureStripe } from './SignatureStripe';
 
 interface EmptyStateProps {
-  icon: React.ElementType;
+  /** Lucide icon — used when no `illustration` is provided (default, works for internal/secondary empty states). */
+  icon?: React.ElementType;
+  /** Custom illustration component (SVG). Takes precedence over `icon` — use for high-visibility empty states (Jobs, Customers, Invoices, GC Projects). */
+  illustration?: React.ReactNode;
   title: string;
   description: string;
   actionLabel?: string;
@@ -14,6 +18,8 @@ interface EmptyStateProps {
   /** When true, disable the secondary action (e.g. already-performed demo load). */
   secondaryDisabled?: boolean;
   accentColor?: string;
+  /** Show the amber hi-vis signature stripe behind the illustration. Defaults to true when `illustration` is provided. */
+  showStripe?: boolean;
 }
 
 // Light: warm gradient chips. Dark: translucent brand-tinted chip (matches homepage pattern).
@@ -31,6 +37,7 @@ const COLOR_MAP: Record<string, { bg: string; dark: string; btn: string; btnHove
 
 export function EmptyState({
   icon: Icon,
+  illustration,
   title,
   description,
   actionLabel,
@@ -41,8 +48,10 @@ export function EmptyState({
   onSecondaryAction,
   secondaryDisabled,
   accentColor = 'brand',
+  showStripe,
 }: EmptyStateProps) {
   const colors = COLOR_MAP[accentColor] || COLOR_MAP.brand;
+  const stripeVisible = showStripe ?? !!illustration;
 
   const handlePrimary = () => {
     if (onAction) {
@@ -54,7 +63,7 @@ export function EmptyState({
 
   return (
     <div className="relative flex flex-col items-center justify-center py-16 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      {/* Decorative dots */}
+      {/* Decorative dots — retained as ambient background texture */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.04] dark:opacity-[0.06]">
         <div
           className="w-64 h-64"
@@ -66,20 +75,34 @@ export function EmptyState({
         />
       </div>
 
-      {/* Icon circle */}
-      <div
-        className={`relative w-16 h-16 rounded-full bg-gradient-to-br ${colors.bg} ${colors.dark} flex items-center justify-center mb-5 shadow-sm`}
-      >
-        <Icon className="w-7 h-7 text-gray-500 dark:text-gray-300" />
-      </div>
+      {/* Illustration slot — takes precedence over icon. Wrapped in a
+          signature-stripe container so every illustrated empty state carries
+          the same amber accent, giving us brand repetition without custom
+          SVG work for each page. */}
+      {illustration ? (
+        <div className="relative w-40 h-40 mb-5">
+          {stripeVisible && (
+            <div className="absolute inset-2 rounded-3xl overflow-hidden">
+              <SignatureStripe intensity="low" />
+            </div>
+          )}
+          <div className="relative z-10 w-full h-full">{illustration}</div>
+        </div>
+      ) : Icon ? (
+        <div
+          className={`relative w-16 h-16 rounded-full bg-gradient-to-br ${colors.bg} ${colors.dark} flex items-center justify-center mb-5 shadow-sm`}
+        >
+          <Icon className="w-7 h-7 text-gray-500 dark:text-gray-300" />
+        </div>
+      ) : null}
 
       {/* Title */}
-      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2 text-center px-4">
         {title}
       </h3>
 
       {/* Description */}
-      <p className="text-sm text-gray-500 dark:text-gray-400 max-w-sm mx-auto text-center leading-relaxed">
+      <p className="text-sm text-gray-500 dark:text-gray-400 max-w-sm mx-auto text-center leading-relaxed px-4">
         {description}
       </p>
 

@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { api } from '../../lib/api';
 import { CreateCustomerModal } from '../../components/customers/CreateCustomerModal';
 import { EmptyState } from '../../components/ui/EmptyState';
+import { ClipboardIllustration } from '../../components/ui/illustrations/ClipboardIllustration';
 import { QueryErrorState } from '../../components/ui/QueryErrorState';
 import {
   Search,
@@ -222,9 +223,9 @@ export function CustomersPage() {
           </div>
         ) : (
           <EmptyState
-            icon={Users}
-            title="No customers yet"
-            description="Add your first customer to start creating jobs, sending invoices, and building your client list."
+            illustration={<ClipboardIllustration className="w-full h-full" />}
+            title="No customers in the book"
+            description="Add your first customer and FlowBoss keeps their history in one place — every job, every invoice, every phone number. No more digging through texts."
             actionLabel="Add Your First Customer"
             onAction={() => setShowCreateModal(true)}
             accentColor="brand"

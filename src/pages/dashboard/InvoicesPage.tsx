@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { CreateInvoiceModal } from '../../components/invoices/CreateInvoiceModal';
 import { EmptyState } from '../../components/ui/EmptyState';
+import { InvoiceIllustration } from '../../components/ui/illustrations/InvoiceIllustration';
 import { QueryErrorState } from '../../components/ui/QueryErrorState';
 import { SpotlightTip } from '../../components/ui/SpotlightTip';
 import { isOverdue, isPaid, isDraft, isSent } from '../../lib/invoiceStatus';
@@ -320,9 +321,9 @@ export function InvoicesPage() {
 
         {!isLoading && !isError && filtered.length === 0 && (
           <EmptyState
-            icon={FileText}
-            title="No invoices yet"
-            description="Create an invoice to bill your customers. FlowBoss handles the math, sends payment links, and tracks who's paid."
+            illustration={<InvoiceIllustration className="w-full h-full" />}
+            title="Nobody owes you money"
+            description="Create an invoice and FlowBoss handles the math, sends the payment link, and pings you the moment it's paid."
             actionLabel="Create Your First Invoice"
             onAction={() => setShowCreateModal(true)}
             accentColor="emerald"
@@ -389,9 +390,9 @@ export function InvoicesPage() {
 
         {!isLoading && !isError && filtered.length === 0 && (
           <EmptyState
-            icon={FileText}
-            title="No invoices yet"
-            description="Create an invoice to bill your customers. FlowBoss handles the math, sends payment links, and tracks who's paid."
+            illustration={<InvoiceIllustration className="w-full h-full" />}
+            title="Nobody owes you money"
+            description="Create an invoice and FlowBoss handles the math, sends the payment link, and pings you the moment it's paid."
             actionLabel="Create Your First Invoice"
             onAction={() => setShowCreateModal(true)}
             accentColor="emerald"

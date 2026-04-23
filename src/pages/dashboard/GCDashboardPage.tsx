@@ -24,6 +24,7 @@ import { CreateGCProjectModal } from '../../components/gc/CreateGCProjectModal';
 import { MultiProjectActivityFeed } from '../../components/gc/ProjectActivityFeed';
 import { TypeToConfirmDialog } from '../../components/ui/TypeToConfirmDialog';
 import { EmptyState } from '../../components/ui/EmptyState';
+import { HardhatIllustration } from '../../components/ui/illustrations/HardhatIllustration';
 import { QueryErrorState } from '../../components/ui/QueryErrorState';
 import { loadAllDemoData } from '../../lib/demoData';
 
@@ -77,8 +78,22 @@ function ProjectCard({ project, onClick, onDelete }: { project: any; onClick: ()
   return (
     <div
       onClick={onClick}
-      className="group bg-white rounded-xl border border-gray-200 p-5 hover:shadow-lg hover:shadow-gray-200/50 hover:-translate-y-0.5 hover:border-gray-300 transition-all duration-200 cursor-pointer dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10"
+      className="group bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg hover:shadow-gray-200/50 hover:-translate-y-0.5 hover:border-gray-300 transition-all duration-200 cursor-pointer dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10"
     >
+      {/* Cover thumbnail — only renders when the GC has uploaded one. Keeps
+          the card layout identical for brand-new projects. */}
+      {project.coverImageUrl && (
+        <div className="relative w-full h-32 -mb-1 overflow-hidden bg-neutral-100 dark:bg-white/5">
+          <img
+            src={project.coverImageUrl}
+            alt={`${project.name} cover`}
+            className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300"
+            loading="lazy"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-black/0 to-black/0 pointer-events-none" />
+        </div>
+      )}
+      <div className="p-5">
       <div className="flex items-start justify-between mb-3">
         <h3 className="text-base font-semibold text-gray-900 line-clamp-1 dark:text-white">{project.name}</h3>
         <div className="flex items-center gap-2">
@@ -143,6 +158,7 @@ function ProjectCard({ project, onClick, onDelete }: { project: any; onClick: ()
         {project.budget && (
           <span className="font-medium text-gray-700 dark:text-gray-200">{formatCurrency(project.budget)}</span>
         )}
+      </div>
       </div>
     </div>
   );
@@ -1027,9 +1043,9 @@ export function GCDashboardPage() {
             />
           ) : filtered.length === 0 ? (
             <EmptyState
-              icon={FolderKanban}
-              title="No projects yet"
-              description="Create your first project to get started — or load our demo data to see how FlowBoss looks in action."
+              illustration={<HardhatIllustration className="w-full h-full" />}
+              title="No projects on the site"
+              description="Spin up your first project and invite the trades — FlowBoss tracks every bid, change order, and sub photo in one place. Or load the demo to see it running."
               actionLabel="New Project"
               onAction={() => setShowCreate(true)}
               secondaryLabel={

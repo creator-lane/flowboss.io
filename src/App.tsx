@@ -1,27 +1,33 @@
 import { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
+// Eager: HomePage is the marketing landing and needs to paint instantly.
+// Layout + auth primitives are used on nearly every navigation; lazying them
+// would just trade one network request for another on the critical path.
 import { HomePage } from './pages/HomePage';
-import { PrivacyPolicy } from './pages/PrivacyPolicy';
-import { TermsOfService } from './pages/TermsOfService';
-import { EULA } from './pages/EULA';
-import { Support } from './pages/Support';
-import { DeleteAccount } from './pages/DeleteAccount';
-import { AnalyticsTaxonomy } from './pages/AnalyticsTaxonomy';
-import { StripeConnect } from './pages/StripeConnect';
 import { Layout } from './pages/Layout';
 import { Login } from './pages/Login';
 import { Signup } from './pages/Signup';
-import { ForgotPassword } from './pages/ForgotPassword';
-import { ResetPassword } from './pages/ResetPassword';
-import { Onboarding } from './pages/Onboarding';
-import { Pricing } from './pages/Pricing';
-import { Checkout } from './pages/Checkout';
 import { RequireAuth } from './components/auth/RequireAuth';
 import { RequireSubscription } from './components/auth/RequireSubscription';
 import { DashboardLayout } from './components/layout/DashboardLayout';
-import { InviteLanding } from './pages/InviteLanding';
 import { ProGate } from './components/upgrade/ProGate';
 import { LazyChunkBoundary } from './components/LazyChunkBoundary';
+
+// Lazy marketing / auxiliary / auth-flow pages — infrequently visited,
+// should not ship in the entry bundle.
+const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy').then(m => ({ default: m.PrivacyPolicy })));
+const TermsOfService = lazy(() => import('./pages/TermsOfService').then(m => ({ default: m.TermsOfService })));
+const EULA = lazy(() => import('./pages/EULA').then(m => ({ default: m.EULA })));
+const Support = lazy(() => import('./pages/Support').then(m => ({ default: m.Support })));
+const DeleteAccount = lazy(() => import('./pages/DeleteAccount').then(m => ({ default: m.DeleteAccount })));
+const AnalyticsTaxonomy = lazy(() => import('./pages/AnalyticsTaxonomy').then(m => ({ default: m.AnalyticsTaxonomy })));
+const StripeConnect = lazy(() => import('./pages/StripeConnect').then(m => ({ default: m.StripeConnect })));
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword').then(m => ({ default: m.ForgotPassword })));
+const ResetPassword = lazy(() => import('./pages/ResetPassword').then(m => ({ default: m.ResetPassword })));
+const Onboarding = lazy(() => import('./pages/Onboarding').then(m => ({ default: m.Onboarding })));
+const Pricing = lazy(() => import('./pages/Pricing').then(m => ({ default: m.Pricing })));
+const Checkout = lazy(() => import('./pages/Checkout').then(m => ({ default: m.Checkout })));
+const InviteLanding = lazy(() => import('./pages/InviteLanding').then(m => ({ default: m.InviteLanding })));
 
 // Lazy-loaded dashboard pages for code-splitting
 const SchedulePage = lazy(() => import('./pages/dashboard/SchedulePage').then(m => ({ default: m.SchedulePage })));
@@ -68,24 +74,24 @@ export default function App() {
       {/* Marketing site */}
       <Route element={<Layout />}>
         <Route path="/" element={<HomePage />} />
-        <Route path="/privacy" element={<PrivacyPolicy />} />
-        <Route path="/terms" element={<TermsOfService />} />
-        <Route path="/eula" element={<EULA />} />
-        <Route path="/support" element={<Support />} />
-        <Route path="/delete-account" element={<DeleteAccount />} />
-        <Route path="/analytics" element={<AnalyticsTaxonomy />} />
-        <Route path="/stripe-connect" element={<StripeConnect />} />
+        <Route path="/privacy" element={<Lazy><PrivacyPolicy /></Lazy>} />
+        <Route path="/terms" element={<Lazy><TermsOfService /></Lazy>} />
+        <Route path="/eula" element={<Lazy><EULA /></Lazy>} />
+        <Route path="/support" element={<Lazy><Support /></Lazy>} />
+        <Route path="/delete-account" element={<Lazy><DeleteAccount /></Lazy>} />
+        <Route path="/analytics" element={<Lazy><AnalyticsTaxonomy /></Lazy>} />
+        <Route path="/stripe-connect" element={<Lazy><StripeConnect /></Lazy>} />
       </Route>
 
       {/* Auth & public pages */}
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
-      <Route path="/forgot-password" element={<ForgotPassword />} />
-      <Route path="/reset-password" element={<ResetPassword />} />
-      <Route path="/onboarding" element={<Onboarding />} />
-      <Route path="/pricing" element={<Pricing />} />
-      <Route path="/checkout" element={<Checkout />} />
-      <Route path="/invite/:projectId/:tradeId" element={<InviteLanding />} />
+      <Route path="/forgot-password" element={<Lazy><ForgotPassword /></Lazy>} />
+      <Route path="/reset-password" element={<Lazy><ResetPassword /></Lazy>} />
+      <Route path="/onboarding" element={<Lazy><Onboarding /></Lazy>} />
+      <Route path="/pricing" element={<Lazy><Pricing /></Lazy>} />
+      <Route path="/checkout" element={<Lazy><Checkout /></Lazy>} />
+      <Route path="/invite/:projectId/:tradeId" element={<Lazy><InviteLanding /></Lazy>} />
 
       {/* Dashboard (protected) */}
       <Route

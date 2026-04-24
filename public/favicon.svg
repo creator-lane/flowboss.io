@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="FlowBoss">
+  <!-- Brand blue gradient (matches brand-400 → brand-600 used in the dashboard header logo). -->
+  <defs>
+    <linearGradient id="fb-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#60a5fa"/>
+      <stop offset="100%" stop-color="#2563eb"/>
+    </linearGradient>
+    <filter id="fb-shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="1" stdDeviation="0.6" flood-color="#1e3a8a" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <!-- Rounded square tile. 12px radius = ~19% rounding — same feel as the
+       dashboard's rounded-xl header chip. -->
+  <rect x="2" y="2" width="60" height="60" rx="12" fill="url(#fb-bg)"/>
+
+  <!-- Simplified wrench glyph. Centered, tilted -30° for that "tool at work"
+       feel; kept chunky so it still reads at 16×16. -->
+  <g transform="translate(32 32) rotate(-30)" filter="url(#fb-shadow)">
+    <!-- Handle -->
+    <rect x="-3" y="-2" width="24" height="6" rx="2" fill="#ffffff"/>
+    <!-- Open jaw (box-end wrench head) -->
+    <path d="M -3 -6 L -15 -6 A 7 7 0 0 0 -15 8 L -3 8 L -3 2 L -9 2 A 3 3 0 0 1 -9 -0 L -3 -0 Z"
+          fill="#ffffff"/>
+  </g>
+
+  <!-- Amber hi-vis corner accent — the signature motif. A short diagonal
+       tape strip in the bottom-right corner, same #f59e0b as SignatureStripe
+       and the empty-state illustrations. Keeps the favicon tied to the
+       rest of the design system. -->
+  <g>
+    <path d="M 44 62 L 62 44 L 62 56 L 56 62 Z" fill="#f59e0b"/>
+    <path d="M 44 62 L 48 62 L 62 48 L 62 44 Z" fill="#fde68a" fill-opacity="0.6"/>
+  </g>
+</svg>

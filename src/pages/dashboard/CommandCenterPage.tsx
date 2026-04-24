@@ -31,6 +31,8 @@ import { SetupChecklist } from '../../components/dashboard/SetupChecklist';
 import { MomentumStrip } from '../../components/dashboard/MomentumStrip';
 import { DailyBriefing } from '../../components/dashboard/DailyBriefing';
 import { LoginStreak } from '../../components/dashboard/LoginStreak';
+import { GracePeriodBanner } from '../../components/billing/GracePeriodBanner';
+import { ReconnectCard } from '../../components/dashboard/ReconnectCard';
 import { SpotlightTip } from '../../components/ui/SpotlightTip';
 import { isOverdue as isInvoiceOverdue } from '../../lib/invoiceStatus';
 
@@ -279,6 +281,10 @@ export function CommandCenterPage() {
 
   return (
     <div className="relative p-4 lg:p-6 max-w-5xl mx-auto space-y-6 dark:before:pointer-events-none dark:before:absolute dark:before:inset-0 dark:before:bg-[radial-gradient(circle_at_70%_10%,rgba(59,130,246,0.12),transparent_55%)] dark:before:-z-10">
+      {/* Grace Period banner — top priority, non-dismissable. Only renders
+          if Stripe has flipped the account to past_due. */}
+      <GracePeriodBanner />
+
       {/* Global error banner — partial data is still useful, but tell the
           user something's wrong so they don't think their dashboard is empty. */}
       {anyError && (
@@ -396,6 +402,12 @@ export function CommandCenterPage() {
             <LoginStreak />
           </div>
         </div>
+      )}
+
+      {/* 1b4. Reconnect — past customers who've gone quiet. Self-hides
+          when nobody qualifies (needs ≥ 1 completed job + 90 days silent). */}
+      {allCustomers.length > 0 && (
+        <ReconnectCard customers={allCustomers} jobs={allJobs} />
       )}
 
       {/* 1c. Smart Nudges — contextual prompts based on user state */}

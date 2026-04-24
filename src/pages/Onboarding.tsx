@@ -31,6 +31,7 @@ interface OnboardingData {
   zip: string;
   businessRole: string;
   priorities: string[];
+  loadSampleData: boolean;
 }
 
 const INITIAL_DATA: OnboardingData = {
@@ -42,6 +43,7 @@ const INITIAL_DATA: OnboardingData = {
   zip: '',
   businessRole: '',
   priorities: [],
+  loadSampleData: true,
 };
 
 // ---------------------------------------------------------------------------
@@ -446,7 +448,13 @@ function StepPriorities({
   );
 }
 
-function StepComplete({ data }: { data: OnboardingData }) {
+function StepComplete({
+  data,
+  onChange,
+}: {
+  data: OnboardingData;
+  onChange: (d: Partial<OnboardingData>) => void;
+}) {
   const tradeName = data.trade === 'Other' ? data.customTrade || 'Other' : data.trade;
   const teamLabel = TEAM_SIZES.find((t) => t.id === data.teamSize)?.label || data.teamSize;
   const roleLabel = BUSINESS_ROLES.find((r) => r.id === data.businessRole)?.label || data.businessRole;
@@ -477,7 +485,9 @@ function StepComplete({ data }: { data: OnboardingData }) {
         You're all set.
       </h2>
       <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 mb-8">
-        We're about to pre-load your dashboard with a realistic {tradeName.toLowerCase() || 'starter'} project so it looks lived-in from day one.
+        {data.loadSampleData
+          ? `We'll pre-load your dashboard with a realistic ${tradeName.toLowerCase() || 'starter'} project so it looks lived-in from day one — you can clear it anytime from Settings.`
+          : `Your dashboard will start empty. You can load sample data anytime from Settings.`}
       </p>
 
       <div className="text-left rounded-2xl border border-gray-200 bg-gradient-to-br from-gray-50 to-white overflow-hidden dark:border-white/10 dark:from-white/[0.03] dark:to-white/[0.01]">
@@ -495,6 +505,32 @@ function StepComplete({ data }: { data: OnboardingData }) {
             </div>
           ))}
       </div>
+
+      {/* Sample data toggle */}
+      <label
+        htmlFor="load-sample-data"
+        className={`mt-5 flex items-start gap-3 text-left rounded-2xl border p-4 cursor-pointer transition-colors ${
+          data.loadSampleData
+            ? 'border-blue-500/40 bg-blue-500/[0.06] dark:border-blue-400/40 dark:bg-blue-400/[0.08]'
+            : 'border-gray-200 bg-white hover:border-gray-300 dark:border-white/10 dark:bg-white/[0.02] dark:hover:border-white/20'
+        }`}
+      >
+        <input
+          id="load-sample-data"
+          type="checkbox"
+          checked={data.loadSampleData}
+          onChange={(e) => onChange({ loadSampleData: e.target.checked })}
+          className="mt-0.5 w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-600"
+        />
+        <div className="flex-1">
+          <div className="text-sm font-semibold text-gray-900 dark:text-white">
+            Load sample {tradeName.toLowerCase() || 'starter'} data to explore
+          </div>
+          <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 leading-relaxed">
+            Adds realistic customers, jobs, invoices, and a sample GC project. Marked as demo and removable from Settings → Demo Data with one click.
+          </div>
+        </div>
+      </label>
     </div>
   );
 }
@@ -628,11 +664,13 @@ export function Onboarding() {
 
       await api.updateSettings(profileUpdate);
 
-      try {
-        const { generateSeedData } = await loadSeedData();
-        await generateSeedData(tradeValue);
-      } catch {
-        /* seed data non-blocking */
+      if (data.loadSampleData) {
+        try {
+          const { generateSeedData } = await loadSeedData();
+          await generateSeedData(tradeValue);
+        } catch {
+          /* seed data non-blocking */
+        }
       }
 
       navigate(postOnboardingPath(), { replace: true });
@@ -685,7 +723,7 @@ export function Onboarding() {
     <StepBusinessInfo key="biz" data={data} onChange={update} />,
     <StepGCRole key="gc" data={data} onChange={update} />,
     <StepPriorities key="priorities" data={data} onChange={update} />,
-    <StepComplete key="complete" data={data} />,
+    <StepComplete key="complete" data={data} onChange={update} />,
   ];
 
   const progressPct = ((step + 1) / TOTAL_STEPS) * 100;

@@ -28,6 +28,7 @@ import { CreateGCProjectModal } from '../../components/gc/CreateGCProjectModal';
 import { CreateInvoiceModal } from '../../components/invoices/CreateInvoiceModal';
 import { CreateJobModal } from '../../components/jobs/CreateJobModal';
 import { SetupChecklist } from '../../components/dashboard/SetupChecklist';
+import { MomentumStrip } from '../../components/dashboard/MomentumStrip';
 import { SpotlightTip } from '../../components/ui/SpotlightTip';
 import { isOverdue as isInvoiceOverdue } from '../../lib/invoiceStatus';
 
@@ -364,6 +365,17 @@ export function CommandCenterPage() {
         hasPhone={!!(settings?.phone || profile?.phone)}
         hasBusinessName={!!(settings?.business_name || profile?.business_name)}
       />
+
+      {/* 1b2. Momentum strip — week-over-week engagement hook. Hidden until
+          there's at least one customer so brand-new accounts don't see an
+          all-zeros strip on top of the setup checklist. */}
+      {allCustomers.length > 0 && (
+        <MomentumStrip
+          jobs={allJobs}
+          invoices={invoices}
+          customers={allCustomers}
+        />
+      )}
 
       {/* 1c. Smart Nudges — contextual prompts based on user state */}
       {(() => {

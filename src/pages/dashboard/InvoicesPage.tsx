@@ -18,6 +18,7 @@ import { QueryErrorState } from '../../components/ui/QueryErrorState';
 import { SpotlightTip } from '../../components/ui/SpotlightTip';
 import { isOverdue, isPaid, isDraft, isSent } from '../../lib/invoiceStatus';
 import { DemoChip } from '../../components/ui/DemoChip';
+import { TextReminderButton } from '../../components/invoices/TextReminderButton';
 
 type FilterTab = 'all' | 'draft' | 'sent' | 'paid' | 'overdue';
 
@@ -315,9 +316,19 @@ export function InvoicesPage() {
                         </span>
                       </td>
                       <td className="px-6 py-4 text-sm text-neutral-500 dark:text-gray-400">
-                        {dueDate
-                          ? format(new Date(dueDate), 'MMM d, yyyy')
-                          : '--'}
+                        <div className="flex items-center justify-between gap-2">
+                          <span>{dueDate ? format(new Date(dueDate), 'MMM d, yyyy') : '--'}</span>
+                          {effectiveStatus === 'overdue' && (
+                            <TextReminderButton
+                              phone={inv.customer?.phone}
+                              customerFirstName={inv.customer?.firstName || inv.customer?.first_name}
+                              amount={Number(inv.total || 0)}
+                              invoiceNumber={inv.invoiceNumber || inv.invoice_number}
+                              daysOverdue={dueDate ? Math.max(0, Math.floor((Date.now() - new Date(dueDate).getTime()) / 86_400_000)) : undefined}
+                              paymentUrl={inv.paymentUrl || inv.payment_url}
+                            />
+                          )}
+                        </div>
                       </td>
                     </tr>
                   );
@@ -393,6 +404,19 @@ export function InvoicesPage() {
                         : ''}
                     </span>
                   </div>
+                  {effectiveStatus === 'overdue' && inv.customer?.phone && (
+                    <div className="mt-3 pt-3 border-t border-neutral-100 dark:border-white/10" onClick={(e) => e.stopPropagation()}>
+                      <TextReminderButton
+                        phone={inv.customer?.phone}
+                        customerFirstName={inv.customer?.firstName || inv.customer?.first_name}
+                        amount={Number(inv.total || 0)}
+                        invoiceNumber={inv.invoiceNumber || inv.invoice_number}
+                        daysOverdue={dueDate ? Math.max(0, Math.floor((Date.now() - new Date(dueDate).getTime()) / 86_400_000)) : undefined}
+                        paymentUrl={inv.paymentUrl || inv.payment_url}
+                        variant="full"
+                      />
+                    </div>
+                  )}
                 </button>
               );
             })}

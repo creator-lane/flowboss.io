@@ -28,6 +28,7 @@ const Onboarding = lazy(() => import('./pages/Onboarding').then(m => ({ default:
 const Pricing = lazy(() => import('./pages/Pricing').then(m => ({ default: m.Pricing })));
 const Checkout = lazy(() => import('./pages/Checkout').then(m => ({ default: m.Checkout })));
 const InviteLanding = lazy(() => import('./pages/InviteLanding').then(m => ({ default: m.InviteLanding })));
+const Demo = lazy(() => import('./pages/Demo').then(m => ({ default: m.Demo })));
 
 // Lazy-loaded dashboard pages for code-splitting
 const SchedulePage = lazy(() => import('./pages/dashboard/SchedulePage').then(m => ({ default: m.SchedulePage })));
@@ -92,6 +93,7 @@ export default function App() {
       <Route path="/pricing" element={<Lazy><Pricing /></Lazy>} />
       <Route path="/checkout" element={<Lazy><Checkout /></Lazy>} />
       <Route path="/invite/:projectId/:tradeId" element={<Lazy><InviteLanding /></Lazy>} />
+      <Route path="/demo" element={<Lazy><Demo /></Lazy>} />
 
       {/* Dashboard (protected) */}
       <Route

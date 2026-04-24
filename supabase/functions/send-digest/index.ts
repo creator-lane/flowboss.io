@@ -38,21 +38,35 @@ serve(async (req) => {
         ? new Date(now.getTime() - 24 * 60 * 60 * 1000)
         : new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
-      const [jobsRes, invoicesRes, projectsRes] = await Promise.all([
+      // For the weekly brief we also need the *current* outstanding book
+      // and the next 7 days of scheduled work — not just the last period.
+      const periodEnd = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+      const [jobsRes, invoicesRes, projectsRes, allInvoicesRes, upcomingJobsRes] = await Promise.all([
         supabase.from('jobs').select('id, status, description').eq('user_id', user.id).gte('scheduled_start', periodStart.toISOString()),
         supabase.from('invoices').select('id, status, total').eq('user_id', user.id).gte('created_at', periodStart.toISOString()),
         supabase.from('gc_projects').select('id, name, status').eq('created_by', user.id),
+        supabase.from('invoices').select('id, status, total, due_date').eq('user_id', user.id),
+        supabase.from('jobs').select('id, status, description, scheduled_start').eq('user_id', user.id).gte('scheduled_start', now.toISOString()).lte('scheduled_start', periodEnd.toISOString()),
       ]);
 
       const jobs = jobsRes.data || [];
       const invoices = invoicesRes.data || [];
       const projects = projectsRes.data || [];
+      const allInvoices = allInvoicesRes.data || [];
+      const upcomingJobs = upcomingJobsRes.data || [];
 
       const completedJobs = jobs.filter((j: any) => j.status === 'COMPLETED').length;
       const totalJobs = jobs.length;
       const paidInvoices = invoices.filter((i: any) => i.status === 'paid');
       const revenue = paidInvoices.reduce((s: number, i: any) => s + Number(i.total || 0), 0);
       const activeProjects = projects.filter((p: any) => p.status === 'active').length;
+
+      // Outstanding (receivables) + overdue snapshot across the full book.
+      const unpaid = allInvoices.filter((i: any) => i.status !== 'paid' && i.status !== 'draft');
+      const outstandingTotal = unpaid.reduce((s: number, i: any) => s + Number(i.total || 0), 0);
+      const overdue = unpaid.filter((i: any) => i.due_date && new Date(i.due_date) < now);
+      const overdueTotal = overdue.reduce((s: number, i: any) => s + Number(i.total || 0), 0);
+      const upcomingCount = upcomingJobs.filter((j: any) => j.status !== 'COMPLETED' && j.status !== 'CANCELED').length;
 
       const periodLabel = frequency === 'daily' ? 'Yesterday' : 'This Week';
 
@@ -82,6 +96,15 @@ serve(async (req) => {
 
               ${activeProjects > 0 ? `<p style="color: #64748b; font-size: 14px;">📋 ${activeProjects} active project${activeProjects > 1 ? 's' : ''}</p>` : ''}
               ${paidInvoices.length > 0 ? `<p style="color: #64748b; font-size: 14px;">💰 ${paidInvoices.length} invoice${paidInvoices.length > 1 ? 's' : ''} paid</p>` : ''}
+
+              ${outstandingTotal > 0 || upcomingCount > 0 ? `
+              <div style="margin: 16px 0; padding: 16px; background: #fffbeb; border: 1px solid #fde68a; border-radius: 12px;">
+                <p style="color: #92400e; font-size: 12px; font-weight: 700; margin: 0 0 8px;">THIS WEEK'S FOCUS</p>
+                ${overdueTotal > 0 ? `<p style="color: #1e293b; font-size: 14px; margin: 4px 0;">🔴 <strong>$${overdueTotal.toLocaleString()}</strong> overdue across ${overdue.length} invoice${overdue.length > 1 ? 's' : ''} — chase these first.</p>` : ''}
+                ${outstandingTotal > 0 && overdueTotal < outstandingTotal ? `<p style="color: #1e293b; font-size: 14px; margin: 4px 0;">💵 <strong>$${(outstandingTotal - overdueTotal).toLocaleString()}</strong> outstanding (not yet overdue).</p>` : ''}
+                ${upcomingCount > 0 ? `<p style="color: #1e293b; font-size: 14px; margin: 4px 0;">📅 <strong>${upcomingCount}</strong> job${upcomingCount > 1 ? 's' : ''} on the schedule for the next 7 days.</p>` : ''}
+              </div>
+              ` : ''}
 
               <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #e2e8f0;">
                 <a href="https://flowboss.io/dashboard/home" style="display: inline-block; background: #2563eb; color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px;">Open Dashboard</a>

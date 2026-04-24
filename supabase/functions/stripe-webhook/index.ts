@@ -23,6 +23,72 @@ const cryptoProvider = Stripe.createSubtleCryptoProvider();
 const webhookSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET')!;
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+// Resend is optional here — if the key isn't configured, we skip the
+// email send without throwing. The state flip to past_due still happens,
+// and the in-app GracePeriodBanner will catch them the next time they
+// open Command Center.
+const resendKey = Deno.env.get('RESEND_API_KEY');
+const appUrl = Deno.env.get('APP_URL') || 'https://flowboss.io';
+
+// ──────────────────────────────────────────────────────────────────────
+// Card-declined email. Tracker P0 #1 — highest per-user EV journey
+// because the card already validated once; we just need them to update
+// it before Stripe's retry window closes (~23 days).
+//
+// Deliberately warm, not aggressive: they trusted us with their card.
+// Treat this like "hey, your bank bounced us" — not a dunning notice.
+// ──────────────────────────────────────────────────────────────────────
+async function sendCardDeclinedEmail(opts: {
+  to: string;
+  firstName?: string | null;
+  amountDue?: number | null;
+  nextAttempt?: Date | null;
+}) {
+  if (!resendKey) {
+    console.log('[stripe-webhook] RESEND_API_KEY not set, skipping card-declined email');
+    return;
+  }
+  const name = opts.firstName ? `Hey ${opts.firstName},` : 'Hey,';
+  const amountLine =
+    opts.amountDue && opts.amountDue > 0
+      ? `<p style="color:#64748b;font-size:14px;line-height:1.6;">Stripe couldn't collect <strong>$${(opts.amountDue / 100).toFixed(2)}</strong> for your subscription.</p>`
+      : '';
+  const retryLine = opts.nextAttempt
+    ? `<p style="color:#64748b;font-size:13px;">We'll try again on <strong>${opts.nextAttempt.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}</strong>. If it fails again, access to jobs, invoices, and your pricebook pauses.</p>`
+    : `<p style="color:#64748b;font-size:13px;">We'll try again in a few days. If it fails again, access to jobs, invoices, and your pricebook pauses.</p>`;
+
+  try {
+    await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        from: 'FlowBoss <billing@flowboss.io>',
+        to: [opts.to],
+        subject: 'Heads up — your card was declined',
+        html: `
+          <div style="font-family:-apple-system,BlinkMacSystemFont,sans-serif;max-width:520px;margin:0 auto;padding:24px;color:#0f172a;">
+            <div style="text-align:center;margin-bottom:24px;">
+              <div style="display:inline-block;background:#2563eb;color:white;font-weight:700;font-size:18px;padding:10px 16px;border-radius:12px;">FlowBoss</div>
+            </div>
+            <h2 style="color:#1e293b;margin:0 0 8px;font-size:20px;">Your card didn't go through</h2>
+            <p style="color:#64748b;font-size:14px;line-height:1.6;">${name} your bank declined the charge for your FlowBoss subscription. Happens all the time — expired card, travel block, limit hit.</p>
+            ${amountLine}
+            <div style="text-align:center;margin:24px 0;">
+              <a href="${appUrl}/dashboard" style="display:inline-block;background:#dc2626;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;">Update payment method</a>
+            </div>
+            ${retryLine}
+            <p style="color:#94a3b8;font-size:12px;text-align:center;margin-top:24px;">
+              Questions? Reply to this email.<br/>
+              FlowBoss — Field service management for contractors
+            </p>
+          </div>
+        `,
+      }),
+    });
+  } catch (err) {
+    console.error('[stripe-webhook] card-declined email failed:', err);
+  }
+}
 
 // Price-id → tier map, resolved once at cold start.
 const GC_PRICE_IDS = new Set(
@@ -136,7 +202,7 @@ serve(async (req) => {
       const customerId = invoice.customer as string;
       const { data: profile } = await supabase
         .from('profiles')
-        .select('id')
+        .select('id, email, first_name, business_name')
         .eq('stripe_customer_id', customerId)
         .single();
 
@@ -144,6 +210,22 @@ serve(async (req) => {
         await supabase.from('profiles').update({
           subscription_status: 'past_due',
         }).eq('id', profile.id);
+
+        // Fire the card-declined email. Non-blocking from the user's
+        // point of view — we always 200 to Stripe regardless of the
+        // Resend outcome, because the state flip is the critical part.
+        const emailAddr: string | undefined = (profile as any).email;
+        if (emailAddr) {
+          const nextAttempt = invoice.next_payment_attempt
+            ? new Date(invoice.next_payment_attempt * 1000)
+            : null;
+          await sendCardDeclinedEmail({
+            to: emailAddr,
+            firstName: (profile as any).first_name || (profile as any).business_name || null,
+            amountDue: invoice.amount_due ?? null,
+            nextAttempt,
+          });
+        }
       }
       break;
     }

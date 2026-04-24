@@ -25,8 +25,10 @@ ON CONFLICT (id) DO UPDATE
       allowed_mime_types = EXCLUDED.allowed_mime_types;
 
 -- 3. RLS policies on storage.objects for this bucket.
---    Pattern: objects are stored under `<organization_id>/<project_id>/<filename>`.
---    We key auth on the top-level prefix being the uploader's organization.
+--    Pattern: objects are stored under `<org_id>/<project_id>/<filename>`.
+--    We key auth on the top-level prefix being the uploader's org
+--    (matching the `org_members` table used by every other RLS policy in
+--    this schema).
 
 -- Drop existing policies first so this migration is re-runnable.
 DROP POLICY IF EXISTS "project-covers read public" ON storage.objects;
@@ -46,9 +48,10 @@ CREATE POLICY "project-covers insert own org"
     bucket_id = 'project-covers'
     AND auth.uid() IS NOT NULL
     AND (storage.foldername(name))[1] IN (
-      SELECT organization_id::TEXT
-      FROM organization_members
+      SELECT org_id::TEXT
+      FROM org_members
       WHERE user_id = auth.uid()
+        AND status = 'active'
     )
   );
 
@@ -59,9 +62,10 @@ CREATE POLICY "project-covers update own org"
     bucket_id = 'project-covers'
     AND auth.uid() IS NOT NULL
     AND (storage.foldername(name))[1] IN (
-      SELECT organization_id::TEXT
-      FROM organization_members
+      SELECT org_id::TEXT
+      FROM org_members
       WHERE user_id = auth.uid()
+        AND status = 'active'
     )
   );
 
@@ -72,8 +76,9 @@ CREATE POLICY "project-covers delete own org"
     bucket_id = 'project-covers'
     AND auth.uid() IS NOT NULL
     AND (storage.foldername(name))[1] IN (
-      SELECT organization_id::TEXT
-      FROM organization_members
+      SELECT org_id::TEXT
+      FROM org_members
       WHERE user_id = auth.uid()
+        AND status = 'active'
     )
   );

@@ -337,39 +337,39 @@ export function GCProjectDetailPage() {
         </div>
 
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          {/* Segmented control */}
-          <div className="inline-flex items-center bg-gray-100 rounded-lg p-1 dark:bg-white/10" data-tour="view-toggle">
+          {/* Segmented control — active pill reads clearly on either track. */}
+          <div className="inline-flex items-center bg-gray-100 ring-1 ring-gray-200/70 rounded-xl p-1 dark:bg-white/5 dark:ring-white/10" data-tour="view-toggle">
             <button
               onClick={() => setViewMode('visual')}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+              className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-sm transition-all ${
                 viewMode === 'visual'
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-500 hover:text-gray-700'
-              } dark:text-white`}
+                  ? 'bg-white text-brand-700 shadow-md shadow-gray-300/30 ring-1 ring-brand-200/60 font-semibold dark:bg-white/15 dark:text-blue-200 dark:ring-blue-400/30'
+                  : 'text-gray-500 hover:text-gray-800 font-medium dark:text-gray-400 dark:hover:text-gray-200'
+              }`}
             >
-              <Share2 className="w-4 h-4" />
+              <Share2 className={`w-4 h-4 ${viewMode === 'visual' ? 'text-brand-500 dark:text-blue-300' : ''}`} />
               Visual
             </button>
             <button
               onClick={() => setViewMode('board')}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+              className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-sm transition-all ${
                 viewMode === 'board'
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-500 hover:text-gray-700'
-              } dark:text-white`}
+                  ? 'bg-white text-brand-700 shadow-md shadow-gray-300/30 ring-1 ring-brand-200/60 font-semibold dark:bg-white/15 dark:text-blue-200 dark:ring-blue-400/30'
+                  : 'text-gray-500 hover:text-gray-800 font-medium dark:text-gray-400 dark:hover:text-gray-200'
+              }`}
             >
-              <LayoutDashboard className="w-4 h-4" />
+              <LayoutDashboard className={`w-4 h-4 ${viewMode === 'board' ? 'text-brand-500 dark:text-blue-300' : ''}`} />
               Board
             </button>
             <button
               onClick={() => setViewMode('timeline')}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+              className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-sm transition-all ${
                 viewMode === 'timeline'
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-500 hover:text-gray-700'
-              } dark:text-white`}
+                  ? 'bg-white text-brand-700 shadow-md shadow-gray-300/30 ring-1 ring-brand-200/60 font-semibold dark:bg-white/15 dark:text-blue-200 dark:ring-blue-400/30'
+                  : 'text-gray-500 hover:text-gray-800 font-medium dark:text-gray-400 dark:hover:text-gray-200'
+              }`}
             >
-              <GanttChart className="w-4 h-4" />
+              <GanttChart className={`w-4 h-4 ${viewMode === 'timeline' ? 'text-brand-500 dark:text-blue-300' : ''}`} />
               Timeline
             </button>
           </div>

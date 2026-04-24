@@ -150,16 +150,16 @@ export function InviteSubModal({
           </p>
 
           {/* Tab selector */}
-          <div className="flex gap-1 bg-gray-100 rounded-lg p-1 mb-5 dark:bg-white/10">
+          <div className="flex gap-1 bg-gray-100 ring-1 ring-gray-200/70 rounded-xl p-1 mb-5 dark:bg-white/5 dark:ring-white/10">
             {tabs.map((tab) => (
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
-                className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-md text-xs font-medium transition-all ${
+                className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs transition-all ${
                   activeTab === tab.key
-                    ? 'bg-white text-gray-900 shadow-sm'
-                    : 'text-gray-500 hover:text-gray-700'
-                } dark:text-white`}
+                    ? 'bg-white text-brand-700 shadow-md shadow-gray-300/30 ring-1 ring-brand-200/60 font-semibold dark:bg-white/15 dark:text-blue-200 dark:ring-blue-400/30'
+                    : 'text-gray-500 hover:text-gray-800 font-medium dark:text-gray-400 dark:hover:text-gray-200'
+                }`}
               >
                 {tab.icon}
                 <span className="hidden sm:inline">{tab.label}</span>

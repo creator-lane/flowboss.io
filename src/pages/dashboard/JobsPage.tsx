@@ -165,24 +165,28 @@ export function JobsPage() {
       {/* Time range selector + month navigation */}
       <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-5">
         {/* All Time vs Monthly toggle */}
-        <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1 dark:bg-white/10">
+        <div className="inline-flex items-center gap-1 bg-gray-100 ring-1 ring-gray-200/70 rounded-xl p-1 dark:bg-white/5 dark:ring-white/10">
           <button
             type="button"
             onClick={() => { setTimeRange('all'); setVisibleCount(ITEMS_PER_PAGE); }}
-            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
-              timeRange === 'all' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
-            } dark:text-white`}
+            className={`px-3.5 py-1.5 rounded-lg text-xs transition-all ${
+              timeRange === 'all'
+                ? 'bg-white text-brand-700 shadow-md shadow-gray-300/30 ring-1 ring-brand-200/60 font-semibold dark:bg-white/15 dark:text-blue-200 dark:ring-blue-400/30'
+                : 'text-gray-500 hover:text-gray-800 font-medium dark:text-gray-400 dark:hover:text-gray-200'
+            }`}
           >
             All Time
           </button>
           <button
             type="button"
             onClick={() => { setTimeRange('month'); setVisibleCount(ITEMS_PER_PAGE); }}
-            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
-              timeRange === 'month' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
-            } dark:text-white`}
+            className={`px-3.5 py-1.5 rounded-lg text-xs transition-all ${
+              timeRange === 'month'
+                ? 'bg-white text-brand-700 shadow-md shadow-gray-300/30 ring-1 ring-brand-200/60 font-semibold dark:bg-white/15 dark:text-blue-200 dark:ring-blue-400/30'
+                : 'text-gray-500 hover:text-gray-800 font-medium dark:text-gray-400 dark:hover:text-gray-200'
+            }`}
           >
-            <Calendar className="w-3 h-3 inline mr-1" />
+            <Calendar className={`w-3 h-3 inline mr-1 ${timeRange === 'month' ? 'text-brand-500 dark:text-blue-300' : ''}`} />
             Monthly
           </button>
         </div>
@@ -236,12 +240,13 @@ export function JobsPage() {
       </div>
 
       {/* Filter tabs */}
-      <div className="flex gap-1 mb-6 bg-gray-100 rounded-lg p-1 w-fit dark:bg-white/10">
+      <div className="flex gap-1 mb-6 bg-gray-100 ring-1 ring-gray-200/70 rounded-xl p-1 w-fit dark:bg-white/5 dark:ring-white/10">
         {FILTER_TABS.map(({ key, label }) => {
           const count =
             key === 'ALL'
               ? allJobs.length
               : allJobs.filter((j: any) => j.status === key).length;
+          const isActive = activeTab === key;
           return (
             <button
               key={key}
@@ -250,14 +255,18 @@ export function JobsPage() {
                 setActiveTab(key);
                 setVisibleCount(ITEMS_PER_PAGE);
               }}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                activeTab === key
-                  ? 'bg-white text-neutral-900 shadow-sm'
-                  : 'text-neutral-500 hover:text-neutral-700'
-              } dark:text-white`}
+              className={`px-4 py-2 rounded-lg text-sm transition-all ${
+                isActive
+                  ? 'bg-white text-brand-700 shadow-md shadow-gray-300/30 ring-1 ring-brand-200/60 font-semibold dark:bg-white/15 dark:text-blue-200 dark:ring-blue-400/30'
+                  : 'text-neutral-500 hover:text-neutral-800 font-medium dark:text-gray-400 dark:hover:text-gray-200'
+              }`}
             >
               {label}
-              <span className="ml-1.5 text-xs text-neutral-400 dark:text-gray-500">{count}</span>
+              <span className={`ml-1.5 text-xs font-semibold ${
+                isActive
+                  ? 'text-brand-500 dark:text-blue-300'
+                  : 'text-neutral-400 dark:text-gray-500'
+              }`}>{count}</span>
             </button>
           );
         })}

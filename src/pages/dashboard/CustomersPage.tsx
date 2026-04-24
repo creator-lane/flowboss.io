@@ -133,7 +133,7 @@ export function CustomersPage() {
       {/* Customer grid */}
       {!isLoading && customers.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {customers.map((customer: any) => {
+          {customers.map((customer: any, idx: number) => {
             const jobCount =
               customer._count?.jobs ?? customer.jobs?.length ?? 0;
             const balance =
@@ -152,7 +152,11 @@ export function CustomersPage() {
                 onClick={() =>
                   navigate(`/dashboard/customers/${customer.id}`)
                 }
-                className="bg-white rounded-xl border border-neutral-200 p-5 hover:border-brand-300 hover:shadow-lg hover:shadow-gray-200/50 hover:-translate-y-0.5 transition-all duration-200 text-left w-full group dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10"
+                className="bg-white rounded-xl border border-neutral-200 p-5 hover:border-brand-300 hover:shadow-lg hover:shadow-gray-200/50 hover:-translate-y-0.5 transition-all duration-200 text-left w-full group dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10 animate-slide-in-up"
+                style={{
+                  animationDelay: `${Math.min(idx, 8) * 40}ms`,
+                  animationFillMode: 'backwards',
+                }}
               >
                 <div className="flex items-start gap-4">
                   {/* Avatar */}

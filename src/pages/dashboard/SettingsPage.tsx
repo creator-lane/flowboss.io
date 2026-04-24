@@ -726,11 +726,11 @@ export function SettingsPage() {
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+              className={`flex items-center gap-2 px-4 py-3 text-sm border-b-2 transition-colors ${
                 isActive
-                  ? 'border-brand-500 text-brand-600'
-                  : 'border-transparent text-neutral-500 hover:text-neutral-700 hover:border-neutral-300'
-              } dark:text-gray-400`}
+                  ? 'border-brand-500 text-brand-600 font-semibold dark:border-blue-400 dark:text-blue-300'
+                  : 'border-transparent text-neutral-500 hover:text-neutral-700 hover:border-neutral-300 font-medium dark:text-gray-500 dark:hover:text-gray-200 dark:hover:border-white/20'
+              }`}
             >
               <Icon className="w-4 h-4" />
               {tab.label}

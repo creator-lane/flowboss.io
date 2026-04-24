@@ -25,6 +25,7 @@ import { MultiProjectActivityFeed } from '../../components/gc/ProjectActivityFee
 import { TypeToConfirmDialog } from '../../components/ui/TypeToConfirmDialog';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { HardhatIllustration } from '../../components/ui/illustrations/HardhatIllustration';
+import { ProjectCoverPlaceholder } from '../../components/ui/ProjectCoverPlaceholder';
 import { QueryErrorState } from '../../components/ui/QueryErrorState';
 import { loadAllDemoData } from '../../lib/demoData';
 
@@ -80,19 +81,25 @@ function ProjectCard({ project, onClick, onDelete }: { project: any; onClick: ()
       onClick={onClick}
       className="group bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg hover:shadow-gray-200/50 hover:-translate-y-0.5 hover:border-gray-300 transition-all duration-200 cursor-pointer dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10"
     >
-      {/* Cover thumbnail — only renders when the GC has uploaded one. Keeps
-          the card layout identical for brand-new projects. */}
-      {project.coverImageUrl && (
-        <div className="relative w-full h-32 -mb-1 overflow-hidden bg-neutral-100 dark:bg-white/5">
+      {/* Cover thumbnail — either the uploaded photo or a deterministic
+          placeholder so the grid never turns into a wall of grey cards. */}
+      <div className="relative w-full h-32 -mb-1 overflow-hidden bg-neutral-100 dark:bg-white/5">
+        {project.coverImageUrl ? (
           <img
             src={project.coverImageUrl}
             alt={`${project.name} cover`}
             className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300"
             loading="lazy"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-black/0 to-black/0 pointer-events-none" />
-        </div>
-      )}
+        ) : (
+          <ProjectCoverPlaceholder
+            projectId={project.id}
+            projectName={project.name}
+            className="w-full h-full group-hover:scale-[1.02] transition-transform duration-300"
+          />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-black/0 to-black/0 pointer-events-none" />
+      </div>
       <div className="p-5">
       <div className="flex items-start justify-between mb-3">
         <h3 className="text-base font-semibold text-gray-900 line-clamp-1 dark:text-white">{project.name}</h3>
@@ -927,30 +934,31 @@ export function GCDashboardPage() {
         )}
       </div>
 
-      {/* Tab Toggle */}
-      <div className="flex rounded-lg bg-gray-100 p-1 mb-6 max-w-xs dark:bg-white/10">
+      {/* Tab Toggle — active pill uses brand color + stronger shadow so the
+          selected view reads at a glance on both light and dark tracks. */}
+      <div className="inline-flex rounded-xl bg-gray-100 ring-1 ring-gray-200/70 p-1 mb-6 dark:bg-white/5 dark:ring-white/10">
         <button
           type="button"
           onClick={() => { setActiveTab('projects'); setSearch(''); }}
-          className={`flex-1 flex items-center justify-center gap-1.5 text-sm font-medium py-2 rounded-md transition-colors ${
+          className={`flex items-center justify-center gap-2 text-sm py-2 px-5 rounded-lg transition-all ${
             activeTab === 'projects'
-              ? 'bg-white text-gray-900 shadow-sm'
-              : 'text-gray-500 hover:text-gray-700'
-          } dark:text-white`}
+              ? 'bg-white text-brand-700 shadow-md shadow-gray-300/30 ring-1 ring-brand-200/60 font-semibold dark:bg-white/15 dark:text-blue-200 dark:ring-blue-400/30'
+              : 'text-gray-500 hover:text-gray-800 font-medium dark:text-gray-400 dark:hover:text-gray-200'
+          }`}
         >
-          <FolderKanban className="w-4 h-4" />
+          <FolderKanban className={`w-4 h-4 ${activeTab === 'projects' ? 'text-brand-500 dark:text-blue-300' : ''}`} />
           Projects
         </button>
         <button
           type="button"
           onClick={() => { setActiveTab('subs'); setSearch(''); }}
-          className={`flex-1 flex items-center justify-center gap-1.5 text-sm font-medium py-2 rounded-md transition-colors ${
+          className={`flex items-center justify-center gap-2 text-sm py-2 px-5 rounded-lg transition-all ${
             activeTab === 'subs'
-              ? 'bg-white text-gray-900 shadow-sm'
-              : 'text-gray-500 hover:text-gray-700'
-          } dark:text-white`}
+              ? 'bg-white text-brand-700 shadow-md shadow-gray-300/30 ring-1 ring-brand-200/60 font-semibold dark:bg-white/15 dark:text-blue-200 dark:ring-blue-400/30'
+              : 'text-gray-500 hover:text-gray-800 font-medium dark:text-gray-400 dark:hover:text-gray-200'
+          }`}
         >
-          <Users className="w-4 h-4" />
+          <Users className={`w-4 h-4 ${activeTab === 'subs' ? 'text-brand-500 dark:text-blue-300' : ''}`} />
           My Subs
         </button>
       </div>
@@ -1061,13 +1069,24 @@ export function GCDashboardPage() {
             />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-              {filtered.map((project: any) => (
-                <ProjectCard
+              {filtered.map((project: any, idx: number) => (
+                // Staggered slide-in so the grid assembles instead of
+                // popping in all at once. Cap the stagger at 8 cards —
+                // beyond that the delay gets annoying rather than delightful.
+                <div
                   key={project.id}
-                  project={project}
-                  onClick={() => navigate(`/dashboard/projects/${project.id}`)}
-                  onDelete={() => handleDeleteProject(project.id, project.name)}
-                />
+                  className="animate-slide-in-up"
+                  style={{
+                    animationDelay: `${Math.min(idx, 8) * 40}ms`,
+                    animationFillMode: 'backwards',
+                  }}
+                >
+                  <ProjectCard
+                    project={project}
+                    onClick={() => navigate(`/dashboard/projects/${project.id}`)}
+                    onDelete={() => handleDeleteProject(project.id, project.name)}
+                  />
+                </div>
               ))}
             </div>
           )}

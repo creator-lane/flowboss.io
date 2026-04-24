@@ -117,14 +117,14 @@ export function Login() {
           </div>
 
           {/* Mode toggle */}
-          <div className="flex rounded-xl bg-gray-100 p-1 mb-5 dark:bg-white/5 dark:border dark:border-white/10">
+          <div className="flex rounded-xl bg-gray-100 ring-1 ring-gray-200/70 p-1 mb-5 dark:bg-white/5 dark:ring-white/10">
             <button
               type="button"
               onClick={() => switchMode('password')}
-              className={`flex-1 text-sm font-medium py-2 rounded-lg transition-all ${
+              className={`flex-1 text-sm py-2 rounded-lg transition-all ${
                 mode === 'password'
-                  ? 'bg-white text-gray-900 shadow-sm dark:bg-white/10 dark:text-white'
-                  : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
+                  ? 'bg-white text-brand-700 shadow-md shadow-gray-300/30 ring-1 ring-brand-200/60 font-semibold dark:bg-white/15 dark:text-blue-200 dark:ring-blue-400/30'
+                  : 'text-gray-500 hover:text-gray-800 font-medium dark:text-gray-400 dark:hover:text-gray-200'
               }`}
             >
               Password
@@ -132,10 +132,10 @@ export function Login() {
             <button
               type="button"
               onClick={() => switchMode('magic-link')}
-              className={`flex-1 text-sm font-medium py-2 rounded-lg transition-all ${
+              className={`flex-1 text-sm py-2 rounded-lg transition-all ${
                 mode === 'magic-link'
-                  ? 'bg-white text-gray-900 shadow-sm dark:bg-white/10 dark:text-white'
-                  : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
+                  ? 'bg-white text-brand-700 shadow-md shadow-gray-300/30 ring-1 ring-brand-200/60 font-semibold dark:bg-white/15 dark:text-blue-200 dark:ring-blue-400/30'
+                  : 'text-gray-500 hover:text-gray-800 font-medium dark:text-gray-400 dark:hover:text-gray-200'
               }`}
             >
               Magic link

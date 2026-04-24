@@ -1,7 +1,8 @@
 import { useRef, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Camera, Upload, Trash2, Loader2 } from 'lucide-react';
+import { Upload, Trash2, Loader2 } from 'lucide-react';
 import { api } from '../../lib/api';
+import { ProjectCoverPlaceholder } from '../ui/ProjectCoverPlaceholder';
 
 interface ProjectCoverUploadProps {
   projectId: string;
@@ -69,23 +70,17 @@ export function ProjectCoverUpload({
           loading="lazy"
         />
       ) : (
-        <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-6">
-          <Camera className="w-8 h-8 text-neutral-400 dark:text-white/30 mb-2" />
-          <p className="text-sm font-medium text-neutral-500 dark:text-white/50">
-            No cover photo yet
-          </p>
-          {!readOnly && (
-            <p className="text-xs text-neutral-400 dark:text-white/30 mt-1">
-              Add one to make this project pop on the dashboard
-            </p>
-          )}
-        </div>
+        // Auto-generated cover — deterministic per projectId so every project
+        // looks distinct even before the GC uploads a real photo.
+        <ProjectCoverPlaceholder
+          projectId={projectId}
+          projectName={projectName}
+          className="absolute inset-0 w-full h-full"
+        />
       )}
 
-      {/* Dark gradient for legibility of overlay controls when a cover is set. */}
-      {coverUrl && (
-        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/0 to-black/0 pointer-events-none" />
-      )}
+      {/* Dark gradient for legibility of overlay controls. */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/0 to-black/0 pointer-events-none" />
 
       {/* Controls */}
       {!readOnly && (

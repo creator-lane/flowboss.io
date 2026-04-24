@@ -17,6 +17,7 @@ import { InvoiceIllustration } from '../../components/ui/illustrations/InvoiceIl
 import { QueryErrorState } from '../../components/ui/QueryErrorState';
 import { SpotlightTip } from '../../components/ui/SpotlightTip';
 import { isOverdue, isPaid, isDraft, isSent } from '../../lib/invoiceStatus';
+import { DemoChip } from '../../components/ui/DemoChip';
 
 type FilterTab = 'all' | 'draft' | 'sent' | 'paid' | 'overdue';
 
@@ -295,7 +296,12 @@ export function InvoicesPage() {
                         </span>
                       </td>
                       <td className="px-6 py-4 text-sm text-neutral-900 dark:text-white">
-                        {inv.customer?.firstName} {inv.customer?.lastName}
+                        <div className="flex items-center gap-2">
+                          <span>
+                            {inv.customer?.firstName} {inv.customer?.lastName}
+                          </span>
+                          <DemoChip record={inv} compact />
+                        </div>
                       </td>
                       <td className="px-6 py-4 text-sm font-semibold text-neutral-900 dark:text-white">
                         {formatCurrency(Number(inv.total || 0))}
@@ -371,9 +377,12 @@ export function InvoicesPage() {
                       {effectiveStatus.replace(/_/g, ' ')}
                     </span>
                   </div>
-                  <p className="text-sm text-neutral-900 mb-1 dark:text-white">
-                    {inv.customer?.firstName} {inv.customer?.lastName}
-                  </p>
+                  <div className="flex items-center gap-2 mb-1">
+                    <p className="text-sm text-neutral-900 dark:text-white">
+                      {inv.customer?.firstName} {inv.customer?.lastName}
+                    </p>
+                    <DemoChip record={inv} compact />
+                  </div>
                   <div className="flex items-center justify-between">
                     <span className="text-base font-bold text-neutral-900 dark:text-white">
                       {formatCurrency(Number(inv.total || 0))}

@@ -29,6 +29,8 @@ import { CreateInvoiceModal } from '../../components/invoices/CreateInvoiceModal
 import { CreateJobModal } from '../../components/jobs/CreateJobModal';
 import { SetupChecklist } from '../../components/dashboard/SetupChecklist';
 import { MomentumStrip } from '../../components/dashboard/MomentumStrip';
+import { DailyBriefing } from '../../components/dashboard/DailyBriefing';
+import { LoginStreak } from '../../components/dashboard/LoginStreak';
 import { SpotlightTip } from '../../components/ui/SpotlightTip';
 import { isOverdue as isInvoiceOverdue } from '../../lib/invoiceStatus';
 
@@ -366,15 +368,34 @@ export function CommandCenterPage() {
         hasBusinessName={!!(settings?.business_name || profile?.business_name)}
       />
 
-      {/* 1b2. Momentum strip — week-over-week engagement hook. Hidden until
+      {/* 1b2. Daily Briefing — single-sentence "what matters today" surface.
+          Shown only once the account has some real data (a customer); empty
+          accounts get the SetupChecklist instead. Reads from props the page
+          already loads — no new API calls. */}
+      {allCustomers.length > 0 && (
+        <DailyBriefing
+          todaysJobs={todaysJobs}
+          invoices={invoices}
+          overdueCount={overdueInvoices.length}
+        />
+      )}
+
+      {/* 1b3. Momentum strip — week-over-week engagement hook. Hidden until
           there's at least one customer so brand-new accounts don't see an
           all-zeros strip on top of the setup checklist. */}
       {allCustomers.length > 0 && (
-        <MomentumStrip
-          jobs={allJobs}
-          invoices={invoices}
-          customers={allCustomers}
-        />
+        <div className="flex flex-col lg:flex-row gap-4">
+          <div className="flex-1 min-w-0">
+            <MomentumStrip
+              jobs={allJobs}
+              invoices={invoices}
+              customers={allCustomers}
+            />
+          </div>
+          <div className="lg:w-64 shrink-0">
+            <LoginStreak />
+          </div>
+        </div>
       )}
 
       {/* 1c. Smart Nudges — contextual prompts based on user state */}

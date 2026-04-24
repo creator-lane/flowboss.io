@@ -6,6 +6,7 @@ import { CreateCustomerModal } from '../../components/customers/CreateCustomerMo
 import { EmptyState } from '../../components/ui/EmptyState';
 import { ClipboardIllustration } from '../../components/ui/illustrations/ClipboardIllustration';
 import { QueryErrorState } from '../../components/ui/QueryErrorState';
+import { DemoChip } from '../../components/ui/DemoChip';
 import {
   Search,
   Plus,
@@ -169,9 +170,12 @@ export function CustomersPage() {
 
                   {/* Info */}
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-neutral-900 truncate dark:text-white">
-                      {customer.firstName} {customer.lastName}
-                    </p>
+                    <div className="flex items-center gap-2 min-w-0">
+                      <p className="text-sm font-semibold text-neutral-900 truncate dark:text-white">
+                        {customer.firstName} {customer.lastName}
+                      </p>
+                      <DemoChip record={customer} compact />
+                    </div>
                     {customer.phone && (
                       <div className="flex items-center gap-1.5 mt-1">
                         <Phone className="w-3 h-3 text-neutral-400 flex-shrink-0 dark:text-gray-500" />

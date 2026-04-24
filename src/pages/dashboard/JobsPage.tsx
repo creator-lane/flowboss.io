@@ -18,6 +18,7 @@ import { EmptyState } from '../../components/ui/EmptyState';
 import { BlueprintIllustration } from '../../components/ui/illustrations/BlueprintIllustration';
 import { QueryErrorState } from '../../components/ui/QueryErrorState';
 import { SpotlightTip } from '../../components/ui/SpotlightTip';
+import { DemoChip } from '../../components/ui/DemoChip';
 
 const STATUS_BADGE = JOB_STATUS_BADGE;
 
@@ -340,9 +341,12 @@ export function JobsPage() {
                     className="hover:bg-gray-50 cursor-pointer transition-colors dark:hover:bg-white/10"
                   >
                     <td className="px-4 py-4">
-                      <p className="text-sm font-medium text-neutral-900 dark:text-white">
-                        {customerName}
-                      </p>
+                      <div className="flex items-center gap-2 min-w-0">
+                        <p className="text-sm font-medium text-neutral-900 dark:text-white truncate">
+                          {customerName}
+                        </p>
+                        <DemoChip record={job} compact />
+                      </div>
                     </td>
                     <td className="px-4 py-4">
                       <p className="text-sm text-neutral-500 line-clamp-1 max-w-xs dark:text-gray-400">
@@ -415,9 +419,12 @@ export function JobsPage() {
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-neutral-900 dark:text-white">
-                      {customerName}
-                    </p>
+                    <div className="flex items-center gap-2 min-w-0">
+                      <p className="text-sm font-semibold text-neutral-900 dark:text-white truncate">
+                        {customerName}
+                      </p>
+                      <DemoChip record={job} compact />
+                    </div>
                     {job.description && (
                       <p className="text-xs text-neutral-500 mt-1 line-clamp-1 dark:text-gray-400">
                         {job.description}

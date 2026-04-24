@@ -531,6 +531,18 @@ function computeLineItemTotal(items: LineItemTemplate[]): number {
   return items.reduce((sum, li) => sum + li.quantity * li.unitPrice, 0);
 }
 
+// Stamp a row as demo/sample data. If the is_demo column isn't present
+// (migration hasn't run yet), we swallow the error — the seed data still
+// gets created, the UI falls back to the "Sample data" notes marker.
+async function markAsDemo(table: string, id: string | undefined) {
+  if (!id) return;
+  try {
+    await supabase.from(table).update({ is_demo: true }).eq('id', id);
+  } catch {
+    // ignore
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Main export
 // ---------------------------------------------------------------------------
@@ -559,6 +571,7 @@ export async function generateSeedData(trade: string): Promise<void> {
 
       const customerId = data.id;
       customerIds.push(customerId);
+      await markAsDemo('customers', customerId);
 
       // Fetch the property that was created alongside the customer
       const { data: propData } = await supabase
@@ -568,6 +581,7 @@ export async function generateSeedData(trade: string): Promise<void> {
         .single();
 
       propertyIds.push(propData?.id);
+      await markAsDemo('properties', propData?.id);
     }
 
     // ---- 2. Create jobs -----------------------------------------------------
@@ -614,6 +628,7 @@ export async function generateSeedData(trade: string): Promise<void> {
 
       const jobId = jobData.id;
       createdJobIds.push(jobId);
+      await markAsDemo('jobs', jobId);
 
       // Save line items for this job
       await api.saveJobLineItems(jobId, jt.lineItems);
@@ -629,7 +644,7 @@ export async function generateSeedData(trade: string): Promise<void> {
     const paidTotal = Math.round((paidSubtotal + paidTax) * 100) / 100;
     const paidDate = subDays(today, 2);
 
-    await api.createInvoice({
+    const { data: paidInvData } = await api.createInvoice({
       customerId: customerIds[customerAssignment[0]],
       jobId: createdJobIds[0],
       status: 'paid',
@@ -642,6 +657,7 @@ export async function generateSeedData(trade: string): Promise<void> {
       notes: 'Sample data — feel free to delete',
       lineItems: paidLineItems,
     });
+    await markAsDemo('invoices', paidInvData?.id);
 
     // Invoice 2 — sent/outstanding, linked to completed job 1
     const sentLineItems = jobTemplates[1].lineItems;
@@ -650,7 +666,7 @@ export async function generateSeedData(trade: string): Promise<void> {
     const sentTotal = Math.round((sentSubtotal + sentTax) * 100) / 100;
     const dueDate = addDays(today, 14);
 
-    await api.createInvoice({
+    const { data: sentInvData } = await api.createInvoice({
       customerId: customerIds[customerAssignment[1]],
       jobId: createdJobIds[1],
       status: 'sent',
@@ -662,6 +678,7 @@ export async function generateSeedData(trade: string): Promise<void> {
       notes: 'Sample data — feel free to delete',
       lineItems: sentLineItems,
     });
+    await markAsDemo('invoices', sentInvData?.id);
   } catch (err) {
     console.warn('[FlowBoss] Seed data generation failed — user can still proceed:', err);
   }

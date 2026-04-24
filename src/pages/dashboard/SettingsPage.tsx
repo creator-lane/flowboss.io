@@ -30,6 +30,8 @@ import {
 } from 'lucide-react';
 import { PricebookManager } from '../../components/settings/PricebookManager';
 import { TeamManager } from '../../components/settings/TeamManager';
+import { SampleDataPanel } from '../../components/settings/SampleDataPanel';
+import { Sparkles } from 'lucide-react';
 import { useToast } from '../../components/ui/Toast';
 
 const TRADE_OPTIONS = [
@@ -45,6 +47,7 @@ const TABS = [
   { key: 'payments', label: 'Payments', icon: CreditCard },
   { key: 'integrations', label: 'Integrations', icon: Link2 },
   { key: 'team', label: 'Team', icon: Users },
+  { key: 'sample-data', label: 'Sample Data', icon: Sparkles },
 ] as const;
 
 type TabKey = (typeof TABS)[number]['key'];
@@ -1244,6 +1247,13 @@ export function SettingsPage() {
       {activeTab === 'team' && (
         <div className="bg-white rounded-xl border border-neutral-200 p-6 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
           <TeamManager />
+        </div>
+      )}
+
+      {/* Sample Data Tab */}
+      {activeTab === 'sample-data' && (
+        <div className="bg-white rounded-xl border border-neutral-200 p-6 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
+          <SampleDataPanel />
         </div>
       )}
     </div>

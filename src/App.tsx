@@ -29,6 +29,8 @@ const Pricing = lazy(() => import('./pages/Pricing').then(m => ({ default: m.Pri
 const Checkout = lazy(() => import('./pages/Checkout').then(m => ({ default: m.Checkout })));
 const InviteLanding = lazy(() => import('./pages/InviteLanding').then(m => ({ default: m.InviteLanding })));
 const Demo = lazy(() => import('./pages/Demo').then(m => ({ default: m.Demo })));
+const DemoPicker = lazy(() => import('./demo/DemoPicker').then(m => ({ default: m.DemoPicker })));
+const DemoSandbox = lazy(() => import('./demo/DemoSandbox').then(m => ({ default: m.DemoSandbox })));
 
 // Lazy-loaded dashboard pages for code-splitting
 const SchedulePage = lazy(() => import('./pages/dashboard/SchedulePage').then(m => ({ default: m.SchedulePage })));
@@ -94,6 +96,30 @@ export default function App() {
       <Route path="/checkout" element={<Lazy><Checkout /></Lazy>} />
       <Route path="/invite/:projectId/:tradeId" element={<Lazy><InviteLanding /></Lazy>} />
       <Route path="/demo" element={<Lazy><Demo /></Lazy>} />
+      <Route path="/demo/full" element={<Lazy><DemoPicker /></Lazy>} />
+
+      {/* Sandboxed full demo — separate provider tree, no auth, no real Supabase. */}
+      <Route path="/demo/full/:persona/dashboard" element={<Lazy><DemoSandbox /></Lazy>}>
+        <Route index element={<Navigate to="home" replace />} />
+        <Route path="home" element={<Lazy><CommandCenterPage /></Lazy>} />
+        <Route path="schedule" element={<Lazy><SchedulePage /></Lazy>} />
+        <Route path="jobs" element={<Lazy><JobsPage /></Lazy>} />
+        <Route path="jobs/:id" element={<Lazy><JobDetailPage /></Lazy>} />
+        <Route path="customers" element={<Lazy><CustomersPage /></Lazy>} />
+        <Route path="customers/:id" element={<Lazy><CustomerDetailPage /></Lazy>} />
+        <Route path="invoices" element={<Lazy><InvoicesPage /></Lazy>} />
+        <Route path="invoices/:id" element={<Lazy><InvoiceDetailPage /></Lazy>} />
+        <Route path="contractors" element={<Lazy><ContractorsPage /></Lazy>} />
+        <Route path="contractors/:id" element={<Lazy><ContractorDetailPage /></Lazy>} />
+        <Route path="projects" element={<Lazy><GCDashboardPage /></Lazy>} />
+        <Route path="projects/:id" element={<Lazy><GCProjectDetailPage /></Lazy>} />
+        <Route path="projects/assigned/:id" element={<Lazy><SubProjectViewPage /></Lazy>} />
+        <Route path="subs/:subId" element={<Lazy><SubProfilePage /></Lazy>} />
+        <Route path="financials" element={<Lazy><FinancialsPage /></Lazy>} />
+        <Route path="insights" element={<Lazy><InsightsPage /></Lazy>} />
+        <Route path="settings" element={<Lazy><SettingsPage /></Lazy>} />
+        <Route path="*" element={<Navigate to="home" replace />} />
+      </Route>
 
       {/* Dashboard (protected) */}
       <Route

@@ -176,7 +176,7 @@ function useVisitedPages() {
 
   // Mark current page as visited
   useEffect(() => {
-    const page = location.pathname.replace('/dashboard/', '').split('/')[0] || 'home';
+    const page = location.pathname.replace(/^\/(?:demo\/full\/[^/]+\/)?dashboard\//, '').split('/')[0] || 'home';
     if (!visited.has(page)) {
       const next = new Set(visited);
       next.add(page);
@@ -211,12 +211,24 @@ function DashboardLayoutInner() {
   const { hasVisited, isNewUser } = useVisitedPages();
   const { isFreeSub } = useSubscriptionTier();
   const { openUpgrade } = useUpgradeGate();
+  const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
 
+  // Demo mounts the dashboard under /demo/full/:persona/dashboard so sidebar
+  // links must stay inside that subtree — otherwise they jump to /dashboard
+  // and RequireAuth bounces the visitor to /login.
+  const basePath = useMemo(() => {
+    const m = location.pathname.match(/^\/demo\/full\/[^/]+\/dashboard/);
+    return m ? m[0] : '/dashboard';
+  }, [location.pathname]);
+
   const navItems = useMemo(
-    () => personaliseNav(profile?.business_role, isSolo, priorities, isFreeSub),
-    [profile?.business_role, isSolo, priorities, isFreeSub],
+    () => personaliseNav(profile?.business_role, isSolo, priorities, isFreeSub).map((item) => ({
+      ...item,
+      to: item.to.replace(/^\/dashboard/, basePath),
+    })),
+    [profile?.business_role, isSolo, priorities, isFreeSub, basePath],
   );
 
   const mobilePrimaryItems = navItems.filter((item) => item.label !== 'Settings').slice(0, MOBILE_PRIMARY_COUNT);

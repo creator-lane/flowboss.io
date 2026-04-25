@@ -901,13 +901,15 @@ export function HomePage() {
                 Start Free Trial <ArrowRight className="w-5 h-5" />
               </a>
               {/*
-                Live demo > demo video. /demo is a no-auth preseeded Command
-                Center — contractors see real data in 2 clicks instead of
-                watching a screencast. Kept the video modal trigger as a
-                smaller fallback link below the fold in the features area.
+                Live demo > demo video. /demo/full is the GC/Sub persona
+                picker — visitors land in a fully-seeded dashboard backed
+                by a runtime-monkey-patched api so reads return fixtures
+                and writes either fake-succeed or hit the paywall modal.
+                The older /demo (lightweight Command Center preview) is
+                still available as a fallback link inside DemoPicker.
               */}
               <a
-                href="/demo"
+                href="/demo/full"
                 className="inline-flex items-center gap-2 px-7 py-3.5 bg-white text-gray-700 font-semibold rounded-xl border border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-lg"
               >
                 See it with sample data <ArrowRight className="w-5 h-5" />

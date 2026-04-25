@@ -60,9 +60,13 @@ function timeAgo(iso: string) {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
+// Cap the activity feed to a small number of events by default so it never
+// pushes the rest of the page below the fold. Anyone who wants more can pass
+// an explicit larger limit; the wrapper still uses max-h + overflow-auto so
+// even larger limits don't blow out the layout.
 export function ProjectActivityFeed({
   projectId,
-  limit = 20,
+  limit = 5,
   compact = false,
 }: ProjectActivityFeedProps) {
   const queryClient = useQueryClient();
@@ -95,11 +99,11 @@ export function ProjectActivityFeed({
     };
   }, [projectId, queryClient]);
 
-  const events: any[] = useMemo(() => data?.data || [], [data]);
+  const events: any[] = useMemo(() => (data?.data || []).slice(0, limit), [data, limit]);
 
   const Wrapper = ({ children }: { children: React.ReactNode }) =>
     compact ? (
-      <div className="space-y-2">{children}</div>
+      <div className="space-y-2 max-h-72 overflow-y-auto">{children}</div>
     ) : (
       <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
         <div className="flex items-center justify-between mb-3">
@@ -115,7 +119,7 @@ export function ProjectActivityFeed({
             LIVE
           </div>
         </div>
-        <div className="space-y-2">{children}</div>
+        <div className="space-y-2 max-h-80 overflow-y-auto pr-1">{children}</div>
       </div>
     );
 
@@ -175,8 +179,10 @@ export function ProjectActivityFeed({
   );
 }
 
-/** Aggregate feed across all of a GC's projects — for the dashboard index. */
-export function MultiProjectActivityFeed({ limit = 12 }: { limit?: number }) {
+/** Aggregate feed across all of a GC's projects — for the dashboard index.
+ *  Defaults to 3 events; this widget sits above the project grid stats and
+ *  must not push them below the fold. */
+export function MultiProjectActivityFeed({ limit = 3 }: { limit?: number }) {
   const queryClient = useQueryClient();
   const { data, isLoading } = useQuery({
     queryKey: ['all-project-activity'],
@@ -199,7 +205,7 @@ export function MultiProjectActivityFeed({ limit = 12 }: { limit?: number }) {
     };
   }, [queryClient]);
 
-  const events: any[] = data?.data || [];
+  const events: any[] = (data?.data || []).slice(0, limit);
 
   if (isLoading) return null;
   if (events.length === 0) return null;
@@ -219,7 +225,7 @@ export function MultiProjectActivityFeed({ limit = 12 }: { limit?: number }) {
           LIVE
         </div>
       </div>
-      <div className="space-y-2">
+      <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
         {events.map((e, i) => {
           const meta = EVENT_ICON[e.eventType] || EVENT_ICON.note_added;
           const Icon = meta.icon;

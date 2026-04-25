@@ -41,6 +41,7 @@ import { CreateJobModal } from '../../components/jobs/CreateJobModal';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { SpotlightTip } from '../../components/ui/SpotlightTip';
 import { buildGoogleMapsRouteUrl, formatFullAddress } from '../../lib/routing';
+import { useDemoPaywallOptional } from '../../demo/DemoPaywallContext';
 
 // ── Types & constants ───────────────────────────────────────────────
 type ViewMode = 'day' | 'week' | 'month';
@@ -450,6 +451,12 @@ function DayView({
     return routable.length >= 2 ? buildGoogleMapsRouteUrl(routable) : null;
   }, [jobs]);
 
+  // In demo mode, hijack the route-optimization click and fire the paywall
+  // instead of opening Google Maps in a new tab. Real Google Maps with the
+  // demo's seeded addresses is a confusing tangent — this is the actual
+  // conversion moment ("oh, this is the kind of thing I'd pay for").
+  const demoPaywall = useDemoPaywallOptional();
+
   return (
     <div className="space-y-3">
       {isLoading ? (
@@ -476,10 +483,19 @@ function DayView({
               that are noted inline. */}
           {routeInfo && (
             <a
-              href={routeInfo.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group flex items-center gap-3 px-4 py-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl text-white shadow-md shadow-blue-500/20 hover:shadow-lg hover:shadow-blue-500/30 transition-all"
+              href={demoPaywall ? '#' : routeInfo.url}
+              target={demoPaywall ? undefined : '_blank'}
+              rel={demoPaywall ? undefined : 'noopener noreferrer'}
+              onClick={(e) => {
+                // In demo mode, intercept and fire the paywall instead of
+                // launching Google Maps with seeded fixture addresses (which
+                // produces a confusing real-Maps tangent).
+                if (demoPaywall) {
+                  e.preventDefault();
+                  demoPaywall.trigger('routeOptimization');
+                }
+              }}
+              className="group flex items-center gap-3 px-4 py-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl text-white shadow-md shadow-blue-500/20 hover:shadow-lg hover:shadow-blue-500/30 transition-all cursor-pointer"
             >
               <div className="w-9 h-9 rounded-lg bg-white/15 flex items-center justify-center shrink-0">
                 <Navigation className="w-4.5 h-4.5 text-white" />

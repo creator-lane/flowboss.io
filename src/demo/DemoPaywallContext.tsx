@@ -69,6 +69,10 @@ const PAYWALL_COPY: Record<string, { title: string; body: string }> = {
     title: 'Send through QuickBooks',
     body: 'Sign up to connect QuickBooks and send invoices straight from your books.',
   },
+  routeOptimization: {
+    title: 'Optimize your day in one tap',
+    body: "Sign up to send your day's stops straight to Google Maps as a multi-stop trip — sorted by start time, ready to drive.",
+  },
   upgrade: {
     title: 'Unlock the full platform',
     body: 'Sign up free to get jobs, customers, invoices, financials, and more — 14 days, no card.',
@@ -97,6 +101,16 @@ export function useDemoPaywall(): DemoPaywallContextValue {
   const ctx = useContext(DemoPaywallContext);
   if (!ctx) throw new Error('useDemoPaywall must be used inside DemoPaywallProvider');
   return ctx;
+}
+
+/**
+ * Same as `useDemoPaywall`, but returns `null` outside the provider instead of
+ * throwing. Use this in components that render in BOTH demo and production
+ * (e.g. dashboard pages) when you need to intercept a click only in demo —
+ * production gets `null` and falls through to the real behavior.
+ */
+export function useDemoPaywallOptional(): DemoPaywallContextValue | null {
+  return useContext(DemoPaywallContext);
 }
 
 export function DemoPaywallProvider({ children }: { children: React.ReactNode }) {

@@ -966,9 +966,11 @@ export function GCDashboardPage() {
       {/* ── Projects Tab ── */}
       {activeTab === 'projects' && (
         <>
-          {/* Cross-project live activity */}
+          {/* Cross-project live activity — keep tight (3) so the project
+              grid + stats stay above the fold. The feed itself caps at this
+              limit and scrolls if more events stream in. */}
           <div className="mb-6">
-            <MultiProjectActivityFeed limit={8} />
+            <MultiProjectActivityFeed limit={3} />
           </div>
 
           {/* Stats */}

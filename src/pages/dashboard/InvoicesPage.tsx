@@ -19,6 +19,7 @@ import { SpotlightTip } from '../../components/ui/SpotlightTip';
 import { isOverdue, isPaid, isDraft, isSent } from '../../lib/invoiceStatus';
 import { DemoChip } from '../../components/ui/DemoChip';
 import { TextReminderButton } from '../../components/invoices/TextReminderButton';
+import { DemoHint } from '../../demo/DemoHint';
 
 type FilterTab = 'all' | 'draft' | 'sent' | 'paid' | 'overdue';
 
@@ -175,6 +176,18 @@ export function InvoicesPage() {
             Create Invoice
           </button>
         </SpotlightTip>
+      </div>
+
+      {/* Demo: invoices intro */}
+      <div className="mb-6">
+        <DemoHint
+          id="invoices-intro"
+          emoji="🧾"
+          title="Get paid faster, no chasing"
+          body="Send invoices with a payment link your customer taps once. Money lands next day via Stripe — and the second they pay, it shows up on your P&L. Auto-reminders nudge the slow payers for you."
+          cta="Sign up free → text the first one in 60 seconds"
+          tone="emerald"
+        />
       </div>
 
       {/* Summary Cards */}

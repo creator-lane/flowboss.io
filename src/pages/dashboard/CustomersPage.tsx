@@ -7,6 +7,7 @@ import { EmptyState } from '../../components/ui/EmptyState';
 import { ClipboardIllustration } from '../../components/ui/illustrations/ClipboardIllustration';
 import { QueryErrorState } from '../../components/ui/QueryErrorState';
 import { DemoChip } from '../../components/ui/DemoChip';
+import { DemoHint } from '../../demo/DemoHint';
 import {
   Search,
   Plus,
@@ -83,6 +84,18 @@ export function CustomersPage() {
       </div>
 
       <CreateCustomerModal open={showCreateModal} onClose={() => setShowCreateModal(false)} />
+
+      {/* Demo: customers intro */}
+      <div className="mb-6">
+        <DemoHint
+          id="customers-intro"
+          emoji="👥"
+          title="A real customer list, not your phone contacts"
+          body="Every job, invoice, payment, and note tied to each customer — searchable, sortable, and ready for the next call. Click any name to see their full history."
+          cta="Sign up free → keep customers, not just contacts"
+          tone="blue"
+        />
+      </div>
 
       {/* Search */}
       <div className="relative max-w-md mb-6">

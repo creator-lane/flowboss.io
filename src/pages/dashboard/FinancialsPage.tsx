@@ -39,6 +39,7 @@ import {
   HardHat,
 } from 'lucide-react';
 import { EmptyState } from '../../components/ui/EmptyState';
+import { DemoHint } from '../../demo/DemoHint';
 
 // ── Types ─────────────────────────────────────────────────────────────
 type Period = 'week' | 'month' | 'year';
@@ -653,6 +654,16 @@ export function FinancialsPage() {
       </div>
 
       <CreateExpenseModal open={showExpenseModal} onClose={() => setShowExpenseModal(false)} />
+
+      {/* Demo: financials intro */}
+      <DemoHint
+        id="financials-intro"
+        emoji="💰"
+        title="Real P&L, not a quarterly surprise"
+        body="Revenue, expenses, profit margin — pulled live from your jobs and expenses. See exactly which jobs made you money and which ones leaked, the second they happen. No more 'hope my accountant catches it.'"
+        cta="Sign up free → know your numbers daily"
+        tone="emerald"
+      />
 
       {/* ── Section 1: Summary Cards ───────────────────────────────────── */}
       {isLoading ? (

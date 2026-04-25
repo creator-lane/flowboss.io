@@ -34,6 +34,7 @@ import { LoginStreak } from '../../components/dashboard/LoginStreak';
 import { GracePeriodBanner } from '../../components/billing/GracePeriodBanner';
 import { ReconnectCard } from '../../components/dashboard/ReconnectCard';
 import { SpotlightTip } from '../../components/ui/SpotlightTip';
+import { DemoHint } from '../../demo/DemoHint';
 import { isOverdue as isInvoiceOverdue } from '../../lib/invoiceStatus';
 
 // ── Helpers ──────────────────────────────────────────────────────────
@@ -331,6 +332,16 @@ export function CommandCenterPage() {
             ))}
         </div>
       )}
+
+      {/* Demo: top-of-home intro */}
+      <DemoHint
+        id="home-intro"
+        emoji="👋"
+        title="Welcome to your daily command center"
+        body="Every morning you'll see what needs your attention before the coffee finishes brewing — overdue invoices, jobs starting today, projects over budget. No more piecing it together in your head."
+        cta="Sign up free → start your day on top of it"
+        tone="blue"
+      />
 
       {/* 1. Welcome Header */}
       <div className="bg-gradient-to-r from-brand-500/5 via-brand-500/[0.02] to-transparent dark:from-brand-500/10 dark:via-brand-500/5 dark:to-transparent rounded-2xl p-6 mb-0">

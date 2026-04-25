@@ -590,7 +590,10 @@ const GC_PROJECTS = [
         { name: 'Mount doors + drawer fronts', done: false },
         { name: 'Pulls + soft-close adjust', done: false },
       ]}),
-      trade({ id: 'demo-trade-1g', zoneId: 'demo-zone-1a', trade: 'Countertops', status: 'not_started', assignedBusinessName: 'Stone & Tile SF', laborHours: 16, laborRate: 110, materialsBudget: 14800, startDaysFromNow: 18, endDaysFromNow: 24, tasks: [
+      // Intentionally unassigned in the demo so visitors can experience the
+      // "Invite Sub" flow firsthand. The selling point is the clearest with a
+      // real open seat in front of them.
+      trade({ id: 'demo-trade-1g', zoneId: 'demo-zone-1a', trade: 'Countertops', status: 'not_started', assignedBusinessName: null, laborHours: 16, laborRate: 110, materialsBudget: 14800, startDaysFromNow: 18, endDaysFromNow: 24, tasks: [
         { name: 'Template after cabinet install', done: false },
         { name: 'Fabrication (10-day lead)', done: false },
         { name: 'Install + seal', done: false },
@@ -600,7 +603,7 @@ const GC_PROJECTS = [
         { name: 'Install engineered hardwood', done: false },
         { name: 'Trim + transitions', done: false },
       ]}),
-      trade({ id: 'demo-trade-1i', zoneId: 'demo-zone-1b', trade: 'Painting', status: 'not_started', assignedBusinessName: 'Premium Painting Co.', laborHours: 32, laborRate: 65, materialsBudget: 1400, startDaysFromNow: 22, endDaysFromNow: 28, tasks: [
+      trade({ id: 'demo-trade-1i', zoneId: 'demo-zone-1b', trade: 'Painting', status: 'not_started', assignedBusinessName: null, laborHours: 32, laborRate: 65, materialsBudget: 1400, startDaysFromNow: 22, endDaysFromNow: 28, tasks: [
         { name: 'Prime walls + trim', done: false },
         { name: 'Two coats finish (walls)', done: false },
         { name: 'Trim + cabinet boxes (semi-gloss)', done: false },
@@ -657,7 +660,7 @@ const GC_PROJECTS = [
         { name: 'Run refrigerant lines', done: false },
         { name: 'Bath exhaust fan + duct', done: false },
       ]}),
-      trade({ id: 'demo-trade-2e', zoneId: 'demo-zone-2a', trade: 'Insulation', status: 'not_started', assignedBusinessName: 'In-house crew', laborHours: 18, laborRate: 70, materialsBudget: 2400, startDaysFromNow: 20, endDaysFromNow: 24, tasks: [
+      trade({ id: 'demo-trade-2e', zoneId: 'demo-zone-2a', trade: 'Insulation', status: 'not_started', assignedBusinessName: null, laborHours: 18, laborRate: 70, materialsBudget: 2400, startDaysFromNow: 20, endDaysFromNow: 24, tasks: [
         { name: 'Walls — R-15 batts', done: false },
         { name: 'Ceiling — R-30 blown-in', done: false },
         { name: 'Air-seal penetrations', done: false },
@@ -672,7 +675,7 @@ const GC_PROJECTS = [
         { name: 'Install LVP click flooring', done: false },
         { name: 'Trim + transitions', done: false },
       ]}),
-      trade({ id: 'demo-trade-2h', zoneId: 'demo-zone-2a', trade: 'Painting', status: 'not_started', assignedBusinessName: 'Premium Painting Co.', laborHours: 28, laborRate: 65, materialsBudget: 1100, startDaysFromNow: 42, endDaysFromNow: 48, tasks: [
+      trade({ id: 'demo-trade-2h', zoneId: 'demo-zone-2a', trade: 'Painting', status: 'not_started', assignedBusinessName: null, laborHours: 28, laborRate: 65, materialsBudget: 1100, startDaysFromNow: 42, endDaysFromNow: 48, tasks: [
         { name: 'Prime new drywall', done: false },
         { name: 'Two coats walls + ceiling', done: false },
         { name: 'Trim + doors', done: false },
@@ -739,7 +742,7 @@ const GC_PROJECTS = [
         { name: 'Glass shower enclosure', done: false },
         { name: 'Final connections', done: false },
       ]}),
-      trade({ id: 'demo-trade-3h', zoneId: 'demo-zone-3a', trade: 'Painting', status: 'not_started', assignedBusinessName: 'Premium Painting Co.', laborHours: 8, laborRate: 65, materialsBudget: 400, startDaysFromNow: 18, endDaysFromNow: 20, tasks: [
+      trade({ id: 'demo-trade-3h', zoneId: 'demo-zone-3a', trade: 'Painting', status: 'not_started', assignedBusinessName: null, laborHours: 8, laborRate: 65, materialsBudget: 400, startDaysFromNow: 18, endDaysFromNow: 20, tasks: [
         { name: 'Prime patches', done: false },
         { name: 'Two coats finish', done: false },
         { name: 'Trim + door', done: false },
@@ -877,7 +880,7 @@ const GC_PROJECTS = [
         { name: 'Refrigerant lines + condensate', done: false },
         { name: 'Bath + kitchen exhaust', done: false },
       ]}),
-      trade({ id: 'demo-trade-5g', zoneId: 'demo-zone-5a', trade: 'Insulation', status: 'not_started', assignedBusinessName: 'In-house crew', laborHours: 36, laborRate: 70, materialsBudget: 5200, startDaysFromNow: 70, endDaysFromNow: 74, tasks: [
+      trade({ id: 'demo-trade-5g', zoneId: 'demo-zone-5a', trade: 'Insulation', status: 'not_started', assignedBusinessName: null, laborHours: 36, laborRate: 70, materialsBudget: 5200, startDaysFromNow: 70, endDaysFromNow: 74, tasks: [
         { name: 'Walls — closed-cell spray foam', done: false },
         { name: 'Ceiling — R-38 blown-in', done: false },
         { name: 'Air-seal + acoustic', done: false },
@@ -898,7 +901,7 @@ const GC_PROJECTS = [
         { name: 'Bath vanity', done: false },
         { name: 'Closet systems', done: false },
       ]}),
-      trade({ id: 'demo-trade-5k', zoneId: 'demo-zone-5b', trade: 'Tile', status: 'not_started', assignedBusinessName: 'Stone & Tile SF', laborHours: 36, laborRate: 110, materialsBudget: 8200, startDaysFromNow: 98, endDaysFromNow: 106, tasks: [
+      trade({ id: 'demo-trade-5k', zoneId: 'demo-zone-5b', trade: 'Tile', status: 'not_started', assignedBusinessName: null, laborHours: 36, laborRate: 110, materialsBudget: 8200, startDaysFromNow: 98, endDaysFromNow: 106, tasks: [
         { name: 'Bath floor + shower', done: false },
         { name: 'Kitchen backsplash', done: false },
         { name: 'Grout + seal', done: false },
@@ -907,7 +910,7 @@ const GC_PROJECTS = [
         { name: 'LVP throughout living', done: false },
         { name: 'Trim + transitions', done: false },
       ]}),
-      trade({ id: 'demo-trade-5m', zoneId: 'demo-zone-5a', trade: 'Painting', status: 'not_started', assignedBusinessName: 'Premium Painting Co.', laborHours: 56, laborRate: 65, materialsBudget: 2200, startDaysFromNow: 112, endDaysFromNow: 120, tasks: [
+      trade({ id: 'demo-trade-5m', zoneId: 'demo-zone-5a', trade: 'Painting', status: 'not_started', assignedBusinessName: null, laborHours: 56, laborRate: 65, materialsBudget: 2200, startDaysFromNow: 112, endDaysFromNow: 120, tasks: [
         { name: 'Interior — prime + two coats', done: false },
         { name: 'Exterior — Hardie paint', done: false },
         { name: 'Trim + doors', done: false },

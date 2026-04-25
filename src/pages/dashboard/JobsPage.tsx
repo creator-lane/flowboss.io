@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { CreateJobModal } from '../../components/jobs/CreateJobModal';
 import { EmptyState } from '../../components/ui/EmptyState';
+import { DemoHint } from '../../demo/DemoHint';
 import { BlueprintIllustration } from '../../components/ui/illustrations/BlueprintIllustration';
 import { QueryErrorState } from '../../components/ui/QueryErrorState';
 import { SpotlightTip } from '../../components/ui/SpotlightTip';
@@ -161,6 +162,18 @@ export function JobsPage() {
             Create Job
           </button>
         </SpotlightTip>
+      </div>
+
+      {/* Demo: jobs intro */}
+      <div className="mb-5">
+        <DemoHint
+          id="jobs-intro"
+          emoji="🛠️"
+          title="Every job, every status, in one feed"
+          body="Scheduled, in-progress, completed — all here, sortable by date or customer. Click any job to see notes, photos, time logs, and invoice it in two taps. No more 'where did I write that down?'"
+          cta="Sign up free → keep every job tracked"
+          tone="amber"
+        />
       </div>
 
       {/* Time range selector + month navigation */}

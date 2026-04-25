@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../lib/api';
 import { InviteSubModal } from '../../components/gc/InviteSubModal';
+import { DemoHint } from '../../demo/DemoHint';
 import {
   MapPin,
   DollarSign,
@@ -389,6 +390,18 @@ export function GCProjectDetailPage() {
         </div>
       </div>
 
+      {/* Demo: top-of-page intro hint */}
+      <div className="mb-4">
+        <DemoHint
+          id="gc-project-intro"
+          emoji="🏗️"
+          title="This is your project HQ"
+          body="Every trade, sub, dollar, and deadline lives here. Click any trade circle to drill in. You'll never have to text 8 people on a Saturday to figure out where the job stands."
+          cta="Sign up free → run your jobs like this"
+          tone="blue"
+        />
+      </div>
+
       {/* ─── Visual View ─── */}
       {viewMode === 'visual' && (
         <div className="relative grid grid-cols-1 xl:grid-cols-[1fr_320px] gap-4">
@@ -415,7 +428,15 @@ export function GCProjectDetailPage() {
           </div>
 
           {/* Activity sidebar */}
-          <aside className="xl:sticky xl:top-4 xl:self-start">
+          <aside className="xl:sticky xl:top-4 xl:self-start space-y-3">
+            <DemoHint
+              id="gc-activity-feed"
+              emoji="📡"
+              title="Live activity, not a group text"
+              body="Every status change, task check-off, photo upload, and message from your subs lands here in real time. You stop chasing updates — they come to you."
+              cta="Sign up free → see updates as they happen"
+              tone="emerald"
+            />
             <ProjectActivityFeed projectId={id!} />
           </aside>
 

@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { api } from '../../lib/api';
 import { useToast } from '../ui/Toast';
+import { DemoHint } from '../../demo/DemoHint';
 import { RateSubModal } from './RateSubModal';
 
 // Extracted from GCProjectDetailPage as part of the carve-out audit item.
@@ -398,13 +399,22 @@ function TradeDetailPanelInner({
                 )}
               </div>
             ) : (
-              <button
-                onClick={() => onInviteSub?.(trade.id, trade.trade)}
-                className="flex items-center gap-2 w-full px-3 py-3 border-2 border-dashed border-gray-200 rounded-lg text-sm text-brand-600 font-medium hover:border-brand-300 hover:bg-brand-50/50 transition-all dark:border-white/10 dark:text-blue-300"
-              >
-                <UserPlus className="w-4 h-4" />
-                Invite Sub
-              </button>
+              <div className="space-y-3">
+                <DemoHint
+                  id="trade-invite-sub"
+                  emoji="🤝"
+                  title={`Assign a sub-contractor to ${trade.trade}`}
+                  body="Click below to invite a sub. They get a free dashboard with their tasks, schedule, and chat — you stay in control of the budget and timeline. No more chasing texts, no more missed deadlines."
+                  cta="Sign up free → send real invites"
+                />
+                <button
+                  onClick={() => onInviteSub?.(trade.id, trade.trade)}
+                  className="flex items-center gap-2 w-full px-3 py-3 border-2 border-dashed border-gray-200 rounded-lg text-sm text-brand-600 font-medium hover:border-brand-300 hover:bg-brand-50/50 transition-all dark:border-white/10 dark:text-blue-300"
+                >
+                  <UserPlus className="w-4 h-4" />
+                  Invite Sub
+                </button>
+              </div>
             )}
           </div>
 

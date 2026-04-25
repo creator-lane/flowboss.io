@@ -26,6 +26,7 @@ import {
   Lightbulb,
 } from 'lucide-react';
 import { EmptyState as EmptyStateBanner } from '../../components/ui/EmptyState';
+import { DemoHint } from '../../demo/DemoHint';
 
 // ── Currency / number formatting ────────────────────────────────────
 const fmtCurrency = new Intl.NumberFormat('en-US', {
@@ -500,6 +501,16 @@ export function InsightsPage() {
           Your business analytics at a glance
         </p>
       </div>
+
+      {/* Demo: insights intro */}
+      <DemoHint
+        id="insights-intro"
+        emoji="📊"
+        title="Find the jobs actually making you money"
+        body="See which services, customers, and crews are most profitable — and which are quietly losing you money. The insight here that pays for FlowBoss for the year: knowing what to charge more for and what to stop doing."
+        cta="Sign up free → spot patterns in your business"
+        tone="amber"
+      />
 
       {/* ── 1. Hero KPIs ──────────────────────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

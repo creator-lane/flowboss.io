@@ -152,8 +152,17 @@ function BarChart({
 }) {
   const safeMax = maxVal || 1;
 
+  // Visual floor for non-zero buckets. When one bar dominates (e.g. a single
+  // $22k week against three $200–$2k weeks), a strict % mapping crushes the
+  // smaller bars to ~1px and the chart reads as "empty." Bump the minimum
+  // visible height to 7% — small but unmistakably present — and only when
+  // the value is actually > 0 so true zeros stay zero.
+  const MIN_VISIBLE_PCT = 7;
+
   return (
-    <div className="flex items-end gap-1 sm:gap-2 h-48 mt-2">
+    <div className="relative flex items-end gap-1 sm:gap-2 h-48 mt-2">
+      {/* Subtle baseline so small bars read as intentional, not missing data. */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-7 h-px bg-neutral-200 dark:bg-white/10" />
       {data.map((d, i) => {
         const revH = (d.revenue / safeMax) * 100;
         const expH = (d.expenses / safeMax) * 100;
@@ -164,7 +173,7 @@ function BarChart({
               <div className="relative flex-1 max-w-5 flex flex-col justify-end">
                 <div
                   className="bg-blue-500 rounded-t transition-all duration-300 hover:bg-blue-600 cursor-default min-h-[2px]"
-                  style={{ height: `${Math.max(revH, d.revenue > 0 ? 2 : 0)}%` }}
+                  style={{ height: `${Math.max(revH, d.revenue > 0 ? MIN_VISIBLE_PCT : 0)}%` }}
                   title={`Revenue: ${fmtCurrency(d.revenue)}`}
                 />
               </div>
@@ -172,7 +181,7 @@ function BarChart({
               <div className="relative flex-1 max-w-5 flex flex-col justify-end">
                 <div
                   className="bg-red-400 rounded-t transition-all duration-300 hover:bg-red-500 cursor-default min-h-[2px]"
-                  style={{ height: `${Math.max(expH, d.expenses > 0 ? 2 : 0)}%` }}
+                  style={{ height: `${Math.max(expH, d.expenses > 0 ? MIN_VISIBLE_PCT : 0)}%` }}
                   title={`Expenses: ${fmtCurrency(d.expenses)}`}
                 />
               </div>

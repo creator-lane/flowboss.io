@@ -8,13 +8,15 @@ const ZONE_EMOJI: Record<string, string> = {
   'Bathroom': '\u{1F6BF}', 'Bathroom 1': '\u{1F6BF}', 'Bathroom 2': '\u{1F6BF}', 'Master Bathroom': '\u{1F6BF}',
   'Master Suite': '\u{1F6CF}\u{FE0F}', 'Master Bedroom': '\u{1F6CF}\u{FE0F}',
   'Bedroom': '\u{1F6CF}\u{FE0F}', 'Bedroom 1': '\u{1F6CF}\u{FE0F}', 'Bedroom 2': '\u{1F6CF}\u{FE0F}', 'Bedroom 3': '\u{1F6CF}\u{FE0F}',
-  'Living Room': '\u{1F6CB}\u{FE0F}', 'Family Room': '\u{1F6CB}\u{FE0F}',
+  'Living Room': '\u{1F6CB}\u{FE0F}', 'Family Room': '\u{1F6CB}\u{FE0F}', 'Living Area': '\u{1F6CB}\u{FE0F}',
   'Garage': '\u{1F697}',
-  'Exterior': '\u{1F3E1}',
+  'Exterior': '\u{1F3E1}', 'Site / Exterior': '\u{1F3E1}', 'Yard': '\u{1F3E1}', 'Landscaping': '\u{1F33F}',
   'Basement': '\u{1F3E0}',
   'Laundry': '\u{1F9FA}',
   'Office': '\u{1F4BC}',
-  'Dining Room': '\u{1F37D}\u{FE0F}',
+  'Dining Room': '\u{1F37D}\u{FE0F}', 'Dining': '\u{1F37D}\u{FE0F}',
+  'ADU': '\u{1F3E1}', 'ADU Shell': '\u{1F3E1}',
+  'Roof': '\u{1F3D7}\u{FE0F}', 'Roofing': '\u{1F3D7}\u{FE0F}',
   'General': '\u{1F527}', 'Site-Wide': '\u{1F527}',
 };
 
@@ -23,17 +25,71 @@ const ZONE_COLORS: Record<string, string> = {
   'Bathroom': '#0891b2', 'Bathroom 1': '#0891b2', 'Bathroom 2': '#0e7490', 'Bathroom 3': '#155e75', 'Master Bathroom': '#06b6d4',
   'Master Suite': '#7c3aed', 'Master Bedroom': '#7c3aed',
   'Bedroom': '#8b5cf6', 'Bedroom 1': '#8b5cf6', 'Bedroom 2': '#a855f7', 'Bedroom 3': '#c084fc',
-  'Living Room': '#059669', 'Family Room': '#059669',
-  'Dining Room': '#0d9488',
+  'Living Room': '#059669', 'Family Room': '#059669', 'Living Area': '#059669',
+  'Dining Room': '#0d9488', 'Dining': '#0d9488',
   'Garage': '#475569',
-  'Exterior': '#15803d',
+  'Exterior': '#15803d', 'Site / Exterior': '#15803d', 'Yard': '#15803d', 'Landscaping': '#16a34a',
   'Basement': '#525252',
   'Laundry': '#db2777',
   'Office': '#4338ca',
+  'ADU': '#9333ea', 'ADU Shell': '#9333ea',
+  'Roof': '#92400e', 'Roofing': '#92400e',
   'General': '#1d4ed8', 'General / Structural': '#1d4ed8', 'Site-Wide': '#1d4ed8',
 };
 
 const DEFAULT_ZONE_COLOR = '#475569';
+
+// Substring-match fallbacks so combo zone names ("Kitchenette + Bath",
+// "Kitchen + Bath", "Primary Suite + Bath") still resolve to a sensible
+// icon/color instead of falling through to the default pin/slate. Order
+// matters: more specific patterns first.
+const ZONE_PATTERN_ICONS: Array<[RegExp, string]> = [
+  [/kitchen/i, '\u{1F373}'],
+  [/bath/i, '\u{1F6BF}'],
+  [/master|primary\s*suite/i, '\u{1F6CF}\u{FE0F}'],
+  [/bed/i, '\u{1F6CF}\u{FE0F}'],
+  [/living|family|great\s*room/i, '\u{1F6CB}\u{FE0F}'],
+  [/dining/i, '\u{1F37D}\u{FE0F}'],
+  [/garage/i, '\u{1F697}'],
+  [/laundry|mud/i, '\u{1F9FA}'],
+  [/office|study/i, '\u{1F4BC}'],
+  [/basement|cellar/i, '\u{1F3E0}'],
+  [/roof/i, '\u{1F3D7}\u{FE0F}'],
+  [/yard|landscap|deck|patio|exterior/i, '\u{1F3E1}'],
+  [/adu|cottage|guest\s*house/i, '\u{1F3E1}'],
+];
+
+const ZONE_PATTERN_COLORS: Array<[RegExp, string]> = [
+  [/kitchen/i, '#d97706'],
+  [/bath/i, '#0891b2'],
+  [/master|primary\s*suite/i, '#7c3aed'],
+  [/bed/i, '#8b5cf6'],
+  [/living|family|great\s*room/i, '#059669'],
+  [/dining/i, '#0d9488'],
+  [/garage/i, '#475569'],
+  [/laundry|mud/i, '#db2777'],
+  [/office|study/i, '#4338ca'],
+  [/basement|cellar/i, '#525252'],
+  [/roof/i, '#92400e'],
+  [/yard|landscap|deck|patio|exterior/i, '#15803d'],
+  [/adu|cottage|guest\s*house/i, '#9333ea'],
+];
+
+function resolveZoneIcon(name: string): string {
+  if (ZONE_EMOJI[name]) return ZONE_EMOJI[name];
+  for (const [re, icon] of ZONE_PATTERN_ICONS) {
+    if (re.test(name)) return icon;
+  }
+  return '\u{1F4CD}';
+}
+
+function resolveZoneColor(name: string): string {
+  if (ZONE_COLORS[name]) return ZONE_COLORS[name];
+  for (const [re, color] of ZONE_PATTERN_COLORS) {
+    if (re.test(name)) return color;
+  }
+  return DEFAULT_ZONE_COLOR;
+}
 
 // Convert hex to rgba for translucent tinted backgrounds
 function hexToRgba(hex: string, alpha: number) {
@@ -151,7 +207,7 @@ export function ZoneClusterDiagram({
   const renderZoneCard = (zone: typeof zoneList[number]) => {
     const zoneTrades = zone.trades;
     const { totalTasks, doneTasks, progress } = getZoneStats(zoneTrades);
-    const zoneAccent = ZONE_COLORS[zone.name] || DEFAULT_ZONE_COLOR;
+    const zoneAccent = resolveZoneColor(zone.name);
     const isSelected = zone.id === selectedZoneId;
 
     return (
@@ -182,7 +238,7 @@ export function ZoneClusterDiagram({
             className="w-10 h-10 rounded-xl flex items-center justify-center text-xl shrink-0 shadow-sm"
             style={{ backgroundColor: zoneAccent, color: '#fff' }}
           >
-            <span className="drop-shadow-sm">{ZONE_EMOJI[zone.name] || '\u{1F4CD}'}</span>
+            <span className="drop-shadow-sm">{resolveZoneIcon(zone.name)}</span>
           </div>
           <div className="min-w-0 flex-1">
             <div className="font-bold text-sm text-gray-900 truncate dark:text-white leading-tight">
@@ -327,7 +383,18 @@ export function ZoneClusterDiagram({
                 middle-bottom rows and orphaned single cards. Zones flow
                 below in a balanced responsive grid (1 / 2 / 3 columns). */}
             <div className="flex justify-center">{Hub}</div>
-            <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+            {/* For low zone counts (1–2) the cards would otherwise pin to the
+                left of a 3-col grid and look orphaned. Cap the wrapper width
+                and center it so even a single zone reads as intentional. */}
+            <div
+              className={
+                zoneCount === 1
+                  ? 'mt-6 mx-auto max-w-md'
+                  : zoneCount === 2
+                  ? 'mt-6 mx-auto max-w-3xl grid grid-cols-1 sm:grid-cols-2 gap-4'
+                  : 'mt-6 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4'
+              }
+            >
               {zoneList.map(renderZoneCard)}
             </div>
           </>

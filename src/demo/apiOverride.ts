@@ -1,13 +1,22 @@
 // Demo-mode runtime override for `api` (lib/api.ts) and `supabase` (lib/supabase.ts).
 //
 // On demo entry: every method on `api` is swapped with a function that either
-// returns seeded fixture data (reads) or throws a DemoPaywallError (writes).
-// `supabase.from(...)` and `supabase.auth.*` are also patched to return safe
-// no-op chains, which catches the small number of components that bypass
-// api.ts and call Supabase directly (e.g. RequireSubscription, useSubscriptionTier).
+// returns seeded fixture data (reads) or fires the paywall modal (writes that
+// represent real conversion moments). `supabase.from`, `supabase.rpc`, and
+// `supabase.auth.{getUser,getSession}` are also patched to return safe no-op
+// chains, which catches the small number of components that bypass api.ts
+// and call Supabase directly (RequireSubscription, useSubscriptionTier,
+// SampleDataPanel.wipe_sample_data, lib/api.ts learn_price, etc.).
 //
 // On demo exit: originals are restored. Production code is never modified;
 // this module is the one and only entry point that touches `api`/`supabase`.
+//
+// KNOWN LIMITATION: `window.location.href = '/dashboard/...'` writes (e.g.
+// EmptyState.actionHref, Checkout success URL) bypass pushState entirely
+// and would hard-navigate the visitor out of the demo subtree. In practice
+// the seeded fixtures populate every list, so empty states rarely render —
+// but if a future page introduces a hard-href escape, intercept it here
+// (e.g. capture-phase document click listener for `<a href>` to /dashboard).
 
 import { api } from '../lib/api';
 import { supabase } from '../lib/supabase';
@@ -34,12 +43,12 @@ interface InstallOptions {
 let installed = false;
 let originalApi: Record<string, any> | null = null;
 let originalSupabaseFrom: any = null;
+let originalSupabaseRpc: any = null;
 let originalAuthGetUser: any = null;
 let originalAuthGetSession: any = null;
 let originalNestedQbo: Record<string, any> | null = null;
 let originalPushState: typeof window.history.pushState | null = null;
 let originalReplaceState: typeof window.history.replaceState | null = null;
-let originalWindowOpen: typeof window.open | null = null;
 
 // A chainable, awaitable proxy that always resolves to { data: null, error: null }.
 // Any method call returns the same chain; awaiting it yields the empty result.
@@ -108,11 +117,19 @@ function patchApi(persona: DemoPersona, onPaywall: PaywallHandler) {
 
 function patchSupabase(persona: DemoPersona) {
   originalSupabaseFrom = supabase.from.bind(supabase);
+  originalSupabaseRpc = supabase.rpc.bind(supabase);
   originalAuthGetUser = supabase.auth.getUser.bind(supabase.auth);
   originalAuthGetSession = supabase.auth.getSession.bind(supabase.auth);
 
   // Replace `supabase.from(...)` so any direct table query returns an empty chain.
   (supabase as any).from = (_table: string) => makeEmptyChain();
+
+  // Replace `supabase.rpc(...)` similarly. A handful of components (e.g.
+  // SampleDataPanel.handleWipe → wipe_sample_data, lib/api.ts learn_price)
+  // call rpc directly, bypassing the api/seedResolver layer. Without this
+  // patch, those calls would reach the real Supabase instance and either
+  // fail (no real auth) or — worse — succeed against unrelated data.
+  (supabase as any).rpc = (_fn: string, _args?: any) => makeEmptyChain();
 
   // `getUser` / `getSession` return a fake session anchored to the demo user.
   // useSubscriptionTier reads this to decide whether the user is an invited sub.
@@ -218,6 +235,10 @@ export function uninstallDemoMode() {
   if (originalSupabaseFrom) {
     (supabase as any).from = originalSupabaseFrom;
     originalSupabaseFrom = null;
+  }
+  if (originalSupabaseRpc) {
+    (supabase as any).rpc = originalSupabaseRpc;
+    originalSupabaseRpc = null;
   }
   if (originalAuthGetUser) {
     (supabase.auth as any).getUser = originalAuthGetUser;

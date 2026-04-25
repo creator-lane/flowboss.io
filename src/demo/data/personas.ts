@@ -26,7 +26,19 @@ interface DemoSeed {
   invoices: any[];
   gcProjects: any[];
   gcProjectMessages: Record<string, any[]>;
+  /** Typed event-stream feed (eventType / actorName / summary) — what the
+   *  ProjectActivityFeed + MultiProjectActivityFeed widgets render. Keyed by
+   *  project id. Distinct from gcProjectMessages, which is the chat thread on
+   *  the project detail page. Every event MUST carry a real actorName — the
+   *  feed is the public face of the demo and "Someone" reads as a bug. */
+  gcProjectActivity: Record<string, any[]>;
   gcSubDirectory: any[];
+  /** Real-name ratings keyed by sub userId — drives getSubPerformance. */
+  gcRatings: Record<string, any[]>;
+  /** Job-level line items keyed by job id — JobDetailPage reads these. */
+  jobLineItems: Record<string, any[]>;
+  /** Job-level photos keyed by job id — JobDetailPage gallery. */
+  jobPhotos: Record<string, any[]>;
   invitedProjects: any[];
   contractors: any[];
   expenses: any[];
@@ -917,90 +929,584 @@ const GC_PROJECTS = [
       ]}),
     ],
   },
+  // ── Whole-house build — the marquee project. 22 trades across 6 zones,
+  //    spanning foundation through final punch. This is the "look at the
+  //    depth" project — a full ground-up build for the demo to show that
+  //    FlowBoss handles real GC scope, not just remodels. ──────────────
+  {
+    id: 'demo-proj-6', user_id: GC_USER_ID,
+    name: 'Cunningham — Whole-House Build',
+    customerName: 'Daniel & Elise Cunningham',
+    address: '1812 Sea Cliff Ave',
+    city: 'San Francisco', state: 'CA', zip: '94121',
+    structureType: 'house', sqFootage: 4850, bedrooms: 5, bathrooms: 4.5, stories: 2,
+    status: 'active',
+    startDate: iso(subDays(NOW, 56)), start_date: iso(subDays(NOW, 56)),
+    targetEndDate: iso(addDays(NOW, 168)), target_end_date: iso(addDays(NOW, 168)),
+    budget: 1845000,
+    coverImageUrl: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1200&q=75',
+    cover_url: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1200&q=75',
+    zones: [
+      { id: 'demo-zone-6a', name: 'Foundation + Shell', zoneType: 'general' },
+      { id: 'demo-zone-6b', name: 'Main Floor — Living', zoneType: 'living' },
+      { id: 'demo-zone-6c', name: 'Main Floor — Kitchen', zoneType: 'kitchen' },
+      { id: 'demo-zone-6d', name: 'Upper Floor — Master Suite', zoneType: 'bedroom' },
+      { id: 'demo-zone-6e', name: 'Upper Floor — Kids + Guest', zoneType: 'bedroom' },
+      { id: 'demo-zone-6f', name: 'Exterior + Site', zoneType: 'general' },
+    ],
+    trades: [
+      trade({ id: 'demo-trade-6a', zoneId: 'demo-zone-6a', trade: 'Site Prep', status: 'completed', assignedBusinessName: 'Sierra Excavation', laborHours: 96, laborRate: 95, materialsBudget: 24000, startDaysFromNow: -56, endDaysFromNow: -50, tasks: [
+        { name: 'Demo existing structure', done: true },
+        { name: 'Excavate basement + footings', done: true },
+        { name: 'Site grading + drainage rough', done: true },
+        { name: 'Erosion control + temp power', done: true },
+      ]}),
+      trade({ id: 'demo-trade-6b', zoneId: 'demo-zone-6a', trade: 'Concrete', status: 'completed', assignedBusinessName: 'Foundation First', laborHours: 184, laborRate: 78, materialsBudget: 86500, startDaysFromNow: -50, endDaysFromNow: -38, tasks: [
+        { name: 'Form + pour footings', done: true },
+        { name: 'Foundation walls (basement)', done: true },
+        { name: 'Slab on grade (garage + basement)', done: true },
+        { name: 'Strip + waterproof', done: true },
+        { name: 'Backfill + compaction', done: true },
+      ]}),
+      trade({ id: 'demo-trade-6c', zoneId: 'demo-zone-6a', trade: 'Framing', status: 'completed', assignedBusinessName: 'In-house crew', laborHours: 640, laborRate: 85, materialsBudget: 124000, startDaysFromNow: -38, endDaysFromNow: -14, tasks: [
+        { name: 'First floor walls + decking', done: true },
+        { name: 'Second floor walls + decking', done: true },
+        { name: 'Roof framing + trusses', done: true },
+        { name: 'Sheathing + house-wrap', done: true },
+        { name: 'Windows + exterior doors', done: true },
+        { name: 'Structural inspection', done: true },
+      ]}),
+      trade({ id: 'demo-trade-6d', zoneId: 'demo-zone-6a', trade: 'Roofing', status: 'completed', assignedBusinessName: 'Modern Roofing Co.', laborHours: 96, laborRate: 95, materialsBudget: 38500, startDaysFromNow: -16, endDaysFromNow: -10, tasks: [
+        { name: 'Underlayment + ice/water', done: true },
+        { name: 'Standing-seam metal roof', done: true },
+        { name: 'Gutters + downspouts', done: true },
+        { name: 'Skylight install (2)', done: true },
+      ]}),
+      trade({ id: 'demo-trade-6e', zoneId: 'demo-zone-6a', trade: 'Plumbing', status: 'in_progress', assignedUserId: 'demo-sub-rivera', assignedBusinessName: 'Rivera Plumbing', laborHours: 240, laborRate: 145, materialsBudget: 64500, startDaysFromNow: -12, endDaysFromNow: 14, notes: 'Whole-house copper repipe; 4.5 baths plus utility + bar.', tasks: [
+        { name: 'Service line + meter set', done: true },
+        { name: 'DWV rough — basement + 1st floor', done: true },
+        { name: 'DWV rough — 2nd floor', done: true },
+        { name: 'Supply rough — manifolds', done: true },
+        { name: 'Tankless WH (2 units)', done: false },
+        { name: 'Recirc loop + softener tie-in', done: false },
+        { name: 'Rough-in inspection', done: false },
+      ]}),
+      trade({ id: 'demo-trade-6f', zoneId: 'demo-zone-6a', trade: 'Electrical', status: 'in_progress', assignedUserId: 'demo-sub-carlos', assignedBusinessName: 'Carlos Electric', laborHours: 280, laborRate: 155, materialsBudget: 58400, startDaysFromNow: -10, endDaysFromNow: 18, tasks: [
+        { name: '400A service + meter', done: true },
+        { name: 'Two 200A subpanels', done: true },
+        { name: '1st floor rough', done: true },
+        { name: '2nd floor rough', done: false },
+        { name: 'Whole-house Cat6 + WAP backbone', done: false },
+        { name: 'Lutron lighting controls rough', done: false },
+        { name: 'EV chargers (2) + solar feed', done: false },
+        { name: 'Code inspection', done: false },
+      ]}),
+      trade({ id: 'demo-trade-6g', zoneId: 'demo-zone-6a', trade: 'HVAC', status: 'in_progress', assignedBusinessName: 'Bay Climate Pros', laborHours: 168, laborRate: 165, materialsBudget: 72400, startDaysFromNow: -8, endDaysFromNow: 22, tasks: [
+        { name: 'Equipment set — 2 zones', done: true },
+        { name: 'Trunk + supply rough (1st floor)', done: true },
+        { name: 'Trunk + supply rough (2nd floor)', done: false },
+        { name: 'Returns + bath exhausts', done: false },
+        { name: 'Heat-pump water heater tie-in', done: false },
+        { name: 'Refrigerant + condensate', done: false },
+      ]}),
+      trade({ id: 'demo-trade-6h', zoneId: 'demo-zone-6a', trade: 'Low Voltage', status: 'in_progress', assignedBusinessName: 'NorCal AV', laborHours: 96, laborRate: 125, materialsBudget: 28400, startDaysFromNow: -6, endDaysFromNow: 24, tasks: [
+        { name: 'Pre-wire — speakers (whole house)', done: true },
+        { name: 'Pre-wire — security + cameras', done: false },
+        { name: 'Pre-wire — TV locations (8)', done: false },
+        { name: 'Equipment rack rough', done: false },
+      ]}),
+      trade({ id: 'demo-trade-6i', zoneId: 'demo-zone-6a', trade: 'Insulation', status: 'not_started', assignedBusinessName: 'Coastal Insulation', laborHours: 96, laborRate: 70, materialsBudget: 32500, startDaysFromNow: 18, endDaysFromNow: 24, tasks: [
+        { name: 'Walls — closed-cell + batts', done: false },
+        { name: 'Roof deck — closed-cell foam', done: false },
+        { name: 'Sound batts (interior + master)', done: false },
+        { name: 'Air-seal + acoustic seal', done: false },
+      ]}),
+      trade({ id: 'demo-trade-6j', zoneId: 'demo-zone-6a', trade: 'Drywall', status: 'not_started', assignedBusinessName: 'Apex Drywall', laborHours: 320, laborRate: 65, materialsBudget: 28500, startDaysFromNow: 24, endDaysFromNow: 38, tasks: [
+        { name: 'Hang — 1st floor', done: false },
+        { name: 'Hang — 2nd floor', done: false },
+        { name: 'Tape + mud (L5 in living + master)', done: false },
+        { name: 'Texture match', done: false },
+      ]}),
+      trade({ id: 'demo-trade-6k', zoneId: 'demo-zone-6f', trade: 'Exterior Siding', status: 'not_started', assignedBusinessName: 'Modern Roofing Co.', laborHours: 240, laborRate: 95, materialsBudget: 86200, startDaysFromNow: -8, endDaysFromNow: 18, tasks: [
+        { name: 'WRB + flashing details', done: true },
+        { name: 'Cedar shingle siding (S+E elevations)', done: false },
+        { name: 'Hardie panel + reveal trim (N+W)', done: false },
+        { name: 'Soffit + fascia', done: false },
+        { name: 'Caulk + paint prep', done: false },
+      ]}),
+      trade({ id: 'demo-trade-6l', zoneId: 'demo-zone-6c', trade: 'Cabinetry', status: 'not_started', assignedBusinessName: 'Bay Cabinet Co.', laborHours: 184, laborRate: 95, materialsBudget: 142500, startDaysFromNow: 38, endDaysFromNow: 54, notes: 'Custom rift-cut white oak — 14-week lead, deposit paid wk 4.', tasks: [
+        { name: 'Kitchen perimeter + island', done: false },
+        { name: 'Butler pantry + bar', done: false },
+        { name: 'Master closet system', done: false },
+        { name: 'Bath vanities (4)', done: false },
+        { name: 'Built-ins (living + office)', done: false },
+      ]}),
+      trade({ id: 'demo-trade-6m', zoneId: 'demo-zone-6c', trade: 'Countertops', status: 'not_started', assignedBusinessName: 'Stone & Tile SF', laborHours: 56, laborRate: 110, materialsBudget: 68200, startDaysFromNow: 50, endDaysFromNow: 56, tasks: [
+        { name: 'Template after cabinet install', done: false },
+        { name: 'Quartzite — kitchen + island', done: false },
+        { name: 'Marble — master bath', done: false },
+        { name: 'Quartz — secondary baths', done: false },
+        { name: 'Install + seal', done: false },
+      ]}),
+      trade({ id: 'demo-trade-6n', zoneId: 'demo-zone-6c', trade: 'Tile', status: 'not_started', assignedBusinessName: 'Stone & Tile SF', laborHours: 220, laborRate: 110, materialsBudget: 48400, startDaysFromNow: 32, endDaysFromNow: 50, tasks: [
+        { name: 'Master bath — floor + shower + tub deck', done: false },
+        { name: 'Kids bath + Jack-n-Jill', done: false },
+        { name: 'Powder + guest bath', done: false },
+        { name: 'Kitchen backsplash + bar', done: false },
+        { name: 'Grout + seal', done: false },
+      ]}),
+      trade({ id: 'demo-trade-6o', zoneId: 'demo-zone-6b', trade: 'Flooring', status: 'not_started', assignedBusinessName: 'Bay Cabinet Co.', laborHours: 144, laborRate: 95, materialsBudget: 64800, startDaysFromNow: 44, endDaysFromNow: 52, tasks: [
+        { name: 'Wide-plank rift oak (1st floor)', done: false },
+        { name: 'Engineered oak (2nd floor)', done: false },
+        { name: 'Heated floor (master + kids bath)', done: false },
+        { name: 'Stair treads + risers', done: false },
+        { name: 'Trim + transitions', done: false },
+      ]}),
+      trade({ id: 'demo-trade-6p', zoneId: 'demo-zone-6a', trade: 'Painting', status: 'not_started', assignedBusinessName: 'Premium Painting Co.', laborHours: 280, laborRate: 65, materialsBudget: 18400, startDaysFromNow: 38, endDaysFromNow: 56, tasks: [
+        { name: 'Prime + two coats walls (whole house)', done: false },
+        { name: 'Trim + ceilings', done: false },
+        { name: 'Limewash accent (living + master)', done: false },
+        { name: 'Exterior paint (Hardie + trim)', done: false },
+      ]}),
+      trade({ id: 'demo-trade-6q', zoneId: 'demo-zone-6a', trade: 'Finish Carpentry', status: 'not_started', assignedBusinessName: 'In-house crew', laborHours: 220, laborRate: 85, materialsBudget: 22400, startDaysFromNow: 44, endDaysFromNow: 60, tasks: [
+        { name: 'Crown + base throughout', done: false },
+        { name: 'Wainscoting (dining + powder)', done: false },
+        { name: 'Custom mantle (living + master)', done: false },
+        { name: 'Stair handrail + balusters', done: false },
+        { name: 'Door + window casings', done: false },
+        { name: 'Punch-list', done: false },
+      ]}),
+      trade({ id: 'demo-trade-6r', zoneId: 'demo-zone-6c', trade: 'Appliances', status: 'not_started', assignedBusinessName: 'In-house crew', laborHours: 24, laborRate: 85, materialsBudget: 84200, startDaysFromNow: 56, endDaysFromNow: 60, notes: 'Wolf range, Sub-Zero pair, Miele DW, Best hood.', tasks: [
+        { name: 'Receive + stage (4-week lead)', done: false },
+        { name: 'Set + hook up gas + water', done: false },
+        { name: 'Commission + warranty register', done: false },
+      ]}),
+      trade({ id: 'demo-trade-6s', zoneId: 'demo-zone-6a', trade: 'Plumbing Fixtures', status: 'not_started', assignedUserId: 'demo-sub-rivera', assignedBusinessName: 'Rivera Plumbing', laborHours: 56, laborRate: 145, materialsBudget: 78400, startDaysFromNow: 56, endDaysFromNow: 64, tasks: [
+        { name: 'Master suite (Kohler Purist)', done: false },
+        { name: 'Secondary baths', done: false },
+        { name: 'Kitchen + bar', done: false },
+        { name: 'Outdoor + utility', done: false },
+        { name: 'Final pressure test', done: false },
+      ]}),
+      // Open seat #1 — Landscape. Demo visitors should feel the "Invite Sub" pull.
+      trade({ id: 'demo-trade-6t', zoneId: 'demo-zone-6f', trade: 'Landscape', status: 'not_started', assignedBusinessName: null, laborHours: 280, laborRate: 95, materialsBudget: 124500, startDaysFromNow: 60, endDaysFromNow: 90, tasks: [
+        { name: 'Hardscape — pavers + retaining', done: false },
+        { name: 'Pool + spa shell', done: false },
+        { name: 'Irrigation + lighting', done: false },
+        { name: 'Plant install + sod', done: false },
+        { name: 'Fence + gates', done: false },
+      ]}),
+      // Open seat #2 — Smart Home commissioning.
+      trade({ id: 'demo-trade-6u', zoneId: 'demo-zone-6a', trade: 'Smart Home', status: 'not_started', assignedBusinessName: null, laborHours: 64, laborRate: 165, materialsBudget: 38500, startDaysFromNow: 70, endDaysFromNow: 78, tasks: [
+        { name: 'Lutron RadioRA programming', done: false },
+        { name: 'Sonos + Apple TV stack', done: false },
+        { name: 'Security + camera commission', done: false },
+        { name: 'Owner training', done: false },
+      ]}),
+      trade({ id: 'demo-trade-6v', zoneId: 'demo-zone-6a', trade: 'Final Punch', status: 'not_started', assignedBusinessName: 'In-house crew', laborHours: 96, laborRate: 85, materialsBudget: 4800, startDaysFromNow: 72, endDaysFromNow: 84, tasks: [
+        { name: 'Walkthrough w/ owner — 30 day list', done: false },
+        { name: 'Touch-up paint + caulk', done: false },
+        { name: 'Final clean', done: false },
+        { name: 'Warranty + manuals binder', done: false },
+        { name: 'Final inspection + CO', done: false },
+      ]}),
+    ],
+  },
 ];
 
-// Activity feed entries per project — what the GC sees on the project detail.
-// Keyed by project id; each entry is the shape ProjectActivityFeed expects.
+// Project chat thread — the threaded conversation on the project detail page.
+// Distinct from GC_PROJECT_ACTIVITY below: this is what GCs and subs type at
+// each other; the activity feed is the system event log.
 const GC_PROJECT_MESSAGES: Record<string, any[]> = {
   'demo-proj-1': [
-    { id: 'msg-1-1', message: 'Rivera Plumbing finished kitchen rough-in. Inspection scheduled Tuesday.', createdAt: iso(subDays(NOW, 5)), created_at: iso(subDays(NOW, 5)), author: 'Rivera Plumbing', authorRole: 'sub' },
-    { id: 'msg-1-2', message: 'Cabinets delivered — staged in garage. Install starts Monday.', createdAt: iso(subDays(NOW, 3)), created_at: iso(subDays(NOW, 3)), author: 'Marcos (you)', authorRole: 'gc' },
-    { id: 'msg-1-3', message: 'Heads up: pot filler back-ordered. Expected Thursday.', createdAt: iso(subDays(NOW, 1)), created_at: iso(subDays(NOW, 1)), author: 'Rivera Plumbing', authorRole: 'sub' },
+    { id: 'msg-1-1', message: 'Pot filler is back-ordered until Thursday — pushing dishwasher hookup to Friday so we don\'t double-trip.', createdAt: iso(subDays(NOW, 6)), created_at: iso(subDays(NOW, 6)), author: 'Mike Reyes — Rivera Plumbing', authorRole: 'sub' },
+    { id: 'msg-1-2', message: 'Got it. Let\'s aim Friday AM. Cabinets staged in the garage already.', createdAt: iso(subDays(NOW, 6)), created_at: iso(subDays(NOW, 6)), author: 'Marcos (you)', authorRole: 'gc' },
+    { id: 'msg-1-3', message: 'Wired the island this morning — 4 dedicated circuits + USB. Recessed lights are next.', createdAt: iso(subDays(NOW, 4)), created_at: iso(subDays(NOW, 4)), author: 'Carlos Vargas — Carlos Electric', authorRole: 'sub' },
+    { id: 'msg-1-4', message: 'Cabinets delivered — staged in garage. Bay starts Monday.', createdAt: iso(subDays(NOW, 3)), created_at: iso(subDays(NOW, 3)), author: 'Marcos (you)', authorRole: 'gc' },
+    { id: 'msg-1-5', message: 'Pot filler arrives Wed end of day per Ferguson. Will set Thursday AM.', createdAt: iso(subDays(NOW, 1)), created_at: iso(subDays(NOW, 1)), author: 'Mike Reyes — Rivera Plumbing', authorRole: 'sub' },
   ],
   'demo-proj-2': [
-    { id: 'msg-2-1', message: 'Framing 60% complete. Window order arrived this morning.', createdAt: iso(subDays(NOW, 2)), created_at: iso(subDays(NOW, 2)), author: 'Marcos (you)', authorRole: 'gc' },
+    { id: 'msg-2-1', message: 'Framing 60% complete. Window order arrived this morning — staging in garage.', createdAt: iso(subDays(NOW, 4)), created_at: iso(subDays(NOW, 4)), author: 'Marcos (you)', authorRole: 'gc' },
+    { id: 'msg-2-2', message: 'Got the rough plumbing scope. Can start Mon if framing\'s ready for me.', createdAt: iso(subDays(NOW, 3)), created_at: iso(subDays(NOW, 3)), author: 'Mike Reyes — Rivera Plumbing', authorRole: 'sub' },
+    { id: 'msg-2-3', message: 'Header for kitchenette is in. You\'re clear for Monday.', createdAt: iso(subDays(NOW, 1)), created_at: iso(subDays(NOW, 1)), author: 'Marcos (you)', authorRole: 'gc' },
   ],
   'demo-proj-3': [
-    { id: 'msg-3-1', message: 'Plumbing done — passed inspection on first try.', createdAt: iso(subDays(NOW, 2)), created_at: iso(subDays(NOW, 2)), author: 'Rivera Plumbing', authorRole: 'sub' },
-    { id: 'msg-3-2', message: 'Tile arrived. Stone & Tile starts walls tomorrow.', createdAt: iso(subDays(NOW, 1)), created_at: iso(subDays(NOW, 1)), author: 'Marcos (you)', authorRole: 'gc' },
+    { id: 'msg-3-1', message: 'Rough plumbing passed inspection on the first try. Pressure test holds at 150 psi.', createdAt: iso(subDays(NOW, 2)), created_at: iso(subDays(NOW, 2)), author: 'Mike Reyes — Rivera Plumbing', authorRole: 'sub' },
+    { id: 'msg-3-2', message: 'Heated floor circuit is in. GFCI relocation tomorrow.', createdAt: iso(subDays(NOW, 2)), created_at: iso(subDays(NOW, 2)), author: 'Carlos Vargas — Carlos Electric', authorRole: 'sub' },
+    { id: 'msg-3-3', message: 'Tile arrived. Stone & Tile starts walls tomorrow — Karen requested the niche moved 4" left, FYI.', createdAt: iso(subDays(NOW, 1)), created_at: iso(subDays(NOW, 1)), author: 'Marcos (you)', authorRole: 'gc' },
+    { id: 'msg-3-4', message: 'Noted. Will pre-cut the niche frame tonight.', createdAt: iso(subDays(NOW, 1)), created_at: iso(subDays(NOW, 1)), author: 'Tasha Lin — Stone & Tile SF', authorRole: 'sub' },
+  ],
+  'demo-proj-4': [
+    { id: 'msg-4-1', message: 'Final walkthrough went great — Henderson is thrilled. Sending the warranty binder Friday.', createdAt: iso(subDays(NOW, 71)), created_at: iso(subDays(NOW, 71)), author: 'Marcos (you)', authorRole: 'gc' },
+    { id: 'msg-4-2', message: 'Thanks for the smooth run, team. Happy to be the reference for the next one.', createdAt: iso(subDays(NOW, 70)), created_at: iso(subDays(NOW, 70)), author: 'Robert Henderson', authorRole: 'customer' },
+  ],
+  'demo-proj-5': [
+    { id: 'msg-5-1', message: 'Plans approved at the city. Permit pickup Monday — kicking site prep on the 18th.', createdAt: iso(subDays(NOW, 4)), created_at: iso(subDays(NOW, 4)), author: 'Marcos (you)', authorRole: 'gc' },
+    { id: 'msg-5-2', message: 'Locked Foundation First for the 18th. They\'ll have the dumpster Sat.', createdAt: iso(subDays(NOW, 2)), created_at: iso(subDays(NOW, 2)), author: 'Marcos (you)', authorRole: 'gc' },
+  ],
+  'demo-proj-6': [
+    { id: 'msg-6-1', message: 'Foundation is poured + cured. Framers start Wednesday.', createdAt: iso(subDays(NOW, 38)), created_at: iso(subDays(NOW, 38)), author: 'Reggie Park — Foundation First', authorRole: 'sub' },
+    { id: 'msg-6-2', message: 'Truss package landed. Dry-in by Friday next week if weather holds.', createdAt: iso(subDays(NOW, 22)), created_at: iso(subDays(NOW, 22)), author: 'Tomás Riley — In-house lead', authorRole: 'gc' },
+    { id: 'msg-6-3', message: 'Roofing wrapped. Standing-seam looks clean — Daniel + Elise stopped by Sat to walk it.', createdAt: iso(subDays(NOW, 10)), created_at: iso(subDays(NOW, 10)), author: 'Jay Liu — Modern Roofing Co.', authorRole: 'sub' },
+    { id: 'msg-6-4', message: 'Plumbing rough is 70% in. Master tub valve location got moved 6" — owner sign-off pending.', createdAt: iso(subDays(NOW, 4)), created_at: iso(subDays(NOW, 4)), author: 'Mike Reyes — Rivera Plumbing', authorRole: 'sub' },
+    { id: 'msg-6-5', message: 'Approved on the tub valve move. Send me the marked plan.', createdAt: iso(subDays(NOW, 3)), created_at: iso(subDays(NOW, 3)), author: 'Daniel Cunningham', authorRole: 'customer' },
+    { id: 'msg-6-6', message: 'Cat6 + Lutron rough in by EOD Friday. WAP locations confirmed.', createdAt: iso(subDays(NOW, 2)), created_at: iso(subDays(NOW, 2)), author: 'Carlos Vargas — Carlos Electric', authorRole: 'sub' },
+    { id: 'msg-6-7', message: 'Cabinet shop drawings v2 attached. Lead is now wk 14, deposit clears Friday.', createdAt: iso(subDays(NOW, 1)), created_at: iso(subDays(NOW, 1)), author: 'Lena Park — Bay Cabinet Co.', authorRole: 'sub' },
   ],
 };
 
-// Sub directory shape for `getGCSubDirectory`. Different from the contractor
-// roster — this is the per-sub aggregate the My Subs tab and SubCard read.
+// ── Activity event stream ────────────────────────────────────────────
+// What ProjectActivityFeed + MultiProjectActivityFeed render. Every entry
+// MUST carry an `actorName` (real human or business) — the empty fallback
+// "Someone" reads as a bug. eventType keys map to icons in the feed widget.
+function activityEvent(opts: {
+  id: string;
+  projectId: string;
+  eventType: string;
+  actorName: string;
+  summary: string;
+  daysAgo: number;
+  hoursAgo?: number;
+  metadata?: any;
+}) {
+  const date = opts.hoursAgo
+    ? new Date(NOW.getTime() - (opts.daysAgo * 86400000) - (opts.hoursAgo * 3600000))
+    : subDays(NOW, opts.daysAgo);
+  return {
+    id: opts.id,
+    gcProjectId: opts.projectId,
+    gc_project_id: opts.projectId,
+    eventType: opts.eventType,
+    event_type: opts.eventType,
+    actorName: opts.actorName,
+    actor_name: opts.actorName,
+    summary: opts.summary,
+    metadata: opts.metadata || null,
+    createdAt: iso(date),
+    created_at: iso(date),
+  };
+}
+
+const GC_PROJECT_ACTIVITY: Record<string, any[]> = {
+  'demo-proj-1': [
+    activityEvent({ id: 'act-1-1', projectId: 'demo-proj-1', eventType: 'task_completed', actorName: 'Mike Reyes — Rivera Plumbing', summary: 'Completed "Relocate gas line" on Plumbing', daysAgo: 9 }),
+    activityEvent({ id: 'act-1-2', projectId: 'demo-proj-1', eventType: 'photo_uploaded', actorName: 'Carlos Vargas — Carlos Electric', summary: 'Uploaded 4 photos to Electrical rough-in', daysAgo: 7 }),
+    activityEvent({ id: 'act-1-3', projectId: 'demo-proj-1', eventType: 'hours_logged', actorName: 'Mike Reyes — Rivera Plumbing', summary: 'Logged 6.5 hrs on Plumbing rough-in', daysAgo: 6 }),
+    activityEvent({ id: 'act-1-4', projectId: 'demo-proj-1', eventType: 'task_completed', actorName: 'Lena Park — Bay Cabinet Co.', summary: 'Completed "Cabinet delivery + staging"', daysAgo: 4 }),
+    activityEvent({ id: 'act-1-5', projectId: 'demo-proj-1', eventType: 'note_added', actorName: 'Mike Reyes — Rivera Plumbing', summary: 'Note: "Pot filler back-ordered. Expected Thursday."', daysAgo: 1 }),
+    activityEvent({ id: 'act-1-6', projectId: 'demo-proj-1', eventType: 'task_completed', actorName: 'Carlos Vargas — Carlos Electric', summary: 'Completed "Run dedicated circuits (6)"', daysAgo: 0, hoursAgo: 18 }),
+    activityEvent({ id: 'act-1-7', projectId: 'demo-proj-1', eventType: 'photo_uploaded', actorName: 'Marcos Riley — Riverside Construction', summary: 'Uploaded daily progress photo (kitchen)', daysAgo: 0, hoursAgo: 4 }),
+    activityEvent({ id: 'act-1-8', projectId: 'demo-proj-1', eventType: 'sub_invited', actorName: 'Marcos Riley — Riverside Construction', summary: 'Invited Apex Drywall to "Drywall"', daysAgo: 0, hoursAgo: 2 }),
+  ],
+  'demo-proj-2': [
+    activityEvent({ id: 'act-2-1', projectId: 'demo-proj-2', eventType: 'task_completed', actorName: 'Tomás Riley — In-house lead', summary: 'Completed "Frame interior walls"', daysAgo: 5 }),
+    activityEvent({ id: 'act-2-2', projectId: 'demo-proj-2', eventType: 'task_completed', actorName: 'Tomás Riley — In-house lead', summary: 'Completed "Frame closet + bath"', daysAgo: 3 }),
+    activityEvent({ id: 'act-2-3', projectId: 'demo-proj-2', eventType: 'photo_uploaded', actorName: 'Marcos Riley — Riverside Construction', summary: 'Uploaded 3 photos: framing progress', daysAgo: 2 }),
+    activityEvent({ id: 'act-2-4', projectId: 'demo-proj-2', eventType: 'sub_accepted', actorName: 'Mike Reyes — Rivera Plumbing', summary: 'Accepted invite to "Plumbing"', daysAgo: 1 }),
+    activityEvent({ id: 'act-2-5', projectId: 'demo-proj-2', eventType: 'note_added', actorName: 'Marcos Riley — Riverside Construction', summary: 'Note: "Header for kitchenette is in — clear for Mon."', daysAgo: 0, hoursAgo: 6 }),
+  ],
+  'demo-proj-3': [
+    activityEvent({ id: 'act-3-1', projectId: 'demo-proj-3', eventType: 'task_completed', actorName: 'Tomás Riley — In-house lead', summary: 'Completed "Demo tile + tub surround"', daysAgo: 3 }),
+    activityEvent({ id: 'act-3-2', projectId: 'demo-proj-3', eventType: 'trade_completed', actorName: 'Mike Reyes — Rivera Plumbing', summary: 'Marked Plumbing as complete — passed inspection', daysAgo: 2 }),
+    activityEvent({ id: 'act-3-3', projectId: 'demo-proj-3', eventType: 'photo_uploaded', actorName: 'Mike Reyes — Rivera Plumbing', summary: 'Uploaded 6 photos: rough-in + pressure test', daysAgo: 2 }),
+    activityEvent({ id: 'act-3-4', projectId: 'demo-proj-3', eventType: 'task_completed', actorName: 'Carlos Vargas — Carlos Electric', summary: 'Completed "Run circuit for heated floor"', daysAgo: 2 }),
+    activityEvent({ id: 'act-3-5', projectId: 'demo-proj-3', eventType: 'task_completed', actorName: 'Tasha Lin — Stone & Tile SF', summary: 'Completed "Schluter Kerdi membrane (walls)"', daysAgo: 1 }),
+    activityEvent({ id: 'act-3-6', projectId: 'demo-proj-3', eventType: 'note_added', actorName: 'Marcos Riley — Riverside Construction', summary: 'Note: "Karen requested niche move 4" left."', daysAgo: 0, hoursAgo: 10 }),
+    activityEvent({ id: 'act-3-7', projectId: 'demo-proj-3', eventType: 'photo_uploaded', actorName: 'Tasha Lin — Stone & Tile SF', summary: 'Uploaded 2 photos: pre-formed pan + flood test', daysAgo: 0, hoursAgo: 3 }),
+  ],
+  'demo-proj-4': [
+    activityEvent({ id: 'act-4-1', projectId: 'demo-proj-4', eventType: 'trade_completed', actorName: 'Mike Reyes — Rivera Plumbing', summary: 'Marked Plumbing as complete', daysAgo: 78 }),
+    activityEvent({ id: 'act-4-2', projectId: 'demo-proj-4', eventType: 'trade_completed', actorName: 'Carlos Vargas — Carlos Electric', summary: 'Marked Electrical as complete', daysAgo: 76 }),
+    activityEvent({ id: 'act-4-3', projectId: 'demo-proj-4', eventType: 'photo_uploaded', actorName: 'Marcos Riley — Riverside Construction', summary: 'Uploaded 12 photos: final walkthrough', daysAgo: 71 }),
+    activityEvent({ id: 'act-4-4', projectId: 'demo-proj-4', eventType: 'invoice_sent', actorName: 'Marcos Riley — Riverside Construction', summary: 'Sent INV-1030 — Phase 1 close-out ($88,500)', daysAgo: 88 }),
+    activityEvent({ id: 'act-4-5', projectId: 'demo-proj-4', eventType: 'invoice_paid', actorName: 'Robert Henderson', summary: 'Paid INV-1030 ($88,500)', daysAgo: 78 }),
+    activityEvent({ id: 'act-4-6', projectId: 'demo-proj-4', eventType: 'note_added', actorName: 'Marcos Riley — Riverside Construction', summary: 'Note: "Phase 1 closed. Phase 2 scope discussion next month."', daysAgo: 70 }),
+  ],
+  'demo-proj-5': [
+    activityEvent({ id: 'act-5-1', projectId: 'demo-proj-5', eventType: 'note_added', actorName: 'Marcos Riley — Riverside Construction', summary: 'Note: "Plans submitted to Oakland city — review window 3 wks."', daysAgo: 28 }),
+    activityEvent({ id: 'act-5-2', projectId: 'demo-proj-5', eventType: 'sub_invited', actorName: 'Marcos Riley — Riverside Construction', summary: 'Invited Foundation First to "Concrete"', daysAgo: 12 }),
+    activityEvent({ id: 'act-5-3', projectId: 'demo-proj-5', eventType: 'sub_accepted', actorName: 'Reggie Park — Foundation First', summary: 'Accepted invite to "Concrete"', daysAgo: 11 }),
+    activityEvent({ id: 'act-5-4', projectId: 'demo-proj-5', eventType: 'note_added', actorName: 'Emma Foster', summary: 'Note: "Confirmed — go ahead with the 18th start."', daysAgo: 4 }),
+    activityEvent({ id: 'act-5-5', projectId: 'demo-proj-5', eventType: 'note_added', actorName: 'Marcos Riley — Riverside Construction', summary: 'Note: "Permit picked up — kicking off site prep on the 18th."', daysAgo: 2 }),
+  ],
+  'demo-proj-6': [
+    activityEvent({ id: 'act-6-1', projectId: 'demo-proj-6', eventType: 'trade_completed', actorName: 'Mateo Sierra — Sierra Excavation', summary: 'Marked Site Prep as complete', daysAgo: 50 }),
+    activityEvent({ id: 'act-6-2', projectId: 'demo-proj-6', eventType: 'trade_completed', actorName: 'Reggie Park — Foundation First', summary: 'Marked Concrete as complete', daysAgo: 38 }),
+    activityEvent({ id: 'act-6-3', projectId: 'demo-proj-6', eventType: 'trade_completed', actorName: 'Tomás Riley — In-house lead', summary: 'Marked Framing as complete', daysAgo: 14 }),
+    activityEvent({ id: 'act-6-4', projectId: 'demo-proj-6', eventType: 'trade_completed', actorName: 'Jay Liu — Modern Roofing Co.', summary: 'Marked Roofing as complete', daysAgo: 10 }),
+    activityEvent({ id: 'act-6-5', projectId: 'demo-proj-6', eventType: 'photo_uploaded', actorName: 'Jay Liu — Modern Roofing Co.', summary: 'Uploaded 8 photos: standing-seam install', daysAgo: 10 }),
+    activityEvent({ id: 'act-6-6', projectId: 'demo-proj-6', eventType: 'task_completed', actorName: 'Mike Reyes — Rivera Plumbing', summary: 'Completed "DWV rough — 2nd floor" on Plumbing', daysAgo: 6 }),
+    activityEvent({ id: 'act-6-7', projectId: 'demo-proj-6', eventType: 'hours_logged', actorName: 'Mike Reyes — Rivera Plumbing', summary: 'Logged 14.5 hrs on Plumbing this week', daysAgo: 5 }),
+    activityEvent({ id: 'act-6-8', projectId: 'demo-proj-6', eventType: 'task_completed', actorName: 'Carlos Vargas — Carlos Electric', summary: 'Completed "1st floor rough" on Electrical', daysAgo: 5 }),
+    activityEvent({ id: 'act-6-9', projectId: 'demo-proj-6', eventType: 'invoice_sent', actorName: 'Marcos Riley — Riverside Construction', summary: 'Sent INV-1052 — Draw 4 ($186,400)', daysAgo: 4 }),
+    activityEvent({ id: 'act-6-10', projectId: 'demo-proj-6', eventType: 'note_added', actorName: 'Mike Reyes — Rivera Plumbing', summary: 'Note: "Master tub valve moved 6" right per owner."', daysAgo: 4 }),
+    activityEvent({ id: 'act-6-11', projectId: 'demo-proj-6', eventType: 'invoice_paid', actorName: 'Daniel Cunningham', summary: 'Paid INV-1052 ($186,400)', daysAgo: 2 }),
+    activityEvent({ id: 'act-6-12', projectId: 'demo-proj-6', eventType: 'photo_uploaded', actorName: 'Tomás Riley — In-house lead', summary: 'Uploaded 9 photos: weekly progress walk', daysAgo: 2 }),
+    activityEvent({ id: 'act-6-13', projectId: 'demo-proj-6', eventType: 'task_completed', actorName: 'Carlos Vargas — Carlos Electric', summary: 'Completed "Two 200A subpanels" on Electrical', daysAgo: 1 }),
+    activityEvent({ id: 'act-6-14', projectId: 'demo-proj-6', eventType: 'sub_invited', actorName: 'Marcos Riley — Riverside Construction', summary: 'Invited Coastal Insulation to "Insulation"', daysAgo: 0, hoursAgo: 8 }),
+    activityEvent({ id: 'act-6-15', projectId: 'demo-proj-6', eventType: 'note_added', actorName: 'Lena Park — Bay Cabinet Co.', summary: 'Note: "Shop drawings v2 attached — lead now 14 wks."', daysAgo: 0, hoursAgo: 3 }),
+  ],
+};
+
+// Sub directory shape for `getGCSubDirectory`. The per-sub aggregate the My
+// Subs tab + SubCard read. Each sub carries a real lead-name so the demo
+// never has a faceless avatar — this is the relationship side of the GC
+// product, and faceless ruins it.
 const GC_SUB_DIRECTORY = [
   {
     userId: 'demo-sub-rivera',
     businessName: 'Rivera Plumbing',
+    contactName: 'Mike Reyes',
     tradePrimary: 'Plumbing',
     trades: ['Plumbing'],
     phone: '(415) 555-0701',
-    email: 'office@rivera-demo.com',
+    email: 'mike@rivera-demo.com',
     isPlaceholder: false,
     score: 4.9,
-    totalRatings: 8,
-    projectCount: 2,
+    totalRatings: 11,
+    projectCount: 4,
     projects: [
       { id: 'demo-proj-1', name: 'Mitchell Kitchen Renovation' },
+      { id: 'demo-proj-2', name: 'Rodriguez Garage Conversion' },
       { id: 'demo-proj-3', name: 'Chen Bathroom Remodel' },
+      { id: 'demo-proj-6', name: 'Cunningham — Whole-House Build' },
     ],
   },
   {
     userId: 'demo-sub-carlos',
     businessName: 'Carlos Electric',
+    contactName: 'Carlos Vargas',
     tradePrimary: 'Electrical',
     trades: ['Electrical'],
     phone: '(415) 555-0823',
     email: 'carlos@cee-demo.com',
     isPlaceholder: false,
     score: 4.8,
-    totalRatings: 6,
-    projectCount: 1,
-    projects: [{ id: 'demo-proj-1', name: 'Mitchell Kitchen Renovation' }],
+    totalRatings: 9,
+    projectCount: 4,
+    projects: [
+      { id: 'demo-proj-1', name: 'Mitchell Kitchen Renovation' },
+      { id: 'demo-proj-2', name: 'Rodriguez Garage Conversion' },
+      { id: 'demo-proj-3', name: 'Chen Bathroom Remodel' },
+      { id: 'demo-proj-6', name: 'Cunningham — Whole-House Build' },
+    ],
   },
   {
-    userId: null,
+    userId: 'demo-sub-baycab',
     businessName: 'Bay Cabinet Co.',
+    contactName: 'Lena Park',
     tradePrimary: 'Cabinetry',
     trades: ['Cabinetry', 'Flooring'],
     phone: '(415) 555-0944',
-    email: 'sales@baycabs-demo.com',
-    isPlaceholder: true,
-    score: null,
-    totalRatings: 0,
-    projectCount: 1,
-    projects: [{ id: 'demo-proj-1', name: 'Mitchell Kitchen Renovation' }],
+    email: 'lena@baycabs-demo.com',
+    isPlaceholder: false,
+    score: 4.7,
+    totalRatings: 6,
+    projectCount: 3,
+    projects: [
+      { id: 'demo-proj-1', name: 'Mitchell Kitchen Renovation' },
+      { id: 'demo-proj-2', name: 'Rodriguez Garage Conversion' },
+      { id: 'demo-proj-6', name: 'Cunningham — Whole-House Build' },
+    ],
   },
   {
-    userId: null,
+    userId: 'demo-sub-tile',
     businessName: 'Stone & Tile SF',
+    contactName: 'Tasha Lin',
     tradePrimary: 'Tile',
-    trades: ['Tile', 'Flooring'],
+    trades: ['Tile', 'Flooring', 'Countertops'],
     phone: '(415) 555-1052',
-    email: 'hi@stonetile-demo.com',
+    email: 'tasha@stonetile-demo.com',
+    isPlaceholder: false,
+    score: 4.6,
+    totalRatings: 5,
+    projectCount: 2,
+    projects: [
+      { id: 'demo-proj-3', name: 'Chen Bathroom Remodel' },
+      { id: 'demo-proj-6', name: 'Cunningham — Whole-House Build' },
+    ],
+  },
+  {
+    userId: 'demo-sub-roofing',
+    businessName: 'Modern Roofing Co.',
+    contactName: 'Jay Liu',
+    tradePrimary: 'Roofing',
+    trades: ['Roofing', 'Exterior Siding'],
+    phone: '(415) 555-1163',
+    email: 'jay@modernroofing-demo.com',
+    isPlaceholder: false,
+    score: 4.8,
+    totalRatings: 7,
+    projectCount: 2,
+    projects: [
+      { id: 'demo-proj-5', name: 'Foster Backyard ADU' },
+      { id: 'demo-proj-6', name: 'Cunningham — Whole-House Build' },
+    ],
+  },
+  {
+    userId: 'demo-sub-hvac',
+    businessName: 'Bay Climate Pros',
+    contactName: 'Priya Iyer',
+    tradePrimary: 'HVAC',
+    trades: ['HVAC'],
+    phone: '(415) 555-1274',
+    email: 'priya@bayclimate-demo.com',
+    isPlaceholder: false,
+    score: 4.7,
+    totalRatings: 5,
+    projectCount: 3,
+    projects: [
+      { id: 'demo-proj-1', name: 'Mitchell Kitchen Renovation' },
+      { id: 'demo-proj-2', name: 'Rodriguez Garage Conversion' },
+      { id: 'demo-proj-6', name: 'Cunningham — Whole-House Build' },
+    ],
+  },
+  {
+    userId: 'demo-sub-drywall',
+    businessName: 'Apex Drywall',
+    contactName: 'Ricky Trent',
+    tradePrimary: 'Drywall',
+    trades: ['Drywall'],
+    phone: '(415) 555-1385',
+    email: 'ricky@apexdrywall-demo.com',
+    isPlaceholder: false,
+    score: 4.5,
+    totalRatings: 4,
+    projectCount: 3,
+    projects: [
+      { id: 'demo-proj-1', name: 'Mitchell Kitchen Renovation' },
+      { id: 'demo-proj-2', name: 'Rodriguez Garage Conversion' },
+      { id: 'demo-proj-6', name: 'Cunningham — Whole-House Build' },
+    ],
+  },
+  {
+    userId: 'demo-sub-foundation',
+    businessName: 'Foundation First',
+    contactName: 'Reggie Park',
+    tradePrimary: 'Concrete',
+    trades: ['Concrete', 'Site Prep'],
+    phone: '(415) 555-1496',
+    email: 'reggie@foundationfirst-demo.com',
+    isPlaceholder: false,
+    score: 4.9,
+    totalRatings: 6,
+    projectCount: 2,
+    projects: [
+      { id: 'demo-proj-5', name: 'Foster Backyard ADU' },
+      { id: 'demo-proj-6', name: 'Cunningham — Whole-House Build' },
+    ],
+  },
+  {
+    userId: 'demo-sub-paint',
+    businessName: 'Premium Painting Co.',
+    contactName: 'Aaron Gilroy',
+    tradePrimary: 'Painting',
+    trades: ['Painting'],
+    phone: '(415) 555-1507',
+    email: 'aaron@premiumpaint-demo.com',
+    isPlaceholder: false,
+    score: 4.6,
+    totalRatings: 5,
+    projectCount: 2,
+    projects: [
+      { id: 'demo-proj-4', name: 'Henderson Estate — Phase 1' },
+      { id: 'demo-proj-6', name: 'Cunningham — Whole-House Build' },
+    ],
+  },
+  // Placeholder — open seat. The "Invite Sub" demo target.
+  {
+    userId: null,
+    businessName: 'Open seat — Landscape',
+    contactName: null,
+    tradePrimary: 'Landscape',
+    trades: ['Landscape'],
+    phone: null,
+    email: null,
     isPlaceholder: true,
     score: null,
     totalRatings: 0,
     projectCount: 1,
-    projects: [{ id: 'demo-proj-3', name: 'Chen Bathroom Remodel' }],
+    projects: [{ id: 'demo-proj-6', name: 'Cunningham — Whole-House Build' }],
   },
 ];
 
+// Sub ratings — drives `getSubPerformance`. Every entry has named raters
+// (the GC who rated and the project they rated on). 1-5 scale per axis.
+function rating(opts: {
+  id: string;
+  subUserId: string;
+  projectId: string;
+  ratedBy: string;
+  raterName: string;
+  daysAgo: number;
+  quality: number;
+  timeliness: number;
+  budget: number;
+  communication: number;
+  overall: number;
+  notes?: string;
+}) {
+  return {
+    id: opts.id,
+    sub_user_id: opts.subUserId, subUserId: opts.subUserId,
+    gc_project_id: opts.projectId, gcProjectId: opts.projectId,
+    rated_by: opts.ratedBy, ratedBy: opts.ratedBy,
+    rater_name: opts.raterName, raterName: opts.raterName,
+    quality: opts.quality, timeliness: opts.timeliness,
+    budget_adherence: opts.budget, budgetAdherence: opts.budget,
+    communication: opts.communication,
+    overall: opts.overall,
+    notes: opts.notes || null,
+    created_at: iso(subDays(NOW, opts.daysAgo)), createdAt: iso(subDays(NOW, opts.daysAgo)),
+  };
+}
+
+const GC_RATINGS: Record<string, any[]> = {
+  'demo-sub-rivera': [
+    rating({ id: 'rt-r-1', subUserId: 'demo-sub-rivera', projectId: 'demo-proj-4', ratedBy: GC_USER_ID, raterName: 'Marcos Riley — Riverside Construction', daysAgo: 70, quality: 5, timeliness: 5, budget: 5, communication: 5, overall: 5, notes: 'Mike runs a tight ship. Pressure tests pass first time, every time.' }),
+    rating({ id: 'rt-r-2', subUserId: 'demo-sub-rivera', projectId: 'demo-proj-3', ratedBy: GC_USER_ID, raterName: 'Marcos Riley — Riverside Construction', daysAgo: 35, quality: 5, timeliness: 5, budget: 4, communication: 5, overall: 5, notes: 'Caught a slab offset before tile went down. Saved us a tear-out.' }),
+    rating({ id: 'rt-r-3', subUserId: 'demo-sub-rivera', projectId: 'demo-proj-6', ratedBy: GC_USER_ID, raterName: 'Marcos Riley — Riverside Construction', daysAgo: 14, quality: 5, timeliness: 5, budget: 5, communication: 5, overall: 5, notes: 'Whole-house DWV in two weeks. Crew is professional, clean.' }),
+    rating({ id: 'rt-r-4', subUserId: 'demo-sub-rivera', projectId: 'demo-proj-1', ratedBy: GC_USER_ID, raterName: 'Marcos Riley — Riverside Construction', daysAgo: 6, quality: 5, timeliness: 4, budget: 5, communication: 5, overall: 5, notes: 'Good comms on the back-ordered pot filler. No surprises.' }),
+  ],
+  'demo-sub-carlos': [
+    rating({ id: 'rt-c-1', subUserId: 'demo-sub-carlos', projectId: 'demo-proj-4', ratedBy: GC_USER_ID, raterName: 'Marcos Riley — Riverside Construction', daysAgo: 75, quality: 5, timeliness: 5, budget: 5, communication: 5, overall: 5, notes: 'Smart-home rough was flawless. Henderson loves the Lutron.' }),
+    rating({ id: 'rt-c-2', subUserId: 'demo-sub-carlos', projectId: 'demo-proj-3', ratedBy: GC_USER_ID, raterName: 'Marcos Riley — Riverside Construction', daysAgo: 30, quality: 5, timeliness: 4, budget: 5, communication: 5, overall: 5, notes: 'Heated-floor circuit clean, no callback.' }),
+    rating({ id: 'rt-c-3', subUserId: 'demo-sub-carlos', projectId: 'demo-proj-6', ratedBy: GC_USER_ID, raterName: 'Marcos Riley — Riverside Construction', daysAgo: 12, quality: 5, timeliness: 4, budget: 4, communication: 5, overall: 5, notes: '400A service set + 2 subpanels. Inspector signed off without comment.' }),
+  ],
+  'demo-sub-baycab': [
+    rating({ id: 'rt-bc-1', subUserId: 'demo-sub-baycab', projectId: 'demo-proj-4', ratedBy: GC_USER_ID, raterName: 'Marcos Riley — Riverside Construction', daysAgo: 73, quality: 5, timeliness: 4, budget: 4, communication: 5, overall: 5, notes: 'Built-in pantry millwork is showpiece-grade.' }),
+    rating({ id: 'rt-bc-2', subUserId: 'demo-sub-baycab', projectId: 'demo-proj-1', ratedBy: GC_USER_ID, raterName: 'Marcos Riley — Riverside Construction', daysAgo: 5, quality: 5, timeliness: 5, budget: 4, communication: 4, overall: 5, notes: 'Cabinets staged ahead of schedule. Lena is responsive.' }),
+  ],
+  'demo-sub-tile': [
+    rating({ id: 'rt-t-1', subUserId: 'demo-sub-tile', projectId: 'demo-proj-3', ratedBy: GC_USER_ID, raterName: 'Marcos Riley — Riverside Construction', daysAgo: 1, quality: 5, timeliness: 5, budget: 5, communication: 5, overall: 5, notes: 'Tasha pre-cuts on her own time when a change comes in. Class act.' }),
+  ],
+  'demo-sub-roofing': [
+    rating({ id: 'rt-rf-1', subUserId: 'demo-sub-roofing', projectId: 'demo-proj-6', ratedBy: GC_USER_ID, raterName: 'Marcos Riley — Riverside Construction', daysAgo: 9, quality: 5, timeliness: 4, budget: 5, communication: 5, overall: 5, notes: 'Standing-seam came out tight. Owner walked it twice — happy.' }),
+  ],
+  'demo-sub-hvac': [
+    rating({ id: 'rt-h-1', subUserId: 'demo-sub-hvac', projectId: 'demo-proj-4', ratedBy: GC_USER_ID, raterName: 'Marcos Riley — Riverside Construction', daysAgo: 76, quality: 5, timeliness: 4, budget: 4, communication: 5, overall: 5, notes: 'Zoned damper install solved the master suite hot-spot.' }),
+  ],
+  'demo-sub-drywall': [
+    rating({ id: 'rt-dw-1', subUserId: 'demo-sub-drywall', projectId: 'demo-proj-4', ratedBy: GC_USER_ID, raterName: 'Marcos Riley — Riverside Construction', daysAgo: 72, quality: 4, timeliness: 5, budget: 5, communication: 4, overall: 4, notes: 'L5 in living was strong. Knockdown match took 2 attempts.' }),
+  ],
+  'demo-sub-foundation': [
+    rating({ id: 'rt-fd-1', subUserId: 'demo-sub-foundation', projectId: 'demo-proj-6', ratedBy: GC_USER_ID, raterName: 'Marcos Riley — Riverside Construction', daysAgo: 36, quality: 5, timeliness: 5, budget: 5, communication: 5, overall: 5, notes: 'Reggie\'s crew strips the forms before I have to ask.' }),
+  ],
+  'demo-sub-paint': [
+    rating({ id: 'rt-pt-1', subUserId: 'demo-sub-paint', projectId: 'demo-proj-4', ratedBy: GC_USER_ID, raterName: 'Marcos Riley — Riverside Construction', daysAgo: 71, quality: 5, timeliness: 4, budget: 4, communication: 5, overall: 5, notes: 'Limewash accent in the living room is photo-worthy.' }),
+  ],
+};
+
 const GC_CONTRACTORS = [
-  { id: 'demo-sub-rivera', name: 'Rivera Plumbing', trade: 'plumbing', email: 'office@rivera-demo.com', phone: '(415) 555-0701', rating: 4.9, jobs_completed: 8, total_paid: 38400 },
-  { id: 'demo-sub-carlos', name: 'Carlos Electric', trade: 'electrical', email: 'carlos@cee-demo.com', phone: '(415) 555-0823', rating: 4.8, jobs_completed: 6, total_paid: 22150 },
-  { id: 'demo-sub-cab', name: 'Bay Cabinet Co.', trade: 'cabinetry', email: 'sales@baycabs-demo.com', phone: '(415) 555-0944', rating: 4.7, jobs_completed: 4, total_paid: 51000 },
-  { id: 'demo-sub-tile', name: 'Stone & Tile SF', trade: 'tile', email: 'hi@stonetile-demo.com', phone: '(415) 555-1052', rating: 4.6, jobs_completed: 5, total_paid: 18900 },
+  { id: 'demo-sub-rivera', name: 'Rivera Plumbing', contactName: 'Mike Reyes', trade: 'plumbing', email: 'mike@rivera-demo.com', phone: '(415) 555-0701', rating: 4.9, jobs_completed: 11, total_paid: 64850 },
+  { id: 'demo-sub-carlos', name: 'Carlos Electric', contactName: 'Carlos Vargas', trade: 'electrical', email: 'carlos@cee-demo.com', phone: '(415) 555-0823', rating: 4.8, jobs_completed: 9, total_paid: 48200 },
+  { id: 'demo-sub-baycab', name: 'Bay Cabinet Co.', contactName: 'Lena Park', trade: 'cabinetry', email: 'lena@baycabs-demo.com', phone: '(415) 555-0944', rating: 4.7, jobs_completed: 6, total_paid: 71200 },
+  { id: 'demo-sub-tile', name: 'Stone & Tile SF', contactName: 'Tasha Lin', trade: 'tile', email: 'tasha@stonetile-demo.com', phone: '(415) 555-1052', rating: 4.6, jobs_completed: 5, total_paid: 28400 },
+  { id: 'demo-sub-roofing', name: 'Modern Roofing Co.', contactName: 'Jay Liu', trade: 'roofing', email: 'jay@modernroofing-demo.com', phone: '(415) 555-1163', rating: 4.8, jobs_completed: 7, total_paid: 51600 },
+  { id: 'demo-sub-hvac', name: 'Bay Climate Pros', contactName: 'Priya Iyer', trade: 'hvac', email: 'priya@bayclimate-demo.com', phone: '(415) 555-1274', rating: 4.7, jobs_completed: 5, total_paid: 38400 },
+  { id: 'demo-sub-drywall', name: 'Apex Drywall', contactName: 'Ricky Trent', trade: 'drywall', email: 'ricky@apexdrywall-demo.com', phone: '(415) 555-1385', rating: 4.5, jobs_completed: 4, total_paid: 18900 },
+  { id: 'demo-sub-foundation', name: 'Foundation First', contactName: 'Reggie Park', trade: 'concrete', email: 'reggie@foundationfirst-demo.com', phone: '(415) 555-1496', rating: 4.9, jobs_completed: 6, total_paid: 92400 },
+  { id: 'demo-sub-paint', name: 'Premium Painting Co.', contactName: 'Aaron Gilroy', trade: 'painting', email: 'aaron@premiumpaint-demo.com', phone: '(415) 555-1507', rating: 4.6, jobs_completed: 5, total_paid: 21800 },
 ];
 
 function expense(id: string, vendor: string, category: string, amount: number, description: string, daysAgo: number) {
@@ -1264,6 +1770,114 @@ const PRICEBOOK = [
   { id: 'pb-4', description: 'Panel upgrade — 200A', unit_price: 3850, category: 'electrical' },
 ];
 
+// ── Job-level enrichment ─────────────────────────────────────────────
+// Job line items (JobDetailPage right rail) — keyed by job id. Most
+// completed jobs already have an invoice with line items; these are a
+// superset, mirroring what would be tracked on the job itself before
+// invoicing. Demo names match invoice line items where they overlap so
+// the cross-reference looks consistent.
+function jobLine(id: string, desc: string, qty: number, unitPrice: number) {
+  return {
+    id, description: desc,
+    quantity: qty, qty,
+    unit_price: unitPrice, unitPrice,
+    total: qty * unitPrice, amount: qty * unitPrice,
+  };
+}
+
+const GC_JOB_LINE_ITEMS: Record<string, any[]> = {
+  'demo-job-gc-1': [
+    jobLine('jli-1-1', 'Demo + framing — kitchen', 32, 85),
+    jobLine('jli-1-2', 'LVL beam install (load-bearing)', 1, 1450),
+    jobLine('jli-1-3', 'Disposal + dumpster', 1, 480),
+  ],
+  'demo-job-gc-2': [
+    jobLine('jli-2-1', 'Site walkthrough + scope notes', 1, 350),
+    jobLine('jli-2-2', 'Pre-design sketch package', 1, 850),
+  ],
+  'demo-job-gc-h2': [
+    jobLine('jli-h2-1', 'Bathroom remodel — labor', 56, 145),
+    jobLine('jli-h2-2', 'Tile and fixtures', 1, 4380),
+    jobLine('jli-h2-3', 'Disposal', 1, 320),
+  ],
+  'demo-job-gc-h3': [
+    jobLine('jli-h3-1', 'Kitchen renovation — labor', 28, 145),
+    jobLine('jli-h3-2', 'Cabinet hardware + finish work', 1, 890),
+  ],
+  'demo-job-gc-h4': [
+    jobLine('jli-h4-1', 'Whole-house demo + framing — Phase 1', 1, 88500),
+  ],
+  'demo-job-gc-h5': [
+    jobLine('jli-h5-1', 'Deck rebuild — labor', 64, 95),
+    jobLine('jli-h5-2', 'Lumber and hardware', 1, 4800),
+  ],
+  'demo-job-gc-h6': [jobLine('jli-h6-1', 'Garage conversion — full', 1, 38500)],
+  'demo-job-gc-h7': [
+    jobLine('jli-h7-1', 'Kitchen renovation — labor', 120, 145),
+    jobLine('jli-h7-2', 'Cabinetry, counters, appliances', 1, 42000),
+  ],
+};
+
+// Job photos — keyed by job id. The JobDetailPage gallery reads these.
+// Real Unsplash links so the demo looks like the real thing instead of
+// gray boxes; keep the count modest so the page paints fast.
+function jobPhoto(id: string, jobId: string, url: string, caption: string, daysAgo: number) {
+  const created = iso(subDays(NOW, daysAgo));
+  return {
+    id, job_id: jobId, jobId,
+    url, photo_url: url, photoUrl: url,
+    caption, description: caption,
+    created_at: created, createdAt: created,
+  };
+}
+
+const GC_JOB_PHOTOS: Record<string, any[]> = {
+  'demo-job-gc-1': [
+    jobPhoto('jph-1-1', 'demo-job-gc-1', 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=1200&q=70', 'Day 1 — demo done, ready to frame', 0),
+    jobPhoto('jph-1-2', 'demo-job-gc-1', 'https://images.unsplash.com/photo-1565538810643-b5bdb714032a?w=1200&q=70', 'Cabinets staged in garage', 1),
+    jobPhoto('jph-1-3', 'demo-job-gc-1', 'https://images.unsplash.com/photo-1580244599416-aaa6c0a16f70?w=1200&q=70', 'LVL beam dropped in', 2),
+  ],
+  'demo-job-gc-h2': [
+    jobPhoto('jph-h2-1', 'demo-job-gc-h2', 'https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=1200&q=70', 'Master bath — finished', 30),
+    jobPhoto('jph-h2-2', 'demo-job-gc-h2', 'https://images.unsplash.com/photo-1620626011761-996317b8d101?w=1200&q=70', 'Curbless shower glass set', 31),
+  ],
+  'demo-job-gc-h4': [
+    jobPhoto('jph-h4-1', 'demo-job-gc-h4', 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=1200&q=70', 'Phase 1 complete — exterior', 72),
+    jobPhoto('jph-h4-2', 'demo-job-gc-h4', 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1200&q=70', 'Living room — open concept', 73),
+    jobPhoto('jph-h4-3', 'demo-job-gc-h4', 'https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=1200&q=70', 'Master suite — final', 73),
+    jobPhoto('jph-h4-4', 'demo-job-gc-h4', 'https://images.unsplash.com/photo-1600566753051-6057f1a6121a?w=1200&q=70', 'Master bath — freestanding tub', 74),
+  ],
+  'demo-job-gc-h5': [
+    jobPhoto('jph-h5-1', 'demo-job-gc-h5', 'https://images.unsplash.com/photo-1597040663338-1f0a4ab74344?w=1200&q=70', 'Deck framing complete', 64),
+  ],
+  'demo-job-gc-h7': [
+    jobPhoto('jph-h7-1', 'demo-job-gc-h7', 'https://images.unsplash.com/photo-1600585152220-90363fe7e115?w=1200&q=70', 'Park kitchen — final', 88),
+  ],
+};
+
+const SUB_JOB_LINE_ITEMS: Record<string, any[]> = {
+  'demo-job-sub-1': [
+    jobLine('sjli-1-1', 'Panel upgrade — 100A → 200A (labor)', 6, 165),
+    jobLine('sjli-1-2', '200A panel + main breaker', 1, 1450),
+    jobLine('sjli-1-3', 'Permit pull + utility coordination', 1, 240),
+  ],
+  'demo-job-sub-2': [
+    jobLine('sjli-2-1', 'Tesla Wall Connector install — 60A circuit', 1, 1850),
+  ],
+  'demo-job-sub-h1': [
+    jobLine('sjli-h1-1', 'Service call + diagnostic', 1, 145),
+    jobLine('sjli-h1-2', 'Breaker replacements (3)', 3, 220),
+    jobLine('sjli-h1-3', 'Outlet upgrades (5 GFCI)', 5, 185),
+  ],
+};
+
+const SUB_JOB_PHOTOS: Record<string, any[]> = {
+  'demo-job-sub-1': [
+    jobPhoto('sjph-1-1', 'demo-job-sub-1', 'https://images.unsplash.com/photo-1580974928064-f0aeef70895a?w=1200&q=70', 'Panel before — 100A Federal Pacific', 0),
+    jobPhoto('sjph-1-2', 'demo-job-sub-1', 'https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=1200&q=70', 'Panel after — 200A Square D', 0),
+  ],
+};
+
 export const PERSONAS: Record<DemoPersona, DemoSeed> = {
   gc: {
     profile: GC_PROFILE,
@@ -1272,7 +1886,11 @@ export const PERSONAS: Record<DemoPersona, DemoSeed> = {
     invoices: GC_INVOICES,
     gcProjects: GC_PROJECTS,
     gcProjectMessages: GC_PROJECT_MESSAGES,
+    gcProjectActivity: GC_PROJECT_ACTIVITY,
     gcSubDirectory: GC_SUB_DIRECTORY,
+    gcRatings: GC_RATINGS,
+    jobLineItems: GC_JOB_LINE_ITEMS,
+    jobPhotos: GC_JOB_PHOTOS,
     invitedProjects: [],
     contractors: GC_CONTRACTORS,
     expenses: GC_EXPENSES,
@@ -1286,7 +1904,11 @@ export const PERSONAS: Record<DemoPersona, DemoSeed> = {
     invoices: SUB_INVOICES,
     gcProjects: [],
     gcProjectMessages: {},
+    gcProjectActivity: {},
     gcSubDirectory: [],
+    gcRatings: {},
+    jobLineItems: SUB_JOB_LINE_ITEMS,
+    jobPhotos: SUB_JOB_PHOTOS,
     invitedProjects: SUB_INVITED_PROJECTS,
     contractors: [],
     expenses: SUB_EXPENSES,

@@ -245,7 +245,11 @@ export function MultiProjectActivityFeed({ limit = 3 }: { limit?: number }) {
               </div>
               <div className="flex-1 min-w-0">
                 <div className="text-xs font-medium text-gray-900 truncate dark:text-white">
-                  {e.actorName || 'Someone'}
+                  {/* Seed data guarantees actorName; the legacy "Someone"
+                      fallback read as a bug in the demo. If a real event
+                      ever lands here without an actor we'd rather render
+                      the project name than a generic placeholder. */}
+                  {e.actorName || projectName || 'FlowBoss'}
                   {projectName && (
                     <span className="ml-1 text-[10px] text-gray-400 font-normal dark:text-gray-500">
                       · {projectName}

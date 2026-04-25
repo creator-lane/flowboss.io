@@ -42,11 +42,17 @@ export function resolveSeedRead(
       return envelope(found);
     }
     case 'getCompletedJobs':
-      return envelope([]);
+      return envelope(seed.jobs.filter((j: any) => j.status === 'COMPLETED'));
     case 'getJobIntelligenceData':
       return envelope({ jobs: seed.jobs, customers: seed.customers });
-    case 'getJobPhotos':
-      return envelope([]);
+    case 'getJobPhotos': {
+      const id = args[0];
+      return envelope((seed.jobPhotos && seed.jobPhotos[id]) || []);
+    }
+    case 'getJobLineItems': {
+      const id = args[0];
+      return envelope((seed.jobLineItems && seed.jobLineItems[id]) || []);
+    }
 
     // ── Customers ─────────────────────────────────────────────────
     case 'getCustomers':
@@ -71,8 +77,10 @@ export function resolveSeedRead(
       const id = args[0];
       return envelope(seed.invoices.filter((i) => i.customer_id === id));
     }
-    case 'getInvoicesByJob':
-      return envelope([]);
+    case 'getInvoicesByJob': {
+      const id = args[0];
+      return envelope(seed.invoices.filter((i: any) => i.job_id === id || i.jobId === id));
+    }
 
     // ── Pricebook ─────────────────────────────────────────────────
     case 'getPricebook':
@@ -110,25 +118,58 @@ export function resolveSeedRead(
       return envelope(seed.gcSubDirectory || []);
     case 'getSubPerformance': {
       const userId = args[0];
-      const sub = (seed.gcSubDirectory || []).find((s: any) => s.userId === userId);
+      const ratings = (seed.gcRatings && seed.gcRatings[userId]) || [];
+      if (ratings.length === 0) {
+        const sub = (seed.gcSubDirectory || []).find((s: any) => s.userId === userId);
+        return envelope({
+          score: sub?.score ?? null,
+          totalRatings: sub?.totalRatings ?? 0,
+          breakdown: null,
+          ratings: [],
+        });
+      }
+      const avg = (field: string) => ratings.reduce((s: number, r: any) => s + (r[field] || 0), 0) / ratings.length;
+      const q = avg('quality'), t = avg('timeliness'), b = avg('budget_adherence'), c = avg('communication');
+      const score = (q * 0.35) + (t * 0.25) + (b * 0.25) + (c * 0.15);
       return envelope({
-        score: sub?.score ?? null,
-        totalRatings: sub?.totalRatings ?? 0,
-        ratings: [],
+        ratings,
+        score: Math.round(score * 10) / 10,
+        breakdown: {
+          quality: Math.round(q * 10) / 10,
+          timeliness: Math.round(t * 10) / 10,
+          budgetAdherence: Math.round(b * 10) / 10,
+          communication: Math.round(c * 10) / 10,
+        },
+        totalRatings: ratings.length,
       });
     }
-    case 'getGCMessages':
-    case 'getProjectActivity': {
+    case 'getGCMessages': {
       const id = args[0];
       return envelope(seed.gcProjectMessages?.[id] || []);
     }
+    case 'getProjectActivity': {
+      const id = args[0];
+      const limit = (args[1] as number | undefined) ?? 20;
+      const events = (seed.gcProjectActivity && seed.gcProjectActivity[id]) || [];
+      // Newest first; the widget is built around that ordering.
+      const sorted = [...events].sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+      return envelope(sorted.slice(0, limit));
+    }
     case 'getRecentActivityAcrossProjects': {
+      const limit = (args[0] as number | undefined) ?? 15;
       const all: any[] = [];
-      for (const [projectId, msgs] of Object.entries(seed.gcProjectMessages || {})) {
+      for (const [projectId, evts] of Object.entries(seed.gcProjectActivity || {})) {
         const project = seed.gcProjects.find((p: any) => p.id === projectId);
-        for (const m of msgs) all.push({ ...m, projectId, projectName: project?.name });
+        for (const m of evts as any[]) {
+          all.push({
+            ...m,
+            projectId,
+            project: project ? { id: project.id, name: project.name } : null,
+          });
+        }
       }
-      return envelope(all.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || '')));
+      const sorted = all.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+      return envelope(sorted.slice(0, limit));
     }
 
     // ── Contractors ───────────────────────────────────────────────
@@ -141,8 +182,30 @@ export function resolveSeedRead(
       if (!found) throw new Error('Contractor not found');
       return envelope(found);
     }
-    case 'getContractorStats':
-      return envelope({ totalPaid: 0, jobsCompleted: 0, lastJobAt: null });
+    case 'getContractorStats': {
+      const id = args[0];
+      const c: any = (seed.contractors || []).find((x: any) => x.id === id);
+      // Pull most-recent activity timestamp for this sub from the project
+      // activity stream so "last seen" / "last job" looks alive.
+      let lastJobAt: string | null = null;
+      const matchName = c?.name?.toLowerCase();
+      if (matchName) {
+        for (const evts of Object.values(seed.gcProjectActivity || {}) as any[]) {
+          for (const e of evts) {
+            if (typeof e.actorName === 'string' && e.actorName.toLowerCase().includes(matchName)) {
+              if (!lastJobAt || (e.createdAt || '') > lastJobAt) lastJobAt = e.createdAt;
+            }
+          }
+        }
+      }
+      return envelope({
+        totalPaid: c?.total_paid ?? 0,
+        totalRevenue: c?.total_paid ?? 0,
+        jobsCompleted: c?.jobs_completed ?? 0,
+        rating: c?.rating ?? null,
+        lastJobAt,
+      });
+    }
     case 'getTeamMembers':
       return envelope([]);
 

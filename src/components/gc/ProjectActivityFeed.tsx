@@ -10,6 +10,8 @@ import {
   Hammer,
   StickyNote,
   Activity,
+  Star,
+  Play,
 } from 'lucide-react';
 import { api } from '../../lib/api';
 import { supabase } from '../../lib/supabase';
@@ -23,6 +25,7 @@ interface ProjectActivityFeedProps {
 
 const EVENT_ICON: Record<string, { icon: any; color: string }> = {
   task_completed:   { icon: CheckCircle2, color: 'green' },
+  trade_started:    { icon: Play,          color: 'indigo' },
   trade_completed:  { icon: Hammer,        color: 'green' },
   photo_uploaded:   { icon: FileText,      color: 'blue' },
   hours_logged:     { icon: Clock,         color: 'purple' },
@@ -30,6 +33,7 @@ const EVENT_ICON: Record<string, { icon: any; color: string }> = {
   invoice_paid:     { icon: DollarSign,    color: 'green' },
   sub_invited:      { icon: UserPlus,      color: 'amber' },
   sub_accepted:     { icon: UserCheck,     color: 'green' },
+  rating_added:     { icon: Star,          color: 'amber' },
   draw_requested:   { icon: DollarSign,    color: 'indigo' },
   note_added:       { icon: StickyNote,    color: 'blue' },
 };
@@ -134,8 +138,19 @@ export function ProjectActivityFeed({
   if (events.length === 0) {
     return (
       <Wrapper>
-        <div className="text-xs text-gray-400 dark:text-gray-500 py-4 text-center">
-          No activity yet. As tasks complete and subs engage, updates will land here live.
+        <div className="px-2 py-3">
+          <p className="text-xs font-semibold text-gray-700 dark:text-gray-200 mb-1.5">
+            Nothing's happened here yet.
+          </p>
+          <p className="text-[11px] text-gray-500 dark:text-gray-400 leading-relaxed mb-2">
+            Once your subs get to work, this feed shows up live:
+          </p>
+          <ul className="space-y-0.5 text-[11px] text-gray-500 dark:text-gray-400">
+            <li>· Task check-offs</li>
+            <li>· Trade kickoffs and completions</li>
+            <li>· Sub invites + acceptances</li>
+            <li>· Photos and ratings</li>
+          </ul>
         </div>
       </Wrapper>
     );

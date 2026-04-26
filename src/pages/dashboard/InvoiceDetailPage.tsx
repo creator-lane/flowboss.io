@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../lib/api';
 import { useToast } from '../../components/ui/Toast';
@@ -19,6 +19,7 @@ import {
   Calendar,
   StickyNote,
   ExternalLink,
+  Eye,
 } from 'lucide-react';
 
 const STATUS_STYLE: Record<string, { badge: string; label: string }> = {
@@ -115,7 +116,19 @@ export function InvoiceDetailPage() {
     setSendingEmail(true);
     try {
       await api.sendInvoiceEmail(invoice, paymentLink || undefined, companyName);
-      setActionSuccess('Invoice email sent successfully');
+      // Auto-flip draft → sent on successful email so the contractor sees the
+      // badge change immediately. Demo did this; prod required a second click
+      // on "Mark as Sent", which felt broken.
+      const status = (invoice?.status || '').toLowerCase();
+      if (status === 'draft' || status === '' || !status) {
+        try {
+          await api.updateInvoice(id!, { status: 'sent' });
+          queryClient.invalidateQueries({ queryKey: ['invoice', id] });
+          queryClient.invalidateQueries({ queryKey: ['invoices'] });
+        } catch { /* if the status flip fails, the email still sent — don't surface */ }
+      }
+      addToast(`Sent to ${invoice.customer.email} 🎉`, 'success');
+      setActionSuccess(`Invoice sent to ${invoice.customer.email}`);
       setTimeout(() => setActionSuccess(''), 3000);
     } catch (err: any) {
       setActionError(err.message || 'Failed to send email');
@@ -506,6 +519,19 @@ export function InvoiceDetailPage() {
                 )}
                 {sendingEmail ? 'Sending...' : 'Send Email'}
               </button>
+
+              {/* Preview as customer — opens the same Stripe-style hosted
+                  invoice page their customer will see, so the contractor
+                  can sanity-check before sending. */}
+              <Link
+                to={`/invoices/${id}/preview`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-neutral-200 text-neutral-700 rounded-lg text-sm font-semibold hover:bg-neutral-50 transition-colors dark:bg-white/5 dark:border-white/10 dark:text-gray-200 dark:hover:bg-white/10"
+              >
+                <Eye className="w-4 h-4" />
+                Preview as customer
+              </Link>
 
               {/* Create Payment Link */}
               {!paymentLink ? (

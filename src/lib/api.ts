@@ -2044,6 +2044,12 @@ export const api = {
       .single();
     if (updErr) throw new Error(updErr.message);
 
+    // Log a cover-update activity so the GC's feed reflects it. Photo uploads
+    // were silently invisible before — fixed in the demo→prod parity sweep.
+    try {
+      await api.logActivity(projectId, 'photo_uploaded', 'Updated project cover photo');
+    } catch { /* ignore */ }
+
     return { data: camelify(updated), url: publicUrl };
   },
 
@@ -2068,12 +2074,50 @@ export const api = {
 
   // GC Project Trades
   updateGCTrade: async (tradeId: string, updates: any) => {
+    // Capture the previous status so we only fire status-transition activity
+    // events on real transitions (not on every save). Avoids the activity feed
+    // exploding when a user edits notes or budget on an already-completed trade.
+    let previousStatus: string | null = null;
+    let projectId: string | null = null;
+    let zoneId: string | null = null;
+    let tradeName: string | null = null;
+    if ('status' in updates) {
+      try {
+        const { data: prev } = await supabase
+          .from('gc_project_trades')
+          .select('status, gc_project_id, zone_id, trade')
+          .eq('id', tradeId)
+          .maybeSingle();
+        previousStatus = (prev as any)?.status ?? null;
+        projectId = (prev as any)?.gc_project_id ?? null;
+        zoneId = (prev as any)?.zone_id ?? null;
+        tradeName = (prev as any)?.trade ?? null;
+      } catch { /* ignore */ }
+    }
+
     const { data, error } = await supabase
       .from('gc_project_trades')
       .update(snakeify(updates))
       .eq('id', tradeId)
       .select().single();
     if (error) throw new Error(error.message);
+
+    // Activity events on status transitions. Demo seeds these — without them,
+    // the live activity feed sits empty in prod for weeks even on active jobs.
+    if ('status' in updates && projectId && updates.status !== previousStatus) {
+      const newStatus = updates.status;
+      const t = tradeName || 'Trade';
+      try {
+        if (newStatus === 'in_progress') {
+          await api.logActivity(projectId, 'trade_started', `${t} kicked off`, { tradeId, zoneId: zoneId || undefined });
+        } else if (newStatus === 'complete' || newStatus === 'completed') {
+          await api.logActivity(projectId, 'trade_completed', `Completed ${t}`, { tradeId, zoneId: zoneId || undefined });
+        } else if (newStatus === 'blocked') {
+          await api.logActivity(projectId, 'note_added', `${t} flagged as blocked`, { tradeId, zoneId: zoneId || undefined });
+        }
+      } catch { /* ignore */ }
+    }
+
     return { data: camelify(data) };
   },
 
@@ -2360,6 +2404,32 @@ export const api = {
         .insert({ trade_id: data.tradeId, gc_project_id: data.gcProjectId, sub_user_id: data.subUserId || null, rated_by: userId, timeliness: data.timeliness, quality: data.quality, communication: data.communication, budget_adherence: data.budgetAdherence, overall: data.overall, notes: data.notes || null })
         .select().single();
       if (error) throw new Error(error.message);
+
+      // Log a rating event so the activity feed reflects it.
+      // We pull the trade name + sub name lazily so the summary reads naturally.
+      try {
+        const { data: trade } = await supabase
+          .from('gc_project_trades')
+          .select('trade, zone_id')
+          .eq('id', data.tradeId)
+          .maybeSingle();
+        let subName = 'sub';
+        if (data.subUserId) {
+          const { data: prof } = await supabase
+            .from('profiles')
+            .select('business_name, email')
+            .eq('id', data.subUserId)
+            .maybeSingle();
+          subName = (prof as any)?.business_name || (prof as any)?.email?.split('@')[0] || 'sub';
+        }
+        await api.logActivity(
+          data.gcProjectId,
+          'rating_added',
+          `Rated ${subName} ${data.overall}/5 on ${(trade as any)?.trade || 'trade'}`,
+          { tradeId: data.tradeId, zoneId: (trade as any)?.zone_id || undefined, metadata: { overall: data.overall } }
+        );
+      } catch { /* ignore */ }
+
       return { data: result };
     } catch { return { data: null }; }
   },
@@ -2520,6 +2590,32 @@ export const api = {
         'This invite is no longer active. The trade may have been reassigned or removed. Ask the GC to send a fresh invite.'
       );
     }
+
+    // Log the sub-acceptance to the project activity feed. This is the moment
+    // the GC's project goes from "invited" to "the sub showed up" — the most
+    // satisfying event in the GC's day, and the demo has been seeding it
+    // forever while prod silently skipped writing it.
+    const projectId = (data as any).gc_project_id;
+    const tradeName = (data as any).trade;
+    if (projectId) {
+      try {
+        // Pull the sub's business name so the feed reads naturally
+        // ("Apex Drywall accepted Drywall") instead of "Someone".
+        const { data: prof } = await supabase
+          .from('profiles')
+          .select('business_name, email')
+          .eq('id', userId)
+          .maybeSingle();
+        const subName = (prof as any)?.business_name || (prof as any)?.email?.split('@')[0] || 'A sub';
+        await api.logActivity(
+          projectId,
+          'sub_accepted',
+          `${subName} accepted ${tradeName || 'the invite'}`,
+          { tradeId, zoneId: (data as any).zone_id || undefined }
+        );
+      } catch { /* ignore */ }
+    }
+
     return { data: camelify(data) };
   },
 };

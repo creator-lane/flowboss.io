@@ -42,6 +42,7 @@ const CustomersPage = lazy(() => import('./pages/dashboard/CustomersPage').then(
 const CustomerDetailPage = lazy(() => import('./pages/dashboard/CustomerDetailPage').then(m => ({ default: m.CustomerDetailPage })));
 const InvoicesPage = lazy(() => import('./pages/dashboard/InvoicesPage').then(m => ({ default: m.InvoicesPage })));
 const InvoiceDetailPage = lazy(() => import('./pages/dashboard/InvoiceDetailPage').then(m => ({ default: m.InvoiceDetailPage })));
+const InvoicePreviewPage = lazy(() => import('./pages/dashboard/InvoicePreviewPage').then(m => ({ default: m.InvoicePreviewPage })));
 const FinancialsPage = lazy(() => import('./pages/dashboard/FinancialsPage').then(m => ({ default: m.FinancialsPage })));
 const InsightsPage = lazy(() => import('./pages/dashboard/InsightsPage').then(m => ({ default: m.InsightsPage })));
 const CommandCenterPage = lazy(() => import('./pages/dashboard/CommandCenterPage').then(m => ({ default: m.CommandCenterPage })));
@@ -99,6 +100,21 @@ export default function App() {
       <Route path="/invite/:projectId/:tradeId" element={<Lazy><InviteLanding /></Lazy>} />
       <Route path="/demo" element={<Lazy><Demo /></Lazy>} />
       <Route path="/demo/full" element={<Lazy><DemoPicker /></Lazy>} />
+
+      {/* Customer-pay preview — rendered outside the dashboard chrome on
+          purpose: this is what the *customer* sees on the Stripe hosted page.
+          Reached from InvoiceDetailPage via "Preview as customer". Auth-gated
+          so we don't expose invoice data, but no DashboardLayout wrapper. */}
+      <Route
+        path="/invoices/:id/preview"
+        element={
+          <RequireAuth>
+            <RequireSubscription>
+              <Lazy><InvoicePreviewPage /></Lazy>
+            </RequireSubscription>
+          </RequireAuth>
+        }
+      />
 
       {/* Customer-facing pay-page preview — outside the dashboard chrome
           on purpose: this is the page the *customer* sees. Reached when a

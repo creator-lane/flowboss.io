@@ -26,6 +26,7 @@ import { useProfile } from '../../hooks/useProfile';
 import { useTheme } from '../../hooks/useTheme';
 import { useSubscriptionTier } from '../../hooks/useSubscriptionTier';
 import { GlobalSearch } from './GlobalSearch';
+import { TrialBanner } from './TrialBanner';
 import { UpgradeGateProvider, useUpgradeGate } from '../upgrade/UpgradeGateProvider';
 
 type ProFeature = 'jobs' | 'customers' | 'invoices' | 'financials' | 'insights' | 'quickbooks' | 'marketplace' | 'generic';
@@ -393,6 +394,9 @@ function DashboardLayoutInner() {
             </div>
           </div>
         </header>
+
+        {/* Trial banner — only renders for users on a 'trialing' status. */}
+        <TrialBanner />
 
         {/* Content */}
         <main className="flex-1 overflow-auto pb-20 lg:pb-0">

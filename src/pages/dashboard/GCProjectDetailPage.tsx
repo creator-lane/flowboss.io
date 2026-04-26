@@ -434,8 +434,9 @@ export function GCProjectDetailPage() {
               emoji="📡"
               title="Live activity, not a group text"
               body="Every status change, task check-off, photo upload, and message from your subs lands here in real time. You stop chasing updates — they come to you."
-              cta="Sign up free → see updates as they happen"
+              cta="Sign up free →"
               tone="emerald"
+              size="compact"
             />
             <ProjectActivityFeed projectId={id!} />
           </aside>

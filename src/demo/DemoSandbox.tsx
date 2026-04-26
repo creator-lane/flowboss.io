@@ -176,7 +176,7 @@ function DemoAuthBridge({
 function DemoBanner({ persona }: { persona: DemoPersona }) {
   const navigate = useNavigate();
   const label =
-    persona === 'gc' ? 'General Contractor view' : 'Subcontractor view';
+    persona === 'gc' ? 'General Contractor view' : 'Trade view';
 
   return (
     <div className="sticky top-0 z-[60] bg-gradient-to-r from-violet-600 via-brand-600 to-blue-600 text-white shadow-md shadow-brand-500/20">

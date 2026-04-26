@@ -74,14 +74,14 @@ const BUSINESS_ROLES = [
   {
     id: 'gc',
     label: 'I AM a GC',
-    desc: 'I manage projects with multiple subs.',
+    desc: 'I manage projects with multiple trades.',
     tag: 'Command center',
   },
   {
     id: 'sub',
     label: 'I work FOR GCs',
-    desc: 'I get hired as a sub on GC projects.',
-    tag: 'Sub workspace',
+    desc: 'I get hired by GCs to work their projects.',
+    tag: 'Trade workspace',
   },
   {
     id: 'both',
@@ -95,7 +95,7 @@ const PRIORITIES = [
   'Scheduling & dispatch',
   'Invoicing & payments',
   'Project management',
-  'Finding reliable subs',
+  'Finding reliable trades',
   'Tracking job costs',
   'Building my reputation',
 ];
@@ -346,7 +346,7 @@ function StepGCRole({
       <StepHeader
         eyebrow="Your role"
         title="How do you work with GCs?"
-        subtitle="FlowBoss is one platform for GCs, subs, and solo trades. We'll show you the right tools."
+        subtitle="FlowBoss is one platform for GCs and trades. We'll show you the right tools."
       />
       <div className="space-y-3">
         {BUSINESS_ROLES.map((role) => {

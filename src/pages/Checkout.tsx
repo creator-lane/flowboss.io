@@ -7,8 +7,8 @@ import { AuthShell, AuthCard } from '../components/ui/AuthShell';
 const PLANS: Record<string, { name: string; price: string; interval: string; tagline?: string }> = {
   monthly: { name: 'Contractor Monthly', price: '$29.99', interval: '/mo' },
   annual: { name: 'Contractor Annual', price: '$199.99', interval: '/yr', tagline: 'Save $160/yr' },
-  sub_pro_monthly: { name: 'Sub Pro Monthly', price: '$14.99', interval: '/mo' },
-  sub_pro_annual: { name: 'Sub Pro Annual', price: '$99', interval: '/yr', tagline: 'Save $80/yr' },
+  sub_pro_monthly: { name: 'Trade Pro Monthly', price: '$14.99', interval: '/mo' },
+  sub_pro_annual: { name: 'Trade Pro Annual', price: '$99', interval: '/yr', tagline: 'Save $80/yr' },
 };
 
 export function Checkout() {

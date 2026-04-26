@@ -7,7 +7,7 @@ const GC_FEATURES = [
   'Unlimited jobs & invoices',
   'GC command center',
   'Zone-based project visualizer',
-  'Invite unlimited subs (free for them)',
+  'Invite unlimited trades (free for them)',
   'Route optimization',
   'Stripe payment links',
   'QuickBooks sync',
@@ -20,14 +20,14 @@ const SUB_FREE_FEATURES = [
   'Every GC project you\'re invited to',
   'Your assigned tasks & schedule',
   'Read-only earnings view',
-  'Message the GC & co-subs',
+  'Message the GC & other trades',
   'FlowBoss Score & public profile',
   'Photo documentation',
   'Mobile + web access',
 ];
 
 const SUB_PRO_FEATURES = [
-  'Everything in Sub Free, plus:',
+  'Everything in Trade Free, plus:',
   'Your own direct jobs & customers',
   'Send direct Stripe invoices',
   'Auto-learning pricebook',
@@ -39,12 +39,12 @@ const SUB_PRO_FEATURES = [
 
 const FAQS = [
   {
-    q: 'Who pays when a GC invites me as a sub?',
-    a: 'Nobody. When a general contractor invites you to their project on FlowBoss, you get full access to that project — your tasks, schedule, messages, earnings view — completely free, forever. The GC covers their own subscription. There\'s no seat fee, no per-project fee, no trial timer. Invited subs are always free.',
+    q: 'Who pays when a GC invites me as a trade?',
+    a: 'Nobody. When a general contractor invites you to their project on FlowBoss, you get full access to that project — your tasks, schedule, messages, earnings view — completely free, forever. The GC covers their own subscription. There\'s no seat fee, no per-project fee, no trial timer. Invited trades are always free.',
   },
   {
-    q: 'When would a sub pay for Sub Pro?',
-    a: 'Sub Pro is for subs who want to run their own shop alongside GC work — bringing in their own customers, sending direct invoices, syncing QuickBooks, and tracking revenue-per-hour across both direct and GC-referred work. If you only work through GCs, you never need to pay. When you accept your first GC invite, you automatically get a 14-day Pro trial so you can test-drive the full product.',
+    q: 'When would a trade pay for Trade Pro?',
+    a: 'Trade Pro is for trades who want to run their own shop alongside GC work — bringing in their own customers, sending direct invoices, syncing QuickBooks, and tracking revenue-per-hour across both direct and GC-referred work. If you only work through GCs, you never need to pay. When you accept your first GC invite, you automatically get a 14-day Pro trial so you can test-drive the full product.',
   },
   {
     q: 'Can I cancel anytime?',
@@ -150,13 +150,13 @@ export function Pricing() {
       <section className="relative pt-16 sm:pt-20 pb-4 text-center px-4 sm:px-6">
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-[11px] font-semibold tracking-wide text-blue-600 dark:text-blue-300 uppercase mb-4">
           <Sparkles className="w-3 h-3" />
-          Built for GCs and Subs
+          Built for GCs and Trades
         </div>
         <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-gray-900 tracking-tight dark:text-white">
           Simple, transparent pricing
         </h1>
         <p className="mt-4 text-base sm:text-lg text-gray-500 max-w-2xl mx-auto dark:text-gray-400">
-          Invited subs are always free. GCs get the full command center. Self-employed subs get their own shop for less.
+          Invited trades are always free. GCs get the full command center. Self-employed trades get their own shop for less.
         </p>
 
         {/* Billing toggle — bumped contrast so it reads as an actual interactive
@@ -204,16 +204,16 @@ export function Pricing() {
       <section className="relative max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
         <div className="grid md:grid-cols-3 gap-5 sm:gap-6">
 
-          {/* ── Sub Free ─────────────────────────────────── */}
+          {/* ── Trade Free ──────────────────────────────── */}
           <div className="relative rounded-3xl border border-gray-200 p-6 sm:p-7 flex flex-col bg-white dark:border-white/10 dark:bg-white/[0.03] dark:backdrop-blur-sm">
             <div className="flex items-center gap-2 mb-3">
               <div className="w-9 h-9 rounded-xl bg-green-500/10 border border-green-500/20 flex items-center justify-center">
                 <Gift className="w-4.5 h-4.5 text-green-600 dark:text-green-400" />
               </div>
-              <span className="text-[10px] font-bold tracking-wider uppercase text-green-600 dark:text-green-400">Invited Subs</span>
+              <span className="text-[10px] font-bold tracking-wider uppercase text-green-600 dark:text-green-400">Invited Trades</span>
             </div>
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Sub Free</h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">For subs invited by a GC</p>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Trade Free</h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">For trades invited by a GC</p>
 
             <div className="mt-4 flex items-baseline gap-1">
               <span className="text-4xl sm:text-5xl font-extrabold text-gray-900 dark:text-white tracking-tight">$0</span>
@@ -276,16 +276,16 @@ export function Pricing() {
             </Link>
           </div>
 
-          {/* ── Sub Pro ──────────────────────────────────── */}
+          {/* ── Trade Pro ────────────────────────────────── */}
           <div className="relative rounded-3xl border border-gray-200 p-6 sm:p-7 flex flex-col bg-white dark:border-white/10 dark:bg-white/[0.03] dark:backdrop-blur-sm">
             <div className="flex items-center gap-2 mb-3">
               <div className="w-9 h-9 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
                 <Users className="w-4.5 h-4.5 text-indigo-600 dark:text-indigo-400" />
               </div>
-              <span className="text-[10px] font-bold tracking-wider uppercase text-indigo-600 dark:text-indigo-400">Self-employed Subs</span>
+              <span className="text-[10px] font-bold tracking-wider uppercase text-indigo-600 dark:text-indigo-400">Self-employed Trades</span>
             </div>
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Sub Pro</h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">For subs who also run their own shop</p>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Trade Pro</h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">For trades who also run their own shop</p>
 
             <div className="mt-4 flex items-baseline gap-1">
               <span className="text-4xl sm:text-5xl font-extrabold text-gray-900 dark:text-white tracking-tight">{subProPrice}</span>
@@ -330,7 +330,7 @@ export function Pricing() {
                 <div className="w-6 h-6 rounded-md bg-green-500/15 flex items-center justify-center">
                   <span className="text-[11px] font-bold text-green-700 dark:text-green-400">1</span>
                 </div>
-                <p className="font-semibold text-gray-900 dark:text-white">You're an invited sub</p>
+                <p className="font-semibold text-gray-900 dark:text-white">You're an invited trade</p>
               </div>
               <p className="text-gray-600 dark:text-gray-400 leading-relaxed pl-8">
                 A GC invites you to their project. You sign up. You work the job. You never pay. Simple.
@@ -344,7 +344,7 @@ export function Pricing() {
                 <p className="font-semibold text-gray-900 dark:text-white">You run a GC business</p>
               </div>
               <p className="text-gray-600 dark:text-gray-400 leading-relaxed pl-8">
-                You manage projects, crew, subs, and customers. $29.99/mo or $199.99/yr.
+                You manage projects, crew, trades, and customers. $29.99/mo or $199.99/yr.
               </p>
             </div>
             <div>
@@ -355,14 +355,14 @@ export function Pricing() {
                 <p className="font-semibold text-gray-900 dark:text-white">You also want direct customers</p>
               </div>
               <p className="text-gray-600 dark:text-gray-400 leading-relaxed pl-8">
-                Sub Pro unlocks your own shop — direct jobs, invoicing, QBO, analytics. $14.99/mo or $99/yr.
+                Trade Pro unlocks your own shop — direct jobs, invoicing, QBO, analytics. $14.99/mo or $99/yr.
               </p>
             </div>
           </div>
         </div>
 
         <p className="text-center text-sm text-gray-500 mt-8 dark:text-gray-400">
-          14-day free trial on Contractor and Sub Pro. Credit card required for trial. Cancel anytime.
+          14-day free trial on Contractor and Trade Pro. Credit card required for trial. Cancel anytime.
         </p>
       </section>
 

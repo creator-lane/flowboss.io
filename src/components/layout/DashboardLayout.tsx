@@ -83,7 +83,7 @@ function personaliseNav(
     'Scheduling & dispatch': 'Schedule',
     'Invoicing & payments': 'Invoices',
     'Project management': 'Projects',
-    'Finding reliable subs': 'Contractors',
+    'Finding reliable trades': 'Contractors',
     'Tracking job costs': 'Financials',
     'Building my reputation': 'Settings', // FlowBoss Score lives here
   };
@@ -328,7 +328,7 @@ function DashboardLayoutInner() {
             >
               <div className="flex items-center gap-2 mb-1">
                 <Sparkles className="w-3.5 h-3.5 text-indigo-300" />
-                <span className="text-[10px] font-bold tracking-wider uppercase text-indigo-300">Sub Pro</span>
+                <span className="text-[10px] font-bold tracking-wider uppercase text-indigo-300">Trade Pro</span>
               </div>
               <p className="text-xs text-white leading-snug font-semibold mb-0.5">
                 Run your own shop

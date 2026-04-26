@@ -4,7 +4,7 @@ import { X, ChevronRight, ChevronLeft } from 'lucide-react';
 const STEPS = [
   {
     title: 'Welcome to Projects',
-    description: 'This is your project command center. See every zone, trade, and sub at a glance.',
+    description: 'This is your project command center. See every zone, trade, and assignment at a glance.',
     target: null, // full page intro
   },
   {
@@ -13,13 +13,13 @@ const STEPS = [
     target: '[data-tour="zone-card"]',
   },
   {
-    title: 'Assign Subs to Trades',
-    description: 'Click a trade inside a zone to assign a sub-contractor. Share an invite link or enter their email.',
+    title: 'Assign Trades to Each Scope',
+    description: 'Click a trade inside a zone to bring in the right person. Share an invite link or enter their email.',
     target: '[data-tour="invite-btn"]',
   },
   {
     title: 'Track Progress in Real-Time',
-    description: 'The center ring shows overall weighted completion. Each zone shows its own progress. When subs mark tasks done, you see it here.',
+    description: 'The center ring shows overall weighted completion. Each zone shows its own progress. When trades mark tasks done, you see it here.',
     target: '[data-tour="progress-ring"]',
   },
   {

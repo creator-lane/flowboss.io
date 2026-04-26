@@ -51,7 +51,7 @@ export function ProGate({ feature, children, pageName }: ProGateProps) {
           <div className="flex items-center gap-2 mb-3">
             <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-600 text-white text-[11px] font-bold tracking-wide shadow shadow-indigo-500/30">
               <Sparkles className="w-3 h-3" />
-              SUB PRO
+              TRADE PRO
             </div>
             <span className="text-xs text-gray-500 dark:text-gray-400">$14.99/mo · 14-day trial</span>
           </div>
@@ -62,11 +62,11 @@ export function ProGate({ feature, children, pageName }: ProGateProps) {
             </div>
             <div>
               <h1 className="text-2xl font-bold text-gray-900 dark:text-white leading-tight">
-                {label} is a Sub Pro feature
+                {label} is a Trade Pro feature
               </h1>
               <p className="mt-2 text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
-                You're on the free Sub plan — perfect for tracking GC-assigned work. Upgrade to Sub
-                Pro to run your own direct jobs, customers, invoicing, and financials.
+                You're on the free Trade plan — perfect for tracking GC-assigned work. Upgrade to
+                Trade Pro to run your own direct jobs, customers, invoicing, and financials.
               </p>
             </div>
           </div>

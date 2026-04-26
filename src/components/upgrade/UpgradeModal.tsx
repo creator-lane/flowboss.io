@@ -29,11 +29,11 @@ interface UpgradeModalProps {
 const FEATURE_COPY: Record<NonNullable<UpgradeModalProps['feature']>, { title: string; lead: string }> = {
   jobs: {
     title: 'Run your own direct jobs',
-    lead: 'Sub Pro unlocks your own jobs — the ones you book directly, outside of GC projects. Full scheduling, invoicing, and customer tracking.',
+    lead: 'Trade Pro unlocks your own jobs — the ones you book directly, outside of GC projects. Full scheduling, invoicing, and customer tracking.',
   },
   customers: {
     title: 'Build your own customer CRM',
-    lead: 'Keep track of every customer you\'ve served — their history, invoices, notes, photos. Sub Pro gives you the full CRM for your own shop.',
+    lead: 'Keep track of every customer you\'ve served — their history, invoices, notes, photos. Trade Pro gives you the full CRM for your own shop.',
   },
   invoices: {
     title: 'Send direct invoices to your customers',
@@ -53,11 +53,11 @@ const FEATURE_COPY: Record<NonNullable<UpgradeModalProps['feature']>, { title: s
   },
   marketplace: {
     title: 'Claim your marketplace listing',
-    lead: 'Sub Pro members get priority placement when GCs browse for reliable trades. Let quality work find you.',
+    lead: 'Trade Pro members get priority placement when GCs browse for reliable trades. Let quality work find you.',
   },
   generic: {
-    title: 'Unlock your full shop with Sub Pro',
-    lead: 'This feature is part of Sub Pro — direct jobs, your own customers, invoicing, and the full analytics suite.',
+    title: 'Unlock your full shop with Trade Pro',
+    lead: 'This feature is part of Trade Pro — direct jobs, your own customers, invoicing, and the full analytics suite.',
   },
 };
 
@@ -127,7 +127,7 @@ export function UpgradeModal({ open, onClose, feature = 'generic' }: UpgradeModa
           <div className="relative">
             <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/15 border border-white/20 text-[10px] font-bold tracking-wider uppercase mb-3">
               <Sparkles className="w-3 h-3" />
-              Sub Pro
+              Trade Pro
             </div>
             <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight leading-tight">
               {copy.title}
@@ -179,7 +179,7 @@ export function UpgradeModal({ open, onClose, feature = 'generic' }: UpgradeModa
                   </div>
                 </div>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  14-day free trial · Full tools + invite unlimited subs · Cancel anytime
+                  14-day free trial · Full tools + invite unlimited trades · Cancel anytime
                 </p>
               </div>
             </>
@@ -188,7 +188,7 @@ export function UpgradeModal({ open, onClose, feature = 'generic' }: UpgradeModa
               <div className="rounded-2xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/[0.03] p-4 mb-5">
                 <div className="flex items-center justify-between mb-2">
                   <div>
-                    <div className="text-[10px] font-bold tracking-wider uppercase text-indigo-600 dark:text-indigo-400 mb-0.5">Sub Pro</div>
+                    <div className="text-[10px] font-bold tracking-wider uppercase text-indigo-600 dark:text-indigo-400 mb-0.5">Trade Pro</div>
                     <div className="flex items-baseline gap-1">
                       <span className="text-2xl font-extrabold text-gray-900 dark:text-white">$14.99</span>
                       <span className="text-sm text-gray-500 dark:text-gray-400">/mo</span>

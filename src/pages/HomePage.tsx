@@ -43,7 +43,7 @@ const gcFeatures = [
   'Unlimited jobs & invoices',
   'GC command center',
   'Zone-based project visualizer',
-  'Invite unlimited subs (free for them)',
+  'Invite unlimited trades (free for them)',
   'Route optimization',
   'Stripe payment links',
   'QuickBooks sync',
@@ -56,14 +56,14 @@ const subFreeFeatures = [
   'Every GC project you\'re invited to',
   'Your assigned tasks & schedule',
   'Read-only earnings view',
-  'Message the GC & co-subs',
+  'Message the GC & other trades',
   'FlowBoss Score & public profile',
   'Photo documentation',
   'Mobile + web access',
 ];
 
 const subProFeatures = [
-  'Everything in Sub Free, plus:',
+  'Everything in Trade Free, plus:',
   'Your own direct jobs & customers',
   'Send direct Stripe invoices',
   'Auto-learning pricebook',
@@ -80,9 +80,9 @@ const testimonials = [
     role: 'GC, Tampa, FL',
   },
   {
-    quote: 'Finally an app that treats subs like a first-class citizen.',
+    quote: 'Finally an app that treats trades like first-class citizens.',
     name: 'Carlos D.',
-    role: 'Plumbing Sub, Austin, TX',
+    role: 'Plumber, Austin, TX',
   },
   {
     quote: 'Revenue per hour alone changed how I bid jobs. Up 22%.',
@@ -670,8 +670,8 @@ function AutoPlayingInviteFlow() {
     {
       step: '02',
       icon: UserPlus,
-      title: 'GC invites subs per trade',
-      desc: 'One click per trade. Each sub gets a magic link via text + email.',
+      title: 'GC invites a trade per scope',
+      desc: 'One click per scope. Each trade gets a magic link via text + email.',
       demo: (
         <div className="space-y-2">
           {[
@@ -700,7 +700,7 @@ function AutoPlayingInviteFlow() {
     {
       step: '03',
       icon: Wrench,
-      title: 'Sub accepts, starts work',
+      title: 'Trade accepts, starts work',
       desc: 'Lands on their own workspace with tasks, zones, budget, hours.',
       demo: (
         <div className="space-y-2">
@@ -881,7 +881,7 @@ export function HomePage() {
           <div className="text-center max-w-4xl mx-auto mb-14">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-sm font-medium mb-6 border border-blue-100">
               <Sparkles className="w-3.5 h-3.5" />
-              One platform for GCs, subs, and solo trades
+              One platform for GCs and trades
             </div>
             <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-gray-900 leading-[1.05] tracking-tight">
               The command center{' '}
@@ -890,8 +890,8 @@ export function HomePage() {
               </span>
             </h1>
             <p className="mt-6 text-lg md:text-xl text-gray-600 leading-relaxed max-w-2xl mx-auto">
-              FlowBoss is the first platform that unites <strong>general contractors</strong> and <strong>subcontractors</strong> in one
-              living dashboard. Build a project visually, invite your subs in one click, watch every trade, task, and dollar move in real time.
+              FlowBoss is the first platform that unites <strong>general contractors</strong> and the <strong>trades</strong> in one
+              living dashboard. Build a project visually, invite your trades in one click, watch every scope, task, and dollar move in real time.
             </p>
             <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
               <a
@@ -942,7 +942,7 @@ export function HomePage() {
               <span className="text-blue-600">We built for the people swinging hammers.</span>
             </h2>
             <p className="mt-4 text-lg text-gray-600 max-w-2xl mx-auto">
-              Jobber, ServiceTitan, and HouseCall Pro treat subs like second-class citizens. FlowBoss is the first field app where GCs and subs
+              Jobber, ServiceTitan, and HouseCall Pro treat trades like second-class citizens. FlowBoss is the first field app where GCs and trades
               share a living project, a shared P&amp;L, and a shared reputation.
             </p>
           </div>
@@ -957,8 +957,8 @@ export function HomePage() {
               },
               {
                 icon: Users,
-                title: 'GC ↔ Sub, one graph',
-                desc: 'Invite a sub by link or phone. They get a workspace showing their tasks, hours, and revenue on your project. You see everything they do.',
+                title: 'GC ↔ Trade, one graph',
+                desc: 'Invite a trade by link or phone. They get a workspace showing their tasks, hours, and revenue on your project. You see everything they do.',
                 color: 'green',
               },
               {
@@ -976,13 +976,13 @@ export function HomePage() {
               {
                 icon: ShieldCheck,
                 title: 'FlowBoss Score',
-                desc: 'Quality 35% · Timeliness 25% · Budget 25% · Communication 15%. Subs earn reputation. GCs pick with confidence.',
+                desc: 'Quality 35% · Timeliness 25% · Budget 25% · Communication 15%. Trades earn reputation. GCs pick with confidence.',
                 color: 'amber',
               },
               {
                 icon: Sparkles,
-                title: 'Sub marketplace (soon)',
-                desc: 'When you need a plumber you haven\'t worked with, FlowBoss matches you with ranked subs in your area. No cold-calling.',
+                title: 'Trade marketplace (soon)',
+                desc: 'When you need a plumber you haven\'t worked with, FlowBoss matches you with ranked trades in your area. No cold-calling.',
                 color: 'rose',
               },
             ].map((f) => (
@@ -1004,14 +1004,14 @@ export function HomePage() {
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-5xl font-bold text-gray-900 tracking-tight">See it in action.</h2>
             <p className="mt-4 text-lg text-gray-600 max-w-2xl mx-auto">
-              Click through the real FlowBoss experience. GC command center, sub workspace, insights engine, on-site invoicing — all live in the browser.
+              Click through the real FlowBoss experience. GC command center, trade workspace, insights engine, on-site invoicing — all live in the browser.
             </p>
           </div>
 
           <div className="flex flex-wrap items-center justify-center gap-2 mb-8">
             {[
               { id: 'gc' as TourTab, label: 'GC Command Center', icon: Building2 },
-              { id: 'sub' as TourTab, label: 'Sub Workspace', icon: Wrench },
+              { id: 'sub' as TourTab, label: 'Trade Workspace', icon: Wrench },
               { id: 'insights' as TourTab, label: 'Insights Engine', icon: BarChart3 },
               { id: 'invoice' as TourTab, label: 'Invoice & Pay', icon: DollarSign },
             ].map((t) => (
@@ -1055,14 +1055,14 @@ export function HomePage() {
                   <h3 className="text-2xl font-bold text-gray-900 mb-3">GC Command Center</h3>
                   <p className="text-gray-600 mb-5 leading-relaxed">
                     Projects are organized by the <strong>physical structure</strong> — kitchen, bathrooms, exterior. Each zone has its own trades,
-                    tasks, budget, and completion. Click any zone to drill into sub activity.
+                    tasks, budget, and completion. Click any zone to drill into trade activity.
                   </p>
                   <ul className="space-y-2.5">
                     {[
                       'Zone-based visualizer replaces flat trade lists',
                       'Weighted completion by labor hours per trade',
                       'Per-zone budget allocation and burn tracking',
-                      'Click any trade → see the sub, their tasks, their hours',
+                      'Click any trade → see who\'s on it, their tasks, their hours',
                       'Timeline view, Gantt view, and cashflow view',
                     ].map((b) => (
                       <li key={b} className="flex items-start gap-2.5">
@@ -1075,14 +1075,14 @@ export function HomePage() {
               )}
               {tab === 'sub' && (
                 <div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-3">Sub Workspace</h3>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-3">Trade Workspace</h3>
                   <p className="text-gray-600 mb-5 leading-relaxed">
-                    Subs are never second-class. When a GC invites you, you get your own workspace showing <strong>your</strong> tasks,
+                    Trades are never second-class. When a GC invites you, you get your own workspace showing <strong>your</strong> tasks,
                     <strong> your</strong> hours, and <strong>your</strong> revenue on that project — independent of the GC's view but synced with it.
                   </p>
                   <ul className="space-y-2.5">
                     {[
-                      'Free for invited subs — no seat fees, no per-project fees',
+                      'Free for invited trades — no seat fees, no per-project fees',
                       'Track GC-referred vs direct revenue split',
                       'Your own pricebook, your own invoices, your own insights',
                       'Work on multiple GC projects simultaneously',
@@ -1175,27 +1175,27 @@ export function HomePage() {
           <div className="mt-12 bg-gradient-to-r from-blue-600/20 to-indigo-600/20 border border-blue-500/30 rounded-2xl p-8 text-center backdrop-blur-sm">
             <div className="text-white text-xl font-semibold mb-2">No more "Did you get my text?"</div>
             <p className="text-blue-200 max-w-2xl mx-auto">
-              Every update flows through one pipe. GCs stop chasing. Subs stop re-explaining. The whole project becomes self-documenting.
+              Every update flows through one pipe. GCs stop chasing. Trades stop re-explaining. The whole project becomes self-documenting.
             </p>
           </div>
         </div>
       </section>
 
-      {/* ─── FOR SUBS: WE MAKE YOU MORE MONEY ──────────────────────────────── */}
+      {/* ─── FOR TRADES: WE MAKE YOU MORE MONEY ────────────────────────────── */}
       <section className="py-20 bg-gradient-to-br from-green-50 via-white to-emerald-50/50">
         <div className="max-w-6xl mx-auto px-6">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-100 text-green-700 text-sm font-medium mb-4 border border-green-200">
                 <DollarSign className="w-3.5 h-3.5" />
-                For the subs
+                For the trades
               </div>
               <h2 className="text-3xl md:text-5xl font-bold text-gray-900 tracking-tight">
-                FlowBoss makes subs{' '}
+                FlowBoss makes trades{' '}
                 <span className="text-green-600">more money.</span>
               </h2>
               <p className="mt-5 text-lg text-gray-600 leading-relaxed">
-                Every other field service app forces subs into clunky guest portals or leaves them out entirely. We built FlowBoss so the sub gets
+                Every other field service app forces trades into clunky guest portals or leaves them out entirely. We built FlowBoss so the trade gets
                 <strong> everything the GC gets</strong> — their own project view, their own invoicing, their own insights. Plus the network effect
                 of GCs looking for you.
               </p>
@@ -1219,7 +1219,7 @@ export function HomePage() {
                   href="/signup?plan=monthly"
                   className="inline-flex items-center gap-2 px-6 py-3 bg-green-600 text-white font-semibold rounded-xl hover:bg-green-700 transition-all shadow-lg shadow-green-600/25"
                 >
-                  Start as a Sub — Free Trial <ArrowRight className="w-4 h-4" />
+                  Start as a Trade — Free Trial <ArrowRight className="w-4 h-4" />
                 </a>
               </div>
             </div>
@@ -1343,10 +1343,10 @@ export function HomePage() {
                   { feature: 'No per-user fees', fb: true, st: false, jb: false, hc: false },
                   { feature: 'GC command center', fb: true, st: false, jb: false, hc: false },
                   { feature: 'Zone-based project visualizer', fb: true, st: false, jb: false, hc: false },
-                  { feature: 'Sub workspace (free for invited subs)', fb: true, st: false, jb: false, hc: false },
-                  { feature: 'Shared GC ↔ Sub graph', fb: true, st: false, jb: false, hc: false },
+                  { feature: 'Trade workspace (free for invited trades)', fb: true, st: false, jb: false, hc: false },
+                  { feature: 'Shared GC ↔ Trade graph', fb: true, st: false, jb: false, hc: false },
                   { feature: 'FlowBoss Score (quality + timeliness)', fb: true, st: false, jb: false, hc: false },
-                  { feature: 'Sub marketplace', fb: 'Coming', st: false, jb: false, hc: false },
+                  { feature: 'Trade marketplace', fb: 'Coming', st: false, jb: false, hc: false },
                   { feature: 'Stripe payment links', fb: true, st: false, jb: false, hc: false },
                   { feature: 'QuickBooks sync', fb: true, st: true, jb: true, hc: true },
                   { feature: 'Route optimization', fb: true, st: true, jb: true, hc: true },
@@ -1384,27 +1384,27 @@ export function HomePage() {
           <div className="flex justify-center mb-4">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-[11px] font-semibold tracking-wide text-blue-700 uppercase">
               <Sparkles className="w-3 h-3" />
-              Built for GCs and Subs
+              Built for GCs and Trades
             </div>
           </div>
           <h2 className="text-3xl md:text-5xl font-bold text-center text-gray-900 mb-4 tracking-tight">Simple, transparent pricing</h2>
           <p className="text-center text-gray-600 mb-14 max-w-2xl mx-auto text-lg">
-            Invited subs are always free. GCs get the full command center. Self-employed subs get their own shop for less.
+            Invited trades are always free. GCs get the full command center. Self-employed trades get their own shop for less.
           </p>
 
           {/* Three tiers */}
           <div className="grid md:grid-cols-3 gap-5 md:gap-6 max-w-6xl mx-auto">
-            {/* Sub Free */}
+            {/* Trade Free */}
             <div className="bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden flex flex-col">
               <div className="p-7 flex-1 flex flex-col">
                 <div className="flex items-center gap-2 mb-3">
                   <div className="w-9 h-9 rounded-xl bg-green-50 border border-green-200 flex items-center justify-center">
                     <Gift className="w-4 h-4 text-green-600" />
                   </div>
-                  <span className="text-[10px] font-bold tracking-wider uppercase text-green-700">Invited Subs</span>
+                  <span className="text-[10px] font-bold tracking-wider uppercase text-green-700">Invited Trades</span>
                 </div>
-                <h3 className="text-lg font-bold text-gray-900">Sub Free</h3>
-                <p className="text-sm text-gray-500 mt-1">For subs invited by a GC</p>
+                <h3 className="text-lg font-bold text-gray-900">Trade Free</h3>
+                <p className="text-sm text-gray-500 mt-1">For trades invited by a GC</p>
                 <div className="mt-4 flex items-baseline gap-1">
                   <span className="text-4xl font-extrabold text-gray-900">$0</span>
                   <span className="text-gray-500 text-sm">/forever</span>
@@ -1458,17 +1458,17 @@ export function HomePage() {
               </div>
             </div>
 
-            {/* Sub Pro */}
+            {/* Trade Pro */}
             <div className="bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden flex flex-col">
               <div className="p-7 flex-1 flex flex-col">
                 <div className="flex items-center gap-2 mb-3">
                   <div className="w-9 h-9 rounded-xl bg-indigo-50 border border-indigo-200 flex items-center justify-center">
                     <Users className="w-4 h-4 text-indigo-600" />
                   </div>
-                  <span className="text-[10px] font-bold tracking-wider uppercase text-indigo-700">Self-employed Subs</span>
+                  <span className="text-[10px] font-bold tracking-wider uppercase text-indigo-700">Self-employed Trades</span>
                 </div>
-                <h3 className="text-lg font-bold text-gray-900">Sub Pro</h3>
-                <p className="text-sm text-gray-500 mt-1">For subs who also run their own shop</p>
+                <h3 className="text-lg font-bold text-gray-900">Trade Pro</h3>
+                <p className="text-sm text-gray-500 mt-1">For trades who also run their own shop</p>
                 <div className="mt-4 flex items-baseline gap-1">
                   <span className="text-4xl font-extrabold text-gray-900">$14.99</span>
                   <span className="text-gray-500 text-sm">/mo</span>
@@ -1506,7 +1506,7 @@ export function HomePage() {
                   <div className="w-7 h-7 rounded-md bg-green-100 flex items-center justify-center">
                     <span className="text-xs font-bold text-green-700">1</span>
                   </div>
-                  <p className="font-semibold text-gray-900">You're an invited sub</p>
+                  <p className="font-semibold text-gray-900">You're an invited trade</p>
                 </div>
                 <p className="text-gray-600 leading-relaxed pl-9">
                   A GC invites you. You sign up. You work the job. You never pay. Simple.
@@ -1520,7 +1520,7 @@ export function HomePage() {
                   <p className="font-semibold text-gray-900">You run a GC business</p>
                 </div>
                 <p className="text-gray-600 leading-relaxed pl-9">
-                  You manage projects, crew, subs, and customers. $29.99/mo or $199.99/yr.
+                  You manage projects, crew, trades, and customers. $29.99/mo or $199.99/yr.
                 </p>
               </div>
               <div>
@@ -1531,14 +1531,14 @@ export function HomePage() {
                   <p className="font-semibold text-gray-900">You also want direct customers</p>
                 </div>
                 <p className="text-gray-600 leading-relaxed pl-9">
-                  Sub Pro unlocks your own shop — direct jobs, invoicing, QBO. $14.99/mo or $99/yr.
+                  Trade Pro unlocks your own shop — direct jobs, invoicing, QBO. $14.99/mo or $99/yr.
                 </p>
               </div>
             </div>
           </div>
 
           <p className="text-center text-sm text-gray-500 mt-8">
-            14-day free trial on Contractor and Sub Pro. Credit card required for trial. Cancel anytime.
+            14-day free trial on Contractor and Trade Pro. Credit card required for trial. Cancel anytime.
           </p>
         </div>
       </section>
@@ -1607,7 +1607,7 @@ export function HomePage() {
               Try the live demo <ArrowRight className="w-5 h-5" />
             </a>
           </div>
-          <p className="mt-4 text-sm text-gray-500">14-day free trial. Invited subs are always free. No card to peek at the demo.</p>
+          <p className="mt-4 text-sm text-gray-500">14-day free trial. Invited trades are always free. No card to peek at the demo.</p>
         </div>
       </section>
     </>

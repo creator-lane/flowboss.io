@@ -53,7 +53,7 @@ export function DemoPicker() {
           <PersonaCard
             to="/demo/full/sub/dashboard/home"
             icon={HardHat}
-            tag="Subcontractor / Tradesman"
+            tag="Trade"
             title="I do the work — direct jobs or GC calls"
             description="Electrician, plumber, HVAC, framer, painter. Run your own customers and accept work from the GCs hiring you."
             highlights={[

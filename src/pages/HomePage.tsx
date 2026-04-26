@@ -1596,14 +1596,18 @@ export function HomePage() {
             >
               Start Free Trial <ArrowRight className="w-5 h-5" />
             </a>
+            {/* Skeptic catcher: visitors who scrolled all the way down without
+                clicking the hero "See it with sample data" CTA get one more
+                shot. Pricing was the old slot here but it's already a full
+                section above — the demo is the higher-EV second option. */}
             <a
-              href="/pricing"
+              href="/demo/full"
               className="inline-flex items-center gap-2 px-8 py-4 bg-white/10 text-white font-semibold rounded-xl hover:bg-white/20 border border-white/20 text-lg"
             >
-              View Pricing
+              Try the live demo <ArrowRight className="w-5 h-5" />
             </a>
           </div>
-          <p className="mt-4 text-sm text-gray-500">14-day free trial. Invited subs are always free.</p>
+          <p className="mt-4 text-sm text-gray-500">14-day free trial. Invited subs are always free. No card to peek at the demo.</p>
         </div>
       </section>
     </>

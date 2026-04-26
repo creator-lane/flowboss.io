@@ -27,10 +27,10 @@ export function DemoPicker() {
             </span>
           </div>
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white tracking-tight mb-3">
-            Pick how you'd use FlowBoss
+            What do you do?
           </h1>
           <p className="text-base sm:text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-            Click in. Real dashboard, seeded with realistic data. Click around as long as you want — then sign up to make it yours.
+            Pick the one that fits. We'll drop you straight into the dashboard so you can see how it'd work for your shop.
           </p>
         </div>
 
@@ -40,13 +40,12 @@ export function DemoPicker() {
             to="/demo/full/gc/dashboard/home"
             icon={Building2}
             tag="General Contractor"
-            title="I run multi-trade projects"
-            persona="Marcos at Riverside Construction"
-            description="Manage 3 active projects, 5 subs across plumbing, electrical, and tile. See where every dollar is going in real time."
+            title="I run jobs with my own crew + subs"
+            description="Whole-house builds, remodels, multi-trade projects. Schedule the crew, send the subs, track every dollar, invoice the customer."
             highlights={[
-              '3 active projects loaded',
-              '5 subcontractors assigned',
-              'Live budget vs. actual on each trade',
+              'Schedule jobs and dispatch your crew',
+              'Hire subs, track them by trade and budget',
+              'Invoice customers, take card payments',
             ]}
             tint="from-blue-500 to-indigo-600"
             accent="blue"
@@ -54,14 +53,13 @@ export function DemoPicker() {
           <PersonaCard
             to="/demo/full/sub/dashboard/home"
             icon={HardHat}
-            tag="Subcontractor"
-            title="I take direct jobs + GC work"
-            persona="Carlos at Carlos Electric"
-            description="Solo electrician with a full week of jobs, a GC project invite, and Stripe payments humming. Run your own book and accept GC work in one place."
+            tag="Subcontractor / Tradesman"
+            title="I do the work — direct jobs or GC calls"
+            description="Electrician, plumber, HVAC, framer, painter. Run your own customers and accept work from the GCs hiring you."
             highlights={[
-              'Today\'s jobs + invoicing',
-              'Active GC project invite',
-              'FlowBoss Score builds your rep',
+              'Today\'s jobs, invoicing, get paid by card',
+              'Accept GC project invites without phone tag',
+              'Build a rep score that wins more bids',
             ]}
             tint="from-orange-500 to-amber-600"
             accent="orange"
@@ -76,7 +74,7 @@ export function DemoPicker() {
           </div>
           <div className="flex items-center gap-1.5">
             <Shield className="w-3.5 h-3.5 text-emerald-500" />
-            <span>Sandboxed — nothing real is created</span>
+            <span>Nothing you click sends real emails or charges cards</span>
           </div>
           <div className="flex items-center gap-1.5">
             <Zap className="w-3.5 h-3.5 text-emerald-500" />
@@ -104,16 +102,16 @@ interface CardProps {
   icon: React.ElementType;
   tag: string;
   title: string;
-  persona: string;
   description: string;
   highlights: string[];
   tint: string;
   accent: 'blue' | 'orange';
 }
 
-function PersonaCard({ to, icon: Icon, tag, title, persona, description, highlights, tint, accent }: CardProps) {
+function PersonaCard({ to, icon: Icon, tag, title, description, highlights, tint, accent }: CardProps) {
   const ringHover = accent === 'blue' ? 'hover:ring-blue-400/40' : 'hover:ring-orange-400/40';
   const accentText = accent === 'blue' ? 'text-blue-600 dark:text-blue-400' : 'text-orange-600 dark:text-orange-400';
+  const ctaLabel = accent === 'blue' ? "Show me the GC dashboard" : "Show me the trade dashboard";
 
   return (
     <Link
@@ -124,12 +122,9 @@ function PersonaCard({ to, icon: Icon, tag, title, persona, description, highlig
         <Icon className="w-6 h-6 text-white" />
       </div>
       <p className={`text-[10px] font-bold tracking-wider uppercase mb-1 ${accentText}`}>{tag}</p>
-      <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-1.5 leading-tight">
+      <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2 leading-tight">
         {title}
       </h2>
-      <p className="text-xs text-gray-500 dark:text-gray-500 mb-3 italic">
-        Demo persona: {persona}
-      </p>
       <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 leading-relaxed">
         {description}
       </p>
@@ -142,7 +137,7 @@ function PersonaCard({ to, icon: Icon, tag, title, persona, description, highlig
         ))}
       </ul>
       <div className={`inline-flex items-center gap-1.5 text-sm font-bold ${accentText} group-hover:gap-2.5 transition-all`}>
-        Open the demo
+        {ctaLabel}
         <ArrowRight className="w-4 h-4" />
       </div>
     </Link>

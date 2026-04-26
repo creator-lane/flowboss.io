@@ -451,11 +451,21 @@ function DayView({
     return routable.length >= 2 ? buildGoogleMapsRouteUrl(routable) : null;
   }, [jobs]);
 
-  // In demo mode, hijack the route-optimization click and fire the paywall
-  // instead of opening Google Maps in a new tab. Real Google Maps with the
-  // demo's seeded addresses is a confusing tangent — this is the actual
-  // conversion moment ("oh, this is the kind of thing I'd pay for").
+  // In demo mode, hijack the route-optimization click and route to the
+  // in-demo route-preview page instead of opening Google Maps with seeded
+  // addresses (which read as a real-Maps tangent). The preview page shows
+  // the day's stops in optimized order with mock ETAs and a soft signup CTA.
   const demoPaywall = useDemoPaywallOptional();
+  const isDemo = !!demoPaywall;
+  // Derive persona ('gc' | 'sub') from the URL so we can build the preview path.
+  const demoPersonaMatch =
+    typeof window !== 'undefined'
+      ? window.location.pathname.match(/^\/demo\/full\/(gc|sub)\//)
+      : null;
+  const demoPersona = demoPersonaMatch?.[1];
+  const demoRoutePreviewPath = demoPersona
+    ? `/demo/full/${demoPersona}/dashboard/route-preview`
+    : null;
 
   return (
     <div className="space-y-3">
@@ -483,16 +493,15 @@ function DayView({
               that are noted inline. */}
           {routeInfo && (
             <a
-              href={demoPaywall ? '#' : routeInfo.url}
-              target={demoPaywall ? undefined : '_blank'}
-              rel={demoPaywall ? undefined : 'noopener noreferrer'}
+              href={isDemo ? (demoRoutePreviewPath || '#') : routeInfo.url}
+              target={isDemo ? undefined : '_blank'}
+              rel={isDemo ? undefined : 'noopener noreferrer'}
               onClick={(e) => {
-                // In demo mode, intercept and fire the paywall instead of
-                // launching Google Maps with seeded fixture addresses (which
-                // produces a confusing real-Maps tangent).
-                if (demoPaywall) {
+                // In demo mode, intercept and route to the in-demo preview
+                // instead of launching Google Maps with seeded addresses.
+                if (isDemo && demoRoutePreviewPath) {
                   e.preventDefault();
-                  demoPaywall.trigger('routeOptimization');
+                  navigate(demoRoutePreviewPath);
                 }
               }}
               className="group flex items-center gap-3 px-4 py-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl text-white shadow-md shadow-blue-500/20 hover:shadow-lg hover:shadow-blue-500/30 transition-all cursor-pointer"

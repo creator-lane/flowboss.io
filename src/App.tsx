@@ -31,6 +31,8 @@ const InviteLanding = lazy(() => import('./pages/InviteLanding').then(m => ({ de
 const Demo = lazy(() => import('./pages/Demo').then(m => ({ default: m.Demo })));
 const DemoPicker = lazy(() => import('./demo/DemoPicker').then(m => ({ default: m.DemoPicker })));
 const DemoSandbox = lazy(() => import('./demo/DemoSandbox').then(m => ({ default: m.DemoSandbox })));
+const DemoCustomerPayPage = lazy(() => import('./demo/DemoCustomerPayPage').then(m => ({ default: m.DemoCustomerPayPage })));
+const DemoRoutePreviewPage = lazy(() => import('./demo/DemoRoutePreviewPage').then(m => ({ default: m.DemoRoutePreviewPage })));
 
 // Lazy-loaded dashboard pages for code-splitting
 const SchedulePage = lazy(() => import('./pages/dashboard/SchedulePage').then(m => ({ default: m.SchedulePage })));
@@ -98,11 +100,18 @@ export default function App() {
       <Route path="/demo" element={<Lazy><Demo /></Lazy>} />
       <Route path="/demo/full" element={<Lazy><DemoPicker /></Lazy>} />
 
+      {/* Customer-facing pay-page preview — outside the dashboard chrome
+          on purpose: this is the page the *customer* sees. Reached when a
+          contractor in demo mode clicks "Create payment link" on an
+          invoice (apiOverride wires the link here instead of Stripe). */}
+      <Route path="/demo/full/:persona/customer-pay/:invoiceId" element={<Lazy><DemoCustomerPayPage /></Lazy>} />
+
       {/* Sandboxed full demo — separate provider tree, no auth, no real Supabase. */}
       <Route path="/demo/full/:persona/dashboard" element={<Lazy><DemoSandbox /></Lazy>}>
         <Route index element={<Navigate to="home" replace />} />
         <Route path="home" element={<Lazy><CommandCenterPage /></Lazy>} />
         <Route path="schedule" element={<Lazy><SchedulePage /></Lazy>} />
+        <Route path="route-preview" element={<Lazy><DemoRoutePreviewPage /></Lazy>} />
         <Route path="jobs" element={<Lazy><JobsPage /></Lazy>} />
         <Route path="jobs/:id" element={<Lazy><JobDetailPage /></Lazy>} />
         <Route path="customers" element={<Lazy><CustomersPage /></Lazy>} />

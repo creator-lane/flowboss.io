@@ -272,42 +272,31 @@ export function isReadMethod(name: string): boolean {
   return READ_METHOD_PATTERNS.some((re) => re.test(name));
 }
 
-// The narrow set of mutations that trigger the paywall.
-// Reserved for moments where signing up is the *only* sensible next step:
-// real customer-facing email, real money flowing, real outbound invites.
-// Everything else fake-succeeds so the demo feels like a working product.
+// The narrow set of mutations that ALWAYS hard-paywall (modal, no progression).
+//
+// We used to wall a much wider set (sendInvoiceEmail, sendInviteEmail,
+// inviteTeamMember, inviteSubToTrade, createPaymentLink, sendInvoiceViaQB).
+// Geoff's call: those should *guide* — fake-succeed in the seed, let the UI
+// render the natural "Sent ✓" / "Invite sent" / "Payment link created" state,
+// and route real preview screens (customer-pay page, route preview, etc).
+// The conversion pressure stays via the top banner, the 90s upgrade nudge,
+// and the explicit "/checkout" + "/pricing" history hooks.
+//
+// What's left here: only flows where there's literally no in-app screen to
+// guide to (real card-charging endpoints), reserved as a safety net.
 export const PAYWALL_METHODS = new Set<string>([
-  // Real customer email / SMS / outbound to actual people
-  'sendInvoiceEmail',
-  'sendInviteEmail',
-  'inviteTeamMember',
-  'inviteSubToTrade',
-  'sendInvoiceViaQB',
-  'qbo.sendInvoiceViaQB',
-  'quickbooks.sendInvoiceViaQB',
-  // Real money flows
-  'createPaymentLink',
+  // Real money flows that POST to Stripe/processor — no demo equivalent.
   'processPayment',
   'chargeCard',
 ]);
 
-export function isPaywallMethod(name: string, args?: any[]): boolean {
-  if (PAYWALL_METHODS.has(name)) return true;
-  // The InviteSubModal funnels every "Add Placeholder" / "Send Email" action
-  // through `updateGCTrade` with notes prefixed "Placeholder:" or "Invited:".
-  // Both represent the user committing to invite a real sub — fire the paywall.
-  if (name === 'updateGCTrade' && args && args[1] && typeof args[1].notes === 'string') {
-    if (/^(Placeholder|Invited):/i.test(args[1].notes)) return true;
-  }
-  return false;
+export function isPaywallMethod(name: string, _args?: any[]): boolean {
+  return PAYWALL_METHODS.has(name);
 }
 
 // When a method paywalls based on args (not just name), the override needs to
 // know which copy key to surface — return it here. Default is the method name.
-export function paywallCopyKeyFor(name: string, args?: any[]): string {
-  if (name === 'updateGCTrade' && args && args[1] && typeof args[1].notes === 'string') {
-    if (/^(Placeholder|Invited):/i.test(args[1].notes)) return 'inviteSubToTrade';
-  }
+export function paywallCopyKeyFor(name: string, _args?: any[]): string {
   return name;
 }
 
@@ -439,6 +428,46 @@ export function resolveSeedWrite(
       return removeById(seed.contractors);
     case 'inviteTeamMember':
       return { data: { id: nextId('team'), ...(args[0] || {}) } };
+
+    // ── Soft-success email / invite / payment-link flows ──────────
+    // These used to hard-paywall. Geoff's UX call: fake-succeed and let
+    // the existing UI render its natural "Sent ✓" state, then guide to
+    // real preview screens (createPaymentLink → /customer-pay/<id>).
+    case 'sendInvoiceEmail': {
+      const invoice = args[0] || {};
+      const customer = invoice.customer || {};
+      // Mark the underlying invoice as sent so the detail page shows the
+      // status flip naturally on next read.
+      const idx = seed.invoices.findIndex((i: any) => i.id === invoice.id);
+      if (idx !== -1) {
+        seed.invoices[idx] = { ...seed.invoices[idx], status: 'sent', sent_at: new Date().toISOString() };
+      }
+      return {
+        data: {
+          success: true,
+          sent: true,
+          to: customer.email,
+          messageId: `demo-msg-${Date.now()}`,
+        },
+      };
+    }
+    case 'sendInviteEmail':
+      return { data: { success: true, sent: true, to: args[0]?.email } };
+    case 'inviteSubToTrade':
+      return { data: { invited: true, email: args[1] } };
+    case 'sendInvoiceViaQB':
+    case 'qbo.sendInvoiceViaQB':
+    case 'quickbooks.sendInvoiceViaQB':
+      return { data: { success: true, sent: true, qbInvoiceId: `demo-qb-${Date.now()}` } };
+    case 'createPaymentLink': {
+      const invoiceId = args[0];
+      // Point at the in-demo customer-pay preview route — same hostname,
+      // same persona subtree, so copying it and pasting it in another tab
+      // shows the same beautiful customer-facing pay page. This is the
+      // "guide to next screen" replacement for the old paywall.
+      const url = `${window.location.origin}/demo/full/${persona}/customer-pay/${invoiceId}`;
+      return { data: { url, id: `demo-checkout-${Date.now()}` } };
+    }
 
     // ── Settings / profile ────────────────────────────────────────
     case 'updateSettings': {

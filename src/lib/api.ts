@@ -1011,13 +1011,24 @@ export const api = {
         body: JSON.stringify(data),
       });
       if (!resp.ok) {
-        // Edge function not deployed yet — silently succeed
-        return { success: true, pending: true };
+        // Surface the real error so the GC knows the invite didn't actually
+        // send. The previous "silently succeed" fallback was written when
+        // the edge function might not have been deployed; now that it is,
+        // a 4xx/5xx is a real failure (Resend rejection, missing API key,
+        // unverified sender domain) and the GC needs to see it.
+        const errText = await resp.text().catch(() => '');
+        let errMsg = `Email failed (${resp.status})`;
+        try {
+          const parsed = JSON.parse(errText);
+          if (parsed?.error) errMsg = parsed.error;
+        } catch { errMsg += errText ? `: ${errText.slice(0, 200)}` : ''; }
+        console.error('[FlowBoss] Invite email error:', resp.status, errText);
+        return { success: false, error: errMsg };
       }
       return await resp.json();
-    } catch {
-      // Edge function not deployed — silently succeed
-      return { success: true, pending: true };
+    } catch (err: any) {
+      console.error('[FlowBoss] Invite email network error:', err);
+      return { success: false, error: err?.message || 'Network error sending invite' };
     }
   },
 

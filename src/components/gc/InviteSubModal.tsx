@@ -43,6 +43,7 @@ export function InviteSubModal({
   // Feedback state
   const [copied, setCopied] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
+  const [emailError, setEmailError] = useState<string | null>(null);
 
   const inviteLink = `https://flowboss.io/invite/${projectId}/${tradeId}`;
 
@@ -77,9 +78,13 @@ export function InviteSubModal({
   async function handleSendEmail() {
     if (!email.trim()) return;
 
-    // Send the real email invite
+    // Send the real email invite. We now surface failures instead of
+    // pretending the email went out — Resend rejection (unverified sender,
+    // bad API key, domain not added) used to be invisible because the
+    // wrapper coerced everything into success.
+    let emailResult: { success: boolean; error?: string; pending?: boolean } | null = null;
     try {
-      await api.sendInviteEmail({
+      emailResult = await api.sendInviteEmail({
         email: email.trim(),
         subName: emailCompany.trim() || undefined,
         projectName,
@@ -87,8 +92,16 @@ export function InviteSubModal({
         inviteUrl: inviteLink,
         gcCompanyName,
       });
-    } catch {
-      // Edge function may not be deployed yet — continue with note tracking
+    } catch (err: any) {
+      emailResult = { success: false, error: err?.message || 'Unknown error' };
+    }
+
+    if (emailResult && emailResult.success === false) {
+      setSuccess(null);
+      // Show the error so the GC knows to fall back to the "Share Link" tab
+      // rather than thinking the email went out.
+      setEmailError(emailResult.error || 'Email failed to send. Use Share Link instead.');
+      return;
     }
 
     // Log activity
@@ -120,6 +133,7 @@ export function InviteSubModal({
     setEmailCompany('');
     setCopied(false);
     setSuccess(null);
+    setEmailError(null);
     setActiveTab('placeholder');
     onClose();
   }
@@ -268,13 +282,22 @@ export function InviteSubModal({
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent dark:border-white/10 dark:focus:ring-blue-400"
                 />
               </div>
+              {emailError && (
+                <div className="rounded-lg border border-red-200 bg-red-50 dark:border-red-500/30 dark:bg-red-500/10 px-3 py-2.5 text-xs text-red-700 dark:text-red-200 leading-relaxed">
+                  <strong className="block mb-0.5">Email didn't send</strong>
+                  <span className="block break-words">{emailError}</span>
+                  <span className="block mt-1.5 text-red-600/80 dark:text-red-300/80">
+                    Switch to <em>Share Link</em> tab and send the invite link manually for now.
+                  </span>
+                </div>
+              )}
               <button
-                onClick={handleSendEmail}
+                onClick={() => { setEmailError(null); handleSendEmail(); }}
                 disabled={!email.trim() || updateTrade.isPending}
                 className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-900 text-white rounded-lg text-sm font-medium hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 <Send className="w-4 h-4" />
-                {updateTrade.isPending ? 'Sending...' : 'Send Invite'}
+                {updateTrade.isPending ? 'Sending...' : emailError ? 'Try again' : 'Send Invite'}
               </button>
             </div>
           )}

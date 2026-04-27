@@ -57,7 +57,19 @@ serve(async (req) => {
       ? `<strong>${projectName}</strong>.`
       : '<strong>their project</strong>.';
 
-    await fetch('https://api.resend.com/emails', {
+    if (!resendKey) {
+      console.error('[send-invite-email] RESEND_API_KEY not configured');
+      return new Response(
+        JSON.stringify({ error: 'Email service not configured (RESEND_API_KEY missing)' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      );
+    }
+
+    // Check Resend's response — previously this was fire-and-forget which
+    // meant Resend could reject with 401/403/422 and the function would still
+    // return {success:true}, so the GC saw "Sent!" while no email actually
+    // went out. Now we propagate the real status + error back to the caller.
+    const resendResp = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -91,7 +103,20 @@ serve(async (req) => {
       }),
     });
 
-    return new Response(JSON.stringify({ success: true }), {
+    if (!resendResp.ok) {
+      const resendBody = await resendResp.text();
+      console.error('[send-invite-email] Resend rejected:', resendResp.status, resendBody);
+      return new Response(
+        JSON.stringify({
+          error: `Resend rejected the email (${resendResp.status}): ${resendBody}`,
+          resendStatus: resendResp.status,
+        }),
+        { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      );
+    }
+
+    const resendJson = await resendResp.json().catch(() => ({}));
+    return new Response(JSON.stringify({ success: true, resendId: resendJson?.id }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {

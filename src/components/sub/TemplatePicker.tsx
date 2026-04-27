@@ -425,18 +425,36 @@ export function TemplatePicker({ open, onClose, tradeId, tradeLabel, projectId }
         </div>
       )}
 
-      {/* Apply */}
-      <div className="flex items-center justify-between gap-3 pt-2 border-t border-gray-100 dark:border-white/10">
+      {/* Apply — primary action treatment so it visibly stands out as the
+          CTA, especially in dark mode where bg-gray-900 was indistinguishable
+          from the modal panel itself. The same brand gradient is used by
+          the "Use a starter template" entry point so the user sees
+          continuity between picking and applying. */}
+      <div className="flex items-center justify-between gap-3 pt-3 border-t border-gray-100 dark:border-white/10">
         <div className="text-xs text-gray-500 dark:text-gray-400">
-          {selectedTaskCount} tasks{selectedMaterialCount > 0 ? `, ${selectedMaterialCount} materials` : ''} will be added to your plan.
+          <span className="font-semibold text-gray-700 dark:text-gray-200">
+            {selectedTaskCount} task{selectedTaskCount === 1 ? '' : 's'}
+          </span>
+          {selectedMaterialCount > 0 && (
+            <>
+              {', '}
+              <span className="font-semibold text-gray-700 dark:text-gray-200">
+                {selectedMaterialCount} material{selectedMaterialCount === 1 ? '' : 's'}
+              </span>
+            </>
+          )}
+          {' '}will be added.
         </div>
         <button
           onClick={() => apply.mutate()}
           disabled={apply.isPending || selectedTaskCount === 0}
-          className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-lg text-sm font-semibold hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-br from-brand-500 to-brand-600 text-white rounded-lg text-sm font-semibold shadow-lg shadow-brand-500/30 hover:from-brand-500 hover:to-brand-500 hover:shadow-brand-500/40 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none transition-all dark:from-blue-500 dark:to-blue-600 dark:shadow-blue-500/30"
         >
           {apply.isPending ? (
-            <>Loading…</>
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Loading&hellip;
+            </>
           ) : (
             <>
               Apply to my plan

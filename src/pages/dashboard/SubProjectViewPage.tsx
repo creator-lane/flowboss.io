@@ -15,12 +15,14 @@ import {
   Phone,
   Mail,
   Plus,
+  Sparkles,
   StickyNote,
   Megaphone,
   Trash2,
   AlertTriangle,
   AlertCircle,
 } from 'lucide-react';
+import { TemplatePicker } from '../../components/sub/TemplatePicker';
 
 /* ─── Zone color / emoji maps (mirrored from ZoneClusterDiagram) ─── */
 
@@ -515,6 +517,7 @@ function TaskSection({ trade, projectId, accent }: { trade: any; projectId: stri
 
   const allDone = tasks.length > 0 && tasks.every((t: any) => t.done);
   const currentStatus: string = trade.status || 'not_started';
+  const [templatePickerOpen, setTemplatePickerOpen] = useState(false);
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10 dark:shadow-black/30">
@@ -541,9 +544,20 @@ function TaskSection({ trade, projectId, accent }: { trade: any; projectId: stri
       {tasks.length === 0 ? (
         <div className="px-5 py-8 text-center">
           <p className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Plan your work for this job</p>
-          <p className="text-xs text-gray-400 dark:text-gray-500 max-w-sm mx-auto">
-            Break the scope down however you run your crew &mdash; daily list, by-the-room, materials before labor, whatever works. The GC sees your progress; you own the plan.
+          <p className="text-xs text-gray-400 dark:text-gray-500 max-w-sm mx-auto mb-4">
+            Start from a {trade.trade || 'trade'} starter template (phases, tasks, materials &mdash; all editable) or build your plan inline below.
           </p>
+          {/* Template CTA leads when the plan is empty — that's the "wow"
+              moment Geoff has on mobile and the sub view shipped without.
+              Big, prominent, free for invited subs. */}
+          <button
+            onClick={() => setTemplatePickerOpen(true)}
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-br from-brand-500 to-brand-600 text-white rounded-lg text-sm font-semibold hover:from-brand-500 hover:to-brand-500 shadow-lg shadow-brand-500/30 transition-all dark:from-blue-500 dark:to-blue-600"
+          >
+            <Sparkles className="w-4 h-4" />
+            Use a starter template
+          </button>
+          <p className="text-[11px] text-gray-400 mt-3 dark:text-gray-500">Free on this project &mdash; no subscription needed.</p>
         </div>
       ) : (
         <div className="divide-y divide-gray-100 dark:divide-white/10">
@@ -563,7 +577,11 @@ function TaskSection({ trade, projectId, accent }: { trade: any; projectId: stri
 
       {/* Inline composer — single-line entry, no modal. Trades are on a
           phone in the field; a modal would be hostile. Enter submits,
-          empty input is a no-op. */}
+          empty input is a no-op. The Sparkles button next to it opens
+          the template picker for "I want to dump in a whole scope at
+          once" moments — most useful on a fresh job, but also works
+          mid-plan when something pivots (e.g. a kitchen rough-in scope
+          gets added to a bathroom remodel). */}
       <div className="px-4 py-3 border-t border-gray-100 dark:border-white/10 bg-gray-50/50 dark:bg-white/[0.02]">
         <form
           onSubmit={(e) => { e.preventDefault(); handleAddTask(); }}
@@ -578,13 +596,23 @@ function TaskSection({ trade, projectId, accent }: { trade: any; projectId: stri
             className="flex-1 bg-transparent text-sm placeholder:text-gray-400 focus:outline-none dark:text-white dark:placeholder:text-gray-500"
             disabled={addTask.isPending}
           />
-          {newTask.trim() && (
+          {newTask.trim() ? (
             <button
               type="submit"
               disabled={addTask.isPending}
               className="text-xs font-semibold text-brand-600 hover:text-brand-700 disabled:opacity-50 transition-colors dark:text-blue-300"
             >
               {addTask.isPending ? 'Adding…' : 'Add'}
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setTemplatePickerOpen(true)}
+              title="Add a whole scope from a starter template"
+              className="flex items-center gap-1 text-xs font-medium text-gray-500 hover:text-brand-700 transition-colors dark:text-gray-400 dark:hover:text-blue-300"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Template</span>
             </button>
           )}
         </form>
@@ -603,6 +631,17 @@ function TaskSection({ trade, projectId, accent }: { trade: any; projectId: stri
           </button>
         )}
       </div>
+
+      {/* Template picker modal — single instance per TaskSection, so a sub
+          on multiple trades (Plumbing + HVAC) gets the right trade-specific
+          library each time. */}
+      <TemplatePicker
+        open={templatePickerOpen}
+        onClose={() => setTemplatePickerOpen(false)}
+        tradeId={trade.id}
+        tradeLabel={trade.trade || ''}
+        projectId={projectId}
+      />
     </div>
   );
 }

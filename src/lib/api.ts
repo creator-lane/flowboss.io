@@ -2186,6 +2186,98 @@ export const api = {
     }
   },
 
+  // Apply a project template to a trade — bulk-insert the picked tasks and
+  // materials in a single round-trip per resource. The mobile app has had
+  // this for a year ("Bathroom Remodel" → 50 prepopulated tasks across 5
+  // phases + a materials list); the web sub view shipped without it,
+  // forcing field tradespeople to type their entire scope from scratch
+  // every job. Mobile parity, finally.
+  //
+  // The caller picks (and optionally trims) tasks/materials in the
+  // template-picker UI before this fires, so we just persist what's left.
+  // Phase names are prepended to task names so the sub doesn't lose the
+  // "Demo & Rough-In" / "Tile Installation" / "Final" structure that gives
+  // the template its value (web's gc_project_tasks has no phase column —
+  // that's a future migration; for now the prefix is the cheapest way to
+  // keep the structure readable).
+  applyTemplateToTrade: async (
+    tradeId: string,
+    payload: {
+      tasks: Array<{ name: string; phaseName?: string }>;
+      materials?: Array<{ name: string; cost: number; category?: string }>;
+      templateName?: string;
+    },
+  ) => {
+    if (!tradeId) throw new Error('Missing tradeId');
+
+    // Find the current max sortOrder so appended tasks land at the bottom
+    // of the existing plan rather than rearranging the sub's own work.
+    const { data: existingTasks } = await supabase
+      .from('gc_project_tasks')
+      .select('sort_order')
+      .eq('trade_id', tradeId)
+      .order('sort_order', { ascending: false })
+      .limit(1);
+    const baseSortOrder = ((existingTasks?.[0] as any)?.sort_order ?? -1) + 1;
+
+    const taskRows = payload.tasks.map((t, i) => ({
+      trade_id: tradeId,
+      name: t.phaseName ? `${t.phaseName}: ${t.name}` : t.name,
+      done: false,
+      sort_order: baseSortOrder + i,
+    }));
+
+    if (taskRows.length > 0) {
+      const { error: taskErr } = await supabase.from('gc_project_tasks').insert(taskRows);
+      if (taskErr) throw new Error(taskErr.message);
+    }
+
+    let materialsInserted = 0;
+    if (payload.materials && payload.materials.length > 0) {
+      const matRows = payload.materials.map((m, i) => ({
+        trade_id: tradeId,
+        name: m.name,
+        quantity: 1,
+        unit: 'ea',
+        unit_cost: m.cost ?? 0,
+        total_cost: m.cost ?? 0,
+        purchased: false,
+        sort_order: i,
+      }));
+      const { error: matErr } = await supabase.from('gc_trade_materials').insert(matRows);
+      if (matErr) {
+        // Don't blow up the whole apply if materials fail — the task list
+        // is the meat of the value. Surface in the toast caller-side.
+        console.error('[FlowBoss] materials insert failed:', matErr);
+      } else {
+        materialsInserted = matRows.length;
+      }
+    }
+
+    // Activity event so the GC sees their sub spinning up real work.
+    try {
+      const { data: trade } = await supabase
+        .from('gc_project_trades')
+        .select('gc_project_id, trade')
+        .eq('id', tradeId)
+        .maybeSingle();
+      const projectId = (trade as any)?.gc_project_id;
+      const tradeName = (trade as any)?.trade;
+      if (projectId) {
+        await api.logActivity(
+          projectId,
+          'template_applied',
+          payload.templateName
+            ? `Loaded ${payload.templateName} template into ${tradeName || 'a trade'} (${taskRows.length} tasks)`
+            : `Loaded a template into ${tradeName || 'a trade'} (${taskRows.length} tasks)`,
+          { tradeId },
+        );
+      }
+    } catch { /* don't block on activity log failure */ }
+
+    return { tasksInserted: taskRows.length, materialsInserted };
+  },
+
   // Update fields on a gc_project_task (rename, notes, due date, etc).
   // Subs running their own work plan need to fix typos and edit details
   // — the existing api.updateTask wrote to phase_tasks (a different

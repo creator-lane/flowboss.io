@@ -1,4 +1,5 @@
 import { useEffect, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 
 interface ModalProps {
@@ -39,17 +40,24 @@ export function Modal({ open, onClose, title, children, size = 'md' }: ModalProp
 
   if (!open) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+  // Portal to document.body so the modal escapes any ancestor that has a
+  // `transform`, `filter`, or `perspective` set — those CSS properties
+  // create a new containing block for descendants with `position: fixed`,
+  // breaking `inset-0` and pinning the modal inside whatever parent
+  // happened to be transformed. (Symptom: modal rendered as a small
+  // inline panel with the rest of the page bleeding through above and
+  // below it.) Portaling sidesteps that entirely.
+  const overlay = (
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/40 dark:bg-black/70 backdrop-blur-sm animate-backdrop-fade-in"
+        className="absolute inset-0 bg-black/50 dark:bg-black/80 backdrop-blur-sm animate-backdrop-fade-in"
         onClick={onClose}
       />
 
       {/* Panel */}
       <div
-        className={`relative bg-white dark:bg-gray-900 dark:border dark:border-white/10 rounded-2xl shadow-xl dark:shadow-black/50 w-full ${SIZE_MAP[size]} max-h-[90vh] flex flex-col animate-modal-fade-in`}
+        className={`relative bg-white dark:bg-gray-900 dark:border dark:border-white/10 rounded-2xl shadow-2xl dark:shadow-black/50 w-full ${SIZE_MAP[size]} max-h-[90vh] flex flex-col animate-modal-fade-in`}
       >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-white/10">
@@ -69,4 +77,6 @@ export function Modal({ open, onClose, title, children, size = 'md' }: ModalProp
       </div>
     </div>
   );
+
+  return createPortal(overlay, document.body);
 }

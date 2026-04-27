@@ -958,6 +958,15 @@ export const api = {
       throw new Error('Customer has no email address on file');
     }
 
+    // Use the caller's session token — the edge function verifies it, so
+    // only authenticated FlowBoss users can trigger invoice emails. The
+    // anon key was sufficient for the old permissive check but that let
+    // anyone who knew the URL spam FlowBoss-branded mail.
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.access_token) {
+      throw new Error('You must be signed in to send an invoice.');
+    }
+
     const body = {
       customerEmail,
       customerName,
@@ -980,7 +989,7 @@ export const api = {
     const resp = await fetch(`${SUPABASE_FN_URL}/send-invoice-email`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${ANON_KEY}`,
+        'Authorization': `Bearer ${session.access_token}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(body),

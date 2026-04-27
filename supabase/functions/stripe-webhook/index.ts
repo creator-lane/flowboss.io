@@ -48,43 +48,182 @@ async function sendCardDeclinedEmail(opts: {
     console.log('[stripe-webhook] RESEND_API_KEY not set, skipping card-declined email');
     return;
   }
-  const name = opts.firstName ? `Hey ${opts.firstName},` : 'Hey,';
-  const amountLine =
-    opts.amountDue && opts.amountDue > 0
-      ? `<p style="color:#64748b;font-size:14px;line-height:1.6;">Stripe couldn't collect <strong>$${(opts.amountDue / 100).toFixed(2)}</strong> for your subscription.</p>`
-      : '';
-  const retryLine = opts.nextAttempt
-    ? `<p style="color:#64748b;font-size:13px;">We'll try again on <strong>${opts.nextAttempt.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}</strong>. If it fails again, access to jobs, invoices, and your pricebook pauses.</p>`
-    : `<p style="color:#64748b;font-size:13px;">We'll try again in a few days. If it fails again, access to jobs, invoices, and your pricebook pauses.</p>`;
+  const greeting = opts.firstName ? `Hi ${opts.firstName},` : 'Hi there,';
+  const amountStr = opts.amountDue && opts.amountDue > 0
+    ? `$${(opts.amountDue / 100).toFixed(2)}`
+    : null;
+  const retryDateStr = opts.nextAttempt
+    ? opts.nextAttempt.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })
+    : null;
 
+  const subject = 'Your FlowBoss card was declined — quick fix needed';
+  const preheader = amountStr
+    ? `Stripe couldn't collect ${amountStr}. Update your card to keep your account active.`
+    : `Update your payment method to keep your FlowBoss account active.`;
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${subject}</title>
+</head>
+<body style="margin:0;padding:0;background:#f4f6fb;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#0f172a;-webkit-font-smoothing:antialiased;">
+  <div style="display:none;max-height:0;overflow:hidden;mso-hide:all;font-size:1px;line-height:1px;color:#f4f6fb;">${preheader}</div>
+
+  <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background:#f4f6fb;padding:32px 16px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" cellpadding="0" cellspacing="0" width="600" style="max-width:600px;width:100%;background:#ffffff;border-radius:16px;box-shadow:0 1px 3px rgba(15,23,42,0.06);overflow:hidden;">
+
+          <!-- Header strip -->
+          <tr>
+            <td style="background:#2563eb;background-image:linear-gradient(135deg,#2563eb 0%,#1d4ed8 100%);padding:28px 32px;">
+              <table role="presentation" cellpadding="0" cellspacing="0" width="100%">
+                <tr>
+                  <td style="color:#ffffff;font-size:20px;font-weight:700;letter-spacing:-0.01em;">FlowBoss</td>
+                  <td align="right" style="color:rgba(255,255,255,0.85);font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;">Billing Notice</td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Hero -->
+          <tr>
+            <td style="padding:36px 32px 12px 32px;">
+              <h1 style="margin:0 0 12px 0;font-size:24px;font-weight:700;color:#0f172a;line-height:1.25;letter-spacing:-0.02em;">
+                Your card didn't go through
+              </h1>
+              <p style="margin:0;font-size:15px;line-height:1.65;color:#475569;">
+                ${greeting} your bank declined the charge for your FlowBoss subscription. Happens all the time — expired card, travel block, limit hit. No big deal, just need to update it.
+              </p>
+            </td>
+          </tr>
+
+          ${amountStr ? `
+          <!-- Amount card -->
+          <tr>
+            <td style="padding:20px 32px 8px 32px;">
+              <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background:#fef2f2;border:1px solid #fecaca;border-radius:12px;">
+                <tr>
+                  <td style="padding:18px 20px;">
+                    <div style="font-size:11px;font-weight:600;color:#b91c1c;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;">Amount declined</div>
+                    <div style="font-size:22px;font-weight:700;color:#0f172a;letter-spacing:-0.02em;">${amountStr}</div>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          ` : ''}
+
+          <!-- CTA -->
+          <tr>
+            <td align="center" style="padding:24px 32px 8px 32px;">
+              <a href="${appUrl}/dashboard" style="display:inline-block;background:#dc2626;color:#ffffff;padding:14px 32px;border-radius:10px;text-decoration:none;font-weight:600;font-size:15px;letter-spacing:-0.005em;box-shadow:0 1px 2px rgba(220,38,38,0.3);">
+                Update payment method
+              </a>
+            </td>
+          </tr>
+          <tr>
+            <td align="center" style="padding:0 32px 28px 32px;">
+              <p style="margin:0;font-size:12px;color:#94a3b8;">
+                Takes 30 seconds. No re-signup needed.
+              </p>
+            </td>
+          </tr>
+
+          <!-- Divider -->
+          <tr><td style="padding:0 32px;"><div style="height:1px;background:#e2e8f0;"></div></td></tr>
+
+          <!-- What happens next -->
+          <tr>
+            <td style="padding:28px 32px 8px 32px;">
+              <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;">What happens next</div>
+              <table role="presentation" cellpadding="0" cellspacing="0" width="100%">
+                <tr>
+                  <td valign="top" style="padding:6px 0;">
+                    <table role="presentation" cellpadding="0" cellspacing="0">
+                      <tr>
+                        <td valign="top" width="28" style="padding-top:1px;">
+                          <div style="width:22px;height:22px;border-radius:50%;background:#dbeafe;color:#1d4ed8;font-size:12px;font-weight:700;text-align:center;line-height:22px;">1</div>
+                        </td>
+                        <td valign="top" style="font-size:14px;color:#334155;line-height:1.55;padding-left:6px;">
+                          ${retryDateStr
+                            ? `Stripe will automatically retry the charge on <strong style="color:#0f172a;">${retryDateStr}</strong>.`
+                            : `Stripe will automatically retry the charge in a few days.`}
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+                <tr>
+                  <td valign="top" style="padding:6px 0;">
+                    <table role="presentation" cellpadding="0" cellspacing="0">
+                      <tr>
+                        <td valign="top" width="28" style="padding-top:1px;">
+                          <div style="width:22px;height:22px;border-radius:50%;background:#dbeafe;color:#1d4ed8;font-size:12px;font-weight:700;text-align:center;line-height:22px;">2</div>
+                        </td>
+                        <td valign="top" style="font-size:14px;color:#334155;line-height:1.55;padding-left:6px;">
+                          If the retry fails too, access to <strong style="color:#0f172a;">jobs, invoices, and your pricebook pauses</strong> until the card is updated.
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+                <tr>
+                  <td valign="top" style="padding:6px 0;">
+                    <table role="presentation" cellpadding="0" cellspacing="0">
+                      <tr>
+                        <td valign="top" width="28" style="padding-top:1px;">
+                          <div style="width:22px;height:22px;border-radius:50%;background:#dbeafe;color:#1d4ed8;font-size:12px;font-weight:700;text-align:center;line-height:22px;">3</div>
+                        </td>
+                        <td valign="top" style="font-size:14px;color:#334155;line-height:1.55;padding-left:6px;">
+                          Update your payment method now and the retry will go through automatically — nothing for you to do after.
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background:#f8fafc;padding:20px 32px;border-top:1px solid #e2e8f0;">
+              <p style="margin:0;font-size:12px;color:#94a3b8;line-height:1.55;">
+                <strong style="color:#475569;">FlowBoss</strong> — coordination for contractors and trades.<br>
+                Questions? Reply to this email and we'll help.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+  `;
+
+  // Awaited and inspected — Tracker P0 #1, the dunning email is the
+  // critical path. Previously fire-and-forget meant Resend rejections
+  // were silent; now they show up in webhook logs.
   try {
-    await fetch('https://api.resend.com/emails', {
+    const resendResp = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: { Authorization: `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
         from: 'FlowBoss <billing@flowboss.io>',
         to: [opts.to],
-        subject: 'Heads up — your card was declined',
-        html: `
-          <div style="font-family:-apple-system,BlinkMacSystemFont,sans-serif;max-width:520px;margin:0 auto;padding:24px;color:#0f172a;">
-            <div style="text-align:center;margin-bottom:24px;">
-              <div style="display:inline-block;background:#2563eb;color:white;font-weight:700;font-size:18px;padding:10px 16px;border-radius:12px;">FlowBoss</div>
-            </div>
-            <h2 style="color:#1e293b;margin:0 0 8px;font-size:20px;">Your card didn't go through</h2>
-            <p style="color:#64748b;font-size:14px;line-height:1.6;">${name} your bank declined the charge for your FlowBoss subscription. Happens all the time — expired card, travel block, limit hit.</p>
-            ${amountLine}
-            <div style="text-align:center;margin:24px 0;">
-              <a href="${appUrl}/dashboard" style="display:inline-block;background:#dc2626;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;">Update payment method</a>
-            </div>
-            ${retryLine}
-            <p style="color:#94a3b8;font-size:12px;text-align:center;margin-top:24px;">
-              Questions? Reply to this email.<br/>
-              FlowBoss — Field service management for contractors
-            </p>
-          </div>
-        `,
+        subject,
+        html,
       }),
     });
+    if (!resendResp.ok) {
+      const body = await resendResp.text();
+      console.error('[stripe-webhook] card-declined email rejected:', resendResp.status, body);
+    }
   } catch (err) {
     console.error('[stripe-webhook] card-declined email failed:', err);
   }

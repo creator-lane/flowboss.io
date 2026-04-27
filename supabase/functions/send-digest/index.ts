@@ -1,6 +1,10 @@
 // Deploy to Supabase Edge Functions as "send-digest"
 // Triggered by Supabase cron (pg_cron extension) or external scheduler
-// Environment: RESEND_API_KEY (same as invoice emails)
+// Environment: RESEND_API_KEY, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
+//
+// Surfaces partial failures: each user's send is awaited and counted as
+// success or failure individually. Previously this was fire-and-forget so
+// Resend rejections (rate limit, bounced, key revoked) were invisible.
 
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
@@ -8,6 +12,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const resendKey = Deno.env.get('RESEND_API_KEY')!;
+const APP_URL = Deno.env.get('APP_URL') || 'https://flowboss.io';
 
 serve(async (req) => {
   try {
@@ -20,9 +25,19 @@ serve(async (req) => {
       .select('id, business_name, digest_email')
       .eq('digest_frequency', frequency);
 
-    if (!users?.length) return new Response(JSON.stringify({ sent: 0 }));
+    if (!users?.length) return new Response(JSON.stringify({ sent: 0, failed: 0 }));
+
+    if (!resendKey) {
+      console.error('[send-digest] RESEND_API_KEY not configured');
+      return new Response(
+        JSON.stringify({ error: 'Email service not configured (RESEND_API_KEY missing)' }),
+        { status: 500, headers: { 'Content-Type': 'application/json' } },
+      );
+    }
 
     let sent = 0;
+    let failed = 0;
+    const errors: Array<{ userId: string; status?: number; error: string }> = [];
 
     for (const user of users) {
       if (!user.digest_email) continue;
@@ -69,60 +84,164 @@ serve(async (req) => {
       const upcomingCount = upcomingJobs.filter((j: any) => j.status !== 'COMPLETED' && j.status !== 'CANCELED').length;
 
       const periodLabel = frequency === 'daily' ? 'Yesterday' : 'This Week';
+      const businessName = user.business_name || 'Your Business';
+      const subject = `${businessName} — ${periodLabel} on FlowBoss`;
+      const preheader = revenue > 0
+        ? `$${revenue.toLocaleString()} in. ${completedJobs}/${totalJobs} jobs done. ${overdueTotal > 0 ? `$${overdueTotal.toLocaleString()} overdue.` : ''}`.trim()
+        : `${completedJobs}/${totalJobs} jobs done${activeProjects > 0 ? `, ${activeProjects} active project${activeProjects > 1 ? 's' : ''}` : ''}.`;
 
-      // Send via Resend
-      await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          from: 'FlowBoss <digest@flowboss.io>',
-          to: [email],
-          subject: `FlowBoss ${frequency === 'daily' ? 'Daily' : 'Weekly'} Digest — ${user.business_name || 'Your Business'}`,
-          html: `
-            <div style="font-family: -apple-system, sans-serif; max-width: 500px; margin: 0 auto; padding: 24px;">
-              <h2 style="color: #1e293b; margin-bottom: 4px;">${periodLabel} at a Glance</h2>
-              <p style="color: #64748b; font-size: 14px; margin-bottom: 24px;">${user.business_name || 'FlowBoss'}</p>
+      const fmtMoney = (n: number) => `$${n.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
 
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px;">
-                <div style="background: #f0fdf4; border-radius: 12px; padding: 16px;">
-                  <p style="color: #16a34a; font-size: 12px; font-weight: 600; margin: 0;">REVENUE</p>
-                  <p style="color: #166534; font-size: 24px; font-weight: 700; margin: 4px 0 0;">$${revenue.toLocaleString()}</p>
-                </div>
-                <div style="background: #eff6ff; border-radius: 12px; padding: 16px;">
-                  <p style="color: #2563eb; font-size: 12px; font-weight: 600; margin: 0;">JOBS</p>
-                  <p style="color: #1e40af; font-size: 24px; font-weight: 700; margin: 4px 0 0;">${completedJobs}/${totalJobs}</p>
-                </div>
-              </div>
+      const html = `
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${subject}</title>
+</head>
+<body style="margin:0;padding:0;background:#f4f6fb;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#0f172a;-webkit-font-smoothing:antialiased;">
+  <div style="display:none;max-height:0;overflow:hidden;mso-hide:all;font-size:1px;line-height:1px;color:#f4f6fb;">${preheader}</div>
 
-              ${activeProjects > 0 ? `<p style="color: #64748b; font-size: 14px;">📋 ${activeProjects} active project${activeProjects > 1 ? 's' : ''}</p>` : ''}
-              ${paidInvoices.length > 0 ? `<p style="color: #64748b; font-size: 14px;">💰 ${paidInvoices.length} invoice${paidInvoices.length > 1 ? 's' : ''} paid</p>` : ''}
+  <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background:#f4f6fb;padding:32px 16px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" cellpadding="0" cellspacing="0" width="600" style="max-width:600px;width:100%;background:#ffffff;border-radius:16px;box-shadow:0 1px 3px rgba(15,23,42,0.06);overflow:hidden;">
 
-              ${outstandingTotal > 0 || upcomingCount > 0 ? `
-              <div style="margin: 16px 0; padding: 16px; background: #fffbeb; border: 1px solid #fde68a; border-radius: 12px;">
-                <p style="color: #92400e; font-size: 12px; font-weight: 700; margin: 0 0 8px;">THIS WEEK'S FOCUS</p>
-                ${overdueTotal > 0 ? `<p style="color: #1e293b; font-size: 14px; margin: 4px 0;">🔴 <strong>$${overdueTotal.toLocaleString()}</strong> overdue across ${overdue.length} invoice${overdue.length > 1 ? 's' : ''} — chase these first.</p>` : ''}
-                ${outstandingTotal > 0 && overdueTotal < outstandingTotal ? `<p style="color: #1e293b; font-size: 14px; margin: 4px 0;">💵 <strong>$${(outstandingTotal - overdueTotal).toLocaleString()}</strong> outstanding (not yet overdue).</p>` : ''}
-                ${upcomingCount > 0 ? `<p style="color: #1e293b; font-size: 14px; margin: 4px 0;">📅 <strong>${upcomingCount}</strong> job${upcomingCount > 1 ? 's' : ''} on the schedule for the next 7 days.</p>` : ''}
-              </div>
-              ` : ''}
+          <!-- Header strip -->
+          <tr>
+            <td style="background:#2563eb;background-image:linear-gradient(135deg,#2563eb 0%,#1d4ed8 100%);padding:28px 32px;">
+              <table role="presentation" cellpadding="0" cellspacing="0" width="100%">
+                <tr>
+                  <td style="color:#ffffff;font-size:20px;font-weight:700;letter-spacing:-0.01em;">FlowBoss</td>
+                  <td align="right" style="color:rgba(255,255,255,0.85);font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;">${frequency === 'daily' ? 'Daily Digest' : 'Weekly Digest'}</td>
+                </tr>
+              </table>
+            </td>
+          </tr>
 
-              <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #e2e8f0;">
-                <a href="https://flowboss.io/dashboard/home" style="display: inline-block; background: #2563eb; color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px;">Open Dashboard</a>
-              </div>
-
-              <p style="color: #94a3b8; font-size: 11px; margin-top: 24px;">
-                You're receiving this because you opted in to ${frequency} digests.
-                <a href="https://flowboss.io/dashboard/settings" style="color: #2563eb;">Manage preferences</a>
+          <!-- Hero -->
+          <tr>
+            <td style="padding:36px 32px 12px 32px;">
+              <h1 style="margin:0 0 6px 0;font-size:24px;font-weight:700;color:#0f172a;line-height:1.25;letter-spacing:-0.02em;">
+                ${periodLabel} at a glance
+              </h1>
+              <p style="margin:0;font-size:14px;color:#64748b;">
+                ${businessName}
               </p>
-            </div>
-          `,
-        }),
-      });
+            </td>
+          </tr>
 
-      sent++;
+          <!-- Stats grid -->
+          <tr>
+            <td style="padding:20px 32px 8px 32px;">
+              <table role="presentation" cellpadding="0" cellspacing="0" width="100%">
+                <tr>
+                  <td width="50%" style="padding-right:6px;">
+                    <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;">
+                      <tr><td style="padding:18px 18px 16px 18px;">
+                        <div style="font-size:11px;font-weight:700;color:#15803d;letter-spacing:0.08em;text-transform:uppercase;">Revenue</div>
+                        <div style="font-size:26px;font-weight:700;color:#14532d;letter-spacing:-0.02em;margin-top:4px;">${fmtMoney(revenue)}</div>
+                      </td></tr>
+                    </table>
+                  </td>
+                  <td width="50%" style="padding-left:6px;">
+                    <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;">
+                      <tr><td style="padding:18px 18px 16px 18px;">
+                        <div style="font-size:11px;font-weight:700;color:#1d4ed8;letter-spacing:0.08em;text-transform:uppercase;">Jobs Done</div>
+                        <div style="font-size:26px;font-weight:700;color:#1e3a8a;letter-spacing:-0.02em;margin-top:4px;">${completedJobs}<span style="font-size:18px;color:#60a5fa;font-weight:600;">/${totalJobs}</span></div>
+                      </td></tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          ${activeProjects > 0 || paidInvoices.length > 0 ? `
+          <!-- Quick wins -->
+          <tr>
+            <td style="padding:8px 32px 0 32px;">
+              ${activeProjects > 0 ? `<p style="margin:8px 0 0;font-size:14px;color:#475569;line-height:1.5;"><strong style="color:#0f172a;">${activeProjects}</strong> active project${activeProjects > 1 ? 's' : ''} in flight.</p>` : ''}
+              ${paidInvoices.length > 0 ? `<p style="margin:8px 0 0;font-size:14px;color:#475569;line-height:1.5;"><strong style="color:#0f172a;">${paidInvoices.length}</strong> invoice${paidInvoices.length > 1 ? 's' : ''} paid.</p>` : ''}
+            </td>
+          </tr>
+          ` : ''}
+
+          ${outstandingTotal > 0 || upcomingCount > 0 ? `
+          <!-- Focus card -->
+          <tr>
+            <td style="padding:24px 32px 8px 32px;">
+              <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background:#fffbeb;border:1px solid #fde68a;border-radius:12px;">
+                <tr><td style="padding:18px 20px;">
+                  <div style="font-size:11px;font-weight:700;color:#92400e;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:10px;">This week's focus</div>
+                  ${overdueTotal > 0 ? `<div style="font-size:14px;color:#1e293b;line-height:1.55;margin:6px 0;"><strong style="color:#b91c1c;">${fmtMoney(overdueTotal)}</strong> overdue across ${overdue.length} invoice${overdue.length > 1 ? 's' : ''} — chase these first.</div>` : ''}
+                  ${outstandingTotal > 0 && overdueTotal < outstandingTotal ? `<div style="font-size:14px;color:#1e293b;line-height:1.55;margin:6px 0;"><strong style="color:#0f172a;">${fmtMoney(outstandingTotal - overdueTotal)}</strong> outstanding (not yet overdue).</div>` : ''}
+                  ${upcomingCount > 0 ? `<div style="font-size:14px;color:#1e293b;line-height:1.55;margin:6px 0;"><strong style="color:#0f172a;">${upcomingCount}</strong> job${upcomingCount > 1 ? 's' : ''} on the schedule for the next 7 days.</div>` : ''}
+                </td></tr>
+              </table>
+            </td>
+          </tr>
+          ` : ''}
+
+          <!-- CTA -->
+          <tr>
+            <td align="center" style="padding:28px 32px 32px 32px;">
+              <a href="${APP_URL}/dashboard/home" style="display:inline-block;background:#2563eb;color:#ffffff;padding:14px 28px;border-radius:10px;text-decoration:none;font-weight:600;font-size:15px;letter-spacing:-0.005em;box-shadow:0 1px 2px rgba(37,99,235,0.3);">
+                Open Dashboard
+              </a>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background:#f8fafc;padding:20px 32px;border-top:1px solid #e2e8f0;">
+              <p style="margin:0;font-size:12px;color:#94a3b8;line-height:1.55;">
+                <strong style="color:#475569;">FlowBoss</strong> — coordination for contractors and trades.<br>
+                You're receiving this because you opted in to ${frequency} digests. <a href="${APP_URL}/dashboard/settings" style="color:#2563eb;text-decoration:none;">Manage preferences</a>.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+      `;
+
+      // Send via Resend — now awaited and inspected so partial failures
+      // are visible. The whole batch still completes; we just count.
+      try {
+        const resendResp = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            from: 'FlowBoss <digest@flowboss.io>',
+            to: [email],
+            subject,
+            html,
+          }),
+        });
+
+        if (!resendResp.ok) {
+          const body = await resendResp.text();
+          console.error('[send-digest] Resend rejected for user', user.id, resendResp.status, body);
+          errors.push({ userId: user.id, status: resendResp.status, error: body.slice(0, 300) });
+          failed++;
+          continue;
+        }
+        sent++;
+      } catch (err: any) {
+        console.error('[send-digest] Network error for user', user.id, err);
+        errors.push({ userId: user.id, error: err?.message || String(err) });
+        failed++;
+      }
     }
 
-    return new Response(JSON.stringify({ sent }), { headers: { 'Content-Type': 'application/json' } });
+    return new Response(JSON.stringify({ sent, failed, errors: errors.slice(0, 10) }), {
+      headers: { 'Content-Type': 'application/json' },
+    });
   } catch (error: any) {
     return new Response(JSON.stringify({ error: error.message }), { status: 500 });
   }

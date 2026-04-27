@@ -2186,6 +2186,50 @@ export const api = {
     }
   },
 
+  // ── Project Template Library (shared catalog with mobile) ────────────
+  //
+  // Templates live in Supabase (project_templates / template_phases /
+  // template_tasks / template_materials) so web and mobile both pull
+  // from a single source of truth. The local TS file at
+  // src/lib/projectTemplates.ts is the authoring format for engineers;
+  // scripts/seed-template-library.ts syncs it into Supabase.
+
+  // List shape, lightweight — used to populate the picker grid.
+  getProjectTemplates: async (trade?: string) => {
+    let q = supabase
+      .from('project_templates')
+      .select('id, name, icon, category, trade, description, estimated_days, estimated_budget_low, estimated_budget_high, sort_order')
+      .order('sort_order', { ascending: true });
+    if (trade) q = q.eq('trade', trade);
+    const { data, error } = await q;
+    if (error) throw new Error(error.message);
+    return { data: camelify(data || []) };
+  },
+
+  // Detail shape with hydrated phases → tasks + materials. Pulled when
+  // the user picks a single template to preview/customize.
+  getProjectTemplate: async (id: string) => {
+    const { data, error } = await supabase
+      .from('project_templates')
+      .select(`
+        id, name, icon, category, trade, description,
+        estimated_days, estimated_budget_low, estimated_budget_high, sort_order,
+        phases:template_phases(
+          id, name, sort_order, estimated_days, description, inspection_required,
+          tasks:template_tasks(id, name, sort_order, optional),
+          materials:template_materials(id, name, estimated_cost, category, optional, sort_order)
+        )
+      `)
+      .eq('id', id)
+      .order('sort_order', { foreignTable: 'phases', ascending: true })
+      .order('sort_order', { foreignTable: 'phases.tasks', ascending: true })
+      .order('sort_order', { foreignTable: 'phases.materials', ascending: true })
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!data) throw new Error('Template not found');
+    return { data: camelify(data) };
+  },
+
   // Apply a project template to a trade — bulk-insert the picked tasks and
   // materials in a single round-trip per resource. The mobile app has had
   // this for a year ("Bathroom Remodel" → 50 prepopulated tasks across 5

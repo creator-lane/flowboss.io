@@ -17,7 +17,7 @@
  */
 
 import { useMemo, useState } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   ArrowLeft,
   ArrowRight,
@@ -28,6 +28,7 @@ import {
   DollarSign,
   Hammer,
   Layers,
+  Loader2,
   Package,
   Search,
   Sparkles,
@@ -37,12 +38,38 @@ import {
 import { Modal } from '../ui/Modal';
 import { useToast } from '../ui/Toast';
 import { api } from '../../lib/api';
-import {
-  PROJECT_TEMPLATES,
-  type ProjectTemplate,
-  getTemplatesForTrade,
-} from '../../lib/projectTemplates';
 import { normalizeTradeLabel } from '../../lib/tradeConfig';
+
+// Lightweight, surface-local types — match the camelCased shape the API
+// returns. We don't import from src/lib/projectTemplates anymore; that
+// file is the engineer-facing authoring format that gets synced into
+// Supabase via scripts/seed-template-library.ts.
+type TemplateListRow = {
+  id: string;
+  name: string;
+  icon: string;
+  category: string;
+  trade: string;
+  description: string;
+  estimatedDays: number;
+  estimatedBudgetLow: number;
+  estimatedBudgetHigh: number;
+};
+
+type TemplatePhaseDetail = {
+  id: string;
+  name: string;
+  sortOrder: number;
+  estimatedDays: number;
+  description: string;
+  inspectionRequired?: string | null;
+  tasks: { id: string; name: string; sortOrder: number; optional: boolean }[];
+  materials: { id: string; name: string; estimatedCost: number; category: string; optional: boolean; sortOrder: number }[];
+};
+
+type TemplateDetail = TemplateListRow & {
+  phases: TemplatePhaseDetail[];
+};
 
 interface TemplatePickerProps {
   open: boolean;
@@ -63,45 +90,69 @@ export function TemplatePicker({ open, onClose, tradeId, tradeLabel, projectId }
   const { addToast } = useToast();
 
   const tradeKey = useMemo(() => normalizeTradeLabel(tradeLabel), [tradeLabel]);
-  const allTemplates = useMemo<ProjectTemplate[]>(() => {
-    if (!tradeKey) return [];
-    return getTemplatesForTrade(tradeKey);
-  }, [tradeKey]);
+
+  // Pull the catalog from Supabase. Cached for the session — the catalog
+  // changes on the order of "we shipped a new template" not "every
+  // request" — but keeping it inside React Query lets us share fetches
+  // across multiple TemplatePicker instances on the same page.
+  const listQuery = useQuery({
+    queryKey: ['project-templates', tradeKey || 'none'],
+    queryFn: () => api.getProjectTemplates(tradeKey || undefined),
+    enabled: open && !!tradeKey,
+    staleTime: 5 * 60 * 1000,
+  });
+  const allTemplates: TemplateListRow[] = (listQuery.data?.data || []) as any;
 
   const [step, setStep] = useState<'pick' | 'review' | 'done'>('pick');
   const [search, setSearch] = useState('');
-  const [selectedTemplate, setSelectedTemplate] = useState<ProjectTemplate | null>(null);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
   const [tasks, setTasks] = useState<SelectableTask[]>([]);
   const [materials, setMaterials] = useState<SelectableMaterial[]>([]);
 
-  // When the user picks a template, flatten its phases into a single
-  // selectable list (phase name kept on each row so we can group + prepend
-  // when applying). All non-optional rows start checked; optional rows
-  // start unchecked so the sub explicitly opts in to extras.
-  function chooseTemplate(t: ProjectTemplate) {
-    const flatTasks: SelectableTask[] = t.phases.flatMap((phase) =>
-      phase.tasks.map((task) => ({
+  // Hydrated detail (phases → tasks/materials) for the chosen template.
+  // Skipped until the user actually picks one so we don't pay for 38
+  // template detail fetches just to render the grid.
+  const detailQuery = useQuery({
+    queryKey: ['project-template-detail', selectedTemplateId],
+    queryFn: () => api.getProjectTemplate(selectedTemplateId!),
+    enabled: !!selectedTemplateId,
+    staleTime: 5 * 60 * 1000,
+  });
+  const selectedTemplate: TemplateDetail | null = (detailQuery.data?.data || null) as any;
+
+  // When detail lands, expand its phases into selectable rows. Non-
+  // optional rows start checked; optional ones start unchecked so the
+  // sub explicitly opts in.
+  useMemo(() => {
+    if (!selectedTemplate) return;
+    const flatTasks: SelectableTask[] = (selectedTemplate.phases || []).flatMap((phase) =>
+      (phase.tasks || []).map((task) => ({
         name: task.name,
         phaseName: phase.name,
         selected: !task.optional,
       })),
     );
-    const flatMaterials: SelectableMaterial[] = t.phases.flatMap((phase) =>
-      phase.materials.map((m) => ({
+    const flatMaterials: SelectableMaterial[] = (selectedTemplate.phases || []).flatMap((phase) =>
+      (phase.materials || []).map((m) => ({
         name: m.name,
         cost: m.estimatedCost,
         category: m.category,
         selected: !m.optional,
       })),
     );
-    setSelectedTemplate(t);
     setTasks(flatTasks);
     setMaterials(flatMaterials);
+    // intentional: keys depend only on which template id is selected
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedTemplate?.id]);
+
+  function chooseTemplate(t: TemplateListRow) {
+    setSelectedTemplateId(t.id);
     setStep('review');
   }
 
   function backToList() {
-    setSelectedTemplate(null);
+    setSelectedTemplateId(null);
     setTasks([]);
     setMaterials([]);
     setStep('pick');
@@ -113,7 +164,7 @@ export function TemplatePicker({ open, onClose, tradeId, tradeLabel, projectId }
     return allTemplates.filter((t) =>
       t.name.toLowerCase().includes(q)
       || t.description.toLowerCase().includes(q)
-      || t.category.toLowerCase().includes(q),
+      || (t.category || '').toLowerCase().includes(q),
     );
   }, [allTemplates, search]);
 
@@ -149,7 +200,7 @@ export function TemplatePicker({ open, onClose, tradeId, tradeLabel, projectId }
 
   function handleClose() {
     setStep('pick');
-    setSelectedTemplate(null);
+    setSelectedTemplateId(null);
     setSearch('');
     setTasks([]);
     setMaterials([]);
@@ -193,8 +244,16 @@ export function TemplatePicker({ open, onClose, tradeId, tradeLabel, projectId }
           />
         </div>
 
-        {filteredTemplates.length === 0 ? (
-          <p className="text-sm text-gray-400 text-center py-8 dark:text-gray-500">No templates match &ldquo;{search}&rdquo;.</p>
+        {listQuery.isLoading ? (
+          <div className="flex items-center justify-center py-10">
+            <Loader2 className="w-5 h-5 text-gray-400 animate-spin" />
+          </div>
+        ) : listQuery.isError ? (
+          <p className="text-sm text-red-600 text-center py-8 dark:text-red-300">Couldn't load templates. Try again in a moment.</p>
+        ) : filteredTemplates.length === 0 ? (
+          <p className="text-sm text-gray-400 text-center py-8 dark:text-gray-500">
+            {search ? `No templates match "${search}".` : `No templates yet for ${tradeLabel}.`}
+          </p>
         ) : (
           <div className="grid sm:grid-cols-2 gap-2.5">
             {filteredTemplates.map((t) => (
@@ -212,14 +271,16 @@ export function TemplatePicker({ open, onClose, tradeId, tradeLabel, projectId }
                     <p className="text-xs text-gray-500 line-clamp-2 leading-relaxed mt-0.5 dark:text-gray-400">{t.description}</p>
                     <div className="flex items-center gap-3 mt-2 text-[11px] text-gray-400 dark:text-gray-500">
                       <span className="flex items-center gap-1">
-                        <Layers className="w-3 h-3" /> {t.phases.length} phases
-                      </span>
-                      <span className="flex items-center gap-1">
                         <Clock className="w-3 h-3" /> ~{t.estimatedDays}d
                       </span>
                       <span className="flex items-center gap-1">
                         <DollarSign className="w-3 h-3" /> ${(t.estimatedBudgetLow / 1000).toFixed(0)}k&ndash;${(t.estimatedBudgetHigh / 1000).toFixed(0)}k
                       </span>
+                      {t.category && (
+                        <span className="flex items-center gap-1">
+                          <Layers className="w-3 h-3" /> {t.category}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -249,7 +310,15 @@ export function TemplatePicker({ open, onClose, tradeId, tradeLabel, projectId }
   }
 
   // ── Review / customize ─────────────────────────────────────────────────
-  if (!selectedTemplate) return null;
+  if (!selectedTemplate) {
+    return (
+      <Modal open={open} onClose={handleClose} title="Loading template…" size="lg">
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="w-6 h-6 text-gray-400 animate-spin" />
+        </div>
+      </Modal>
+    );
+  }
 
   const phaseGroups: { phaseName: string; tasks: { idx: number; row: SelectableTask }[] }[] = [];
   tasks.forEach((row, idx) => {

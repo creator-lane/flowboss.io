@@ -2588,105 +2588,54 @@ export const api = {
     if (error) throw new Error(error.message);
   },
 
-  // Assign an existing sub to a trade on a project.
+  // Assign the calling sub to a trade on a project.
   //
-  // Uses .maybeSingle() not .single(): if the tradeId is stale (trade was
-  // deleted, assignedUserId got claimed by someone else, RLS blocks this
-  // user from the row, etc.) the UPDATE returns 0 rows and Postgrest's
-  // .single() blows up with "cannot coerce the result to a single JSON
-  // object" — an opaque error we've seen surface to subs accepting invites
-  // on mobile web. maybeSingle() returns null for that case so we can throw
-  // a readable message instead.
-  assignSubToTrade: async (tradeId: string, userId: string) => {
-    // Read the current state of the trade row first so we can return a
-    // precise failure message. The bare .update() below collapses four
-    // distinct failure modes into a single "0 rows back": (1) trade was
-    // deleted, (2) RLS hides it (wrong account), (3) someone else already
-    // claimed it, (4) the logged-in user is the GC of the project, not the
-    // invited sub. Subs in the field had no idea which applied.
-    const { data: existing, error: readErr } = await supabase
-      .from('gc_project_trades')
-      .select('id, assigned_user_id, gc_project_id, trade, zone_id')
-      .eq('id', tradeId)
-      .maybeSingle();
-
-    if (existing) {
-      if (existing.assigned_user_id && existing.assigned_user_id !== userId) {
-        throw new Error(
-          "This trade slot has already been claimed by someone else. If that's wrong, ask the GC to reassign it or send a fresh invite."
-        );
-      }
-      // Detect the "GC clicked their own invite link" case. created_by on
-      // gc_projects is the GC user. If that's the current user, RLS will
-      // block the assignment update — and the resulting error is mystifying
-      // to a GC who's just trying to test their own invite flow.
-      if (!existing.assigned_user_id && existing.gc_project_id) {
-        const { data: project } = await supabase
-          .from('gc_projects')
-          .select('created_by')
-          .eq('id', existing.gc_project_id)
-          .maybeSingle();
-        if (project && (project as any).created_by === userId) {
-          throw new Error(
-            "This invite is for the trade you invited — not your GC account. Sign out and accept it from the trade's email address."
-          );
-        }
-      }
-    } else if (!readErr) {
-      // Row not visible to this account. From the client we can't tell two
-      // cases apart: (a) the trade was actually deleted, (b) RLS hides it
-      // because the GC invited a different email than this account uses.
-      // (b) is overwhelmingly the more common reason in practice — every
-      // sub who signs up with a slightly-off email lands here. Lead with
-      // the actionable wrong-email message and mention deletion as a
-      // fallback so the user knows what to ask the GC.
-      throw new Error(
-        "Your account isn't authorized to accept this invite. The GC likely invited a different email — sign in with the address they sent the invite to (or ask them to confirm the address on file). If the trade was removed, you'll need a fresh invite."
-      );
+  // Routes through the accept-invite edge function so the assignment runs
+  // with service-role privileges — bypassing the gc_project_trades RLS
+  // policy that only grants UPDATE access to existing org members. A
+  // brand-new invited sub matches none of those conditions; relying on
+  // direct supabase.from().update() silently failed (0 rows back) and
+  // bounced subs to /pricing instead of inside their project.
+  //
+  // The edge function also handles activity-feed logging and idempotent
+  // org_members upsert in the same trip, so we don't have to chain three
+  // RLS-gated requests from the browser.
+  //
+  // Note: the second parameter (userId) is ignored — the edge function
+  // derives the user from the auth token. Kept for backward compat with
+  // older call sites that pass `user!.id`; safe to drop later.
+  assignSubToTrade: async (tradeId: string, _userId: string) => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.access_token) {
+      throw new Error('You need to be signed in to accept this invite. Sign in and try again.');
     }
 
-    const { data, error } = await supabase
-      .from('gc_project_trades')
-      .update({ assigned_user_id: userId })
-      .eq('id', tradeId)
-      .select()
-      .maybeSingle();
-    if (error) throw new Error(error.message);
-    if (!data) {
-      // Reaching here means the row was readable a moment ago but the
-      // UPDATE returned 0 rows — almost always RLS rejecting because the
-      // GC invited a different email than the one this account uses.
-      throw new Error(
-        "Your account isn't authorized to accept this invite. The GC may have invited a different email — ask them to confirm the address on file matches the one you signed up with."
-      );
-    }
+    const resp = await fetch(`${SUPABASE_FN_URL}/accept-invite`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${session.access_token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ tradeId }),
+    });
 
-    // Log the sub-acceptance to the project activity feed. This is the moment
-    // the GC's project goes from "invited" to "the sub showed up" — the most
-    // satisfying event in the GC's day, and the demo has been seeding it
-    // forever while prod silently skipped writing it.
-    const projectId = (data as any).gc_project_id;
-    const tradeName = (data as any).trade;
-    if (projectId) {
+    if (!resp.ok) {
+      // Edge function returns { error: '...' } with the precise reason.
+      // Forward it verbatim so the InviteLanding banner reads correctly
+      // for every failure mode (already-claimed, GC-self, deleted, etc).
+      const errText = await resp.text().catch(() => '');
+      let errMsg = `Couldn't accept this invite (${resp.status}).`;
       try {
-        // Pull the sub's business name so the feed reads naturally
-        // ("Apex Drywall accepted Drywall") instead of "Someone".
-        const { data: prof } = await supabase
-          .from('profiles')
-          .select('business_name, email')
-          .eq('id', userId)
-          .maybeSingle();
-        const subName = (prof as any)?.business_name || (prof as any)?.email?.split('@')[0] || 'A sub';
-        await api.logActivity(
-          projectId,
-          'sub_accepted',
-          `${subName} accepted ${tradeName || 'the invite'}`,
-          { tradeId, zoneId: (data as any).zone_id || undefined }
-        );
-      } catch { /* ignore */ }
+        const parsed = JSON.parse(errText);
+        if (parsed?.error) errMsg = parsed.error;
+      } catch {
+        if (errText) errMsg = errText.slice(0, 240);
+      }
+      throw new Error(errMsg);
     }
 
-    return { data: camelify(data) };
+    const json = await resp.json();
+    return { data: json?.data ? camelify(json.data) : null };
   },
 
   // Revoke a sub from a trade slot. Handles all three "subbed" states the

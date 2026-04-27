@@ -12,6 +12,7 @@ import {
   Square,
   Star,
   Trash2,
+  UserMinus,
   UserPlus,
   X,
 } from 'lucide-react';
@@ -256,6 +257,47 @@ function TradeDetailPanelInner({
     onError: (err: any) => addToast(err.message || 'Failed to update status', 'error'),
   });
 
+  // Revoke whoever's currently slotted on the trade (assigned sub, pending
+  // invite, or placeholder). One mutation, one confirm — the API method
+  // figures out which case to clear based on the trade's current state.
+  const [showRemoveConfirm, setShowRemoveConfirm] = useState(false);
+  const removeSub = useMutation({
+    mutationFn: () => api.revokeSubFromTrade(trade.id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['gc-project', projectId] });
+      queryClient.invalidateQueries({ queryKey: ['gc-projects'] });
+      addToast('Sub removed from trade', 'success');
+      setShowRemoveConfirm(false);
+    },
+    onError: (err: any) => {
+      addToast(err.message || 'Failed to remove sub', 'error');
+      setShowRemoveConfirm(false);
+    },
+  });
+
+  // Classify the current state to label the action precisely. "Remove sub"
+  // for an actual user, "Cancel invite" for a pending invite, "Clear
+  // placeholder" for a planning entry — same mutation, but the GC sees the
+  // right verb for what they're undoing.
+  const tradeNotes: string = trade.notes || '';
+  const isAssignedReal = !!trade.assignedUserId || !!trade.assignedOrgId || !!trade.assignedBusinessName;
+  const isPendingInvite = !isAssignedReal && /^Invited:/.test(tradeNotes);
+  const isPlaceholder = !isAssignedReal && /^Placeholder:/.test(tradeNotes);
+  const removeLabel = isAssignedReal
+    ? 'Remove sub'
+    : isPendingInvite
+      ? 'Cancel invite'
+      : isPlaceholder
+        ? 'Clear placeholder'
+        : 'Remove';
+  const removeConfirmCopy = isAssignedReal
+    ? `Remove this sub from ${trade.trade}? Their access to this project's tasks and chat will be revoked. The slot will be open for a new invite.`
+    : isPendingInvite
+      ? `Cancel the pending invite for ${trade.trade}? The link still works if the recipient hasn't used it yet — clear it only if you sent it to the wrong person.`
+      : isPlaceholder
+        ? `Clear the placeholder on ${trade.trade}? You can set a new placeholder or invite a real sub afterward.`
+        : `Remove the current assignee from ${trade.trade}?`;
+
   return (
     <>
       {/* Backdrop */}
@@ -397,6 +439,46 @@ function TradeDetailPanelInner({
                     )}
                   </div>
                 )}
+
+                {/* Remove sub / Cancel invite / Clear placeholder.
+                    Inline confirm rather than a modal — this lives inside a
+                    slide-in panel and a stacked modal feels heavier than the
+                    action warrants. The confirm copy adapts to the state the
+                    trade is in so the GC reads the right consequence. */}
+                <div className="mt-2 pt-2 border-t border-gray-200 dark:border-white/10">
+                  {!showRemoveConfirm ? (
+                    <button
+                      onClick={() => setShowRemoveConfirm(true)}
+                      className="flex items-center gap-1.5 text-xs font-medium text-gray-500 hover:text-red-600 transition-colors dark:text-gray-400 dark:hover:text-red-300"
+                    >
+                      <UserMinus className="w-3.5 h-3.5" />
+                      {removeLabel}
+                    </button>
+                  ) : (
+                    <div className="space-y-2">
+                      <p className="text-xs text-gray-700 leading-relaxed dark:text-gray-200">
+                        {removeConfirmCopy}
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => removeSub.mutate()}
+                          disabled={removeSub.isPending}
+                          className="flex items-center gap-1.5 px-2.5 py-1.5 bg-red-600 text-white rounded-md text-xs font-semibold hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        >
+                          <UserMinus className="w-3.5 h-3.5" />
+                          {removeSub.isPending ? 'Removing...' : `Yes, ${removeLabel.toLowerCase()}`}
+                        </button>
+                        <button
+                          onClick={() => setShowRemoveConfirm(false)}
+                          disabled={removeSub.isPending}
+                          className="px-2.5 py-1.5 text-gray-600 rounded-md text-xs font-medium hover:bg-gray-100 disabled:opacity-50 transition-colors dark:text-gray-300 dark:hover:bg-white/10"
+                        >
+                          Keep
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             ) : (
               <div className="space-y-3">

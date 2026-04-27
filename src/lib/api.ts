@@ -2688,4 +2688,80 @@ export const api = {
 
     return { data: camelify(data) };
   },
+
+  // Revoke a sub from a trade slot. Handles all three "subbed" states the
+  // GC dashboard can be in:
+  //   • assigned: a real user accepted the invite → clear assigned_user_id /
+  //     assigned_org_id so the slot is open again.
+  //   • invited:  email sent, not yet accepted → notes starts with
+  //     "Invited: ...". Strip just that line.
+  //   • placeholder: fake-name planning entry → notes starts with
+  //     "Placeholder: ...". Strip just that line.
+  // The GC can call this even if more than one state is present (e.g. there's
+  // both an "Invited:" note AND an assigned_user_id from a stale row); we
+  // clear everything in one update so the UI doesn't show ghosts.
+  revokeSubFromTrade: async (tradeId: string) => {
+    const { data: existing, error: readErr } = await supabase
+      .from('gc_project_trades')
+      .select('id, assigned_user_id, assigned_org_id, gc_project_id, trade, notes')
+      .eq('id', tradeId)
+      .maybeSingle();
+    if (readErr) throw new Error(readErr.message);
+    if (!existing) {
+      // Either the row was deleted between renders or RLS hides it from this
+      // user. Either way there's nothing to revoke and the GC can refresh.
+      throw new Error('That trade is no longer accessible. Refresh and try again.');
+    }
+
+    // Strip ONLY the marker line ("Invited: …" or "Placeholder: …") so any
+    // other notes the GC has written stay intact. Markers always sit on
+    // their own line at the top, written by InviteSubModal.
+    let nextNotes: string | null = (existing as any).notes ?? null;
+    if (nextNotes) {
+      nextNotes = nextNotes
+        .replace(/^(Invited|Placeholder):.*$\n?/m, '')
+        .trim() || null;
+    }
+
+    const previousAssignedUserId = (existing as any).assigned_user_id ?? null;
+    const previousNotes = (existing as any).notes ?? null;
+    const tradeName = (existing as any).trade ?? null;
+    const projectId = (existing as any).gc_project_id ?? null;
+
+    const { data, error } = await supabase
+      .from('gc_project_trades')
+      .update({
+        assigned_user_id: null,
+        assigned_org_id: null,
+        notes: nextNotes,
+      })
+      .eq('id', tradeId)
+      .select()
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!data) {
+      // RLS allowed the SELECT above but blocked this UPDATE — usually
+      // because the caller is the assigned sub (RLS lets them read the row,
+      // not unassign themselves). Surface a precise message instead of a
+      // confusing "0 rows returned" failure.
+      throw new Error("You don't have permission to remove this sub. Only the GC of the project can do that.");
+    }
+
+    // Log activity so the project feed shows what changed and to whom.
+    if (projectId) {
+      try {
+        let summary = `Sub removed from ${tradeName || 'a trade'}`;
+        if (previousAssignedUserId) {
+          summary = `Removed sub from ${tradeName || 'a trade'}`;
+        } else if (previousNotes && /^Invited:/.test(previousNotes)) {
+          summary = `Cancelled invite for ${tradeName || 'a trade'}`;
+        } else if (previousNotes && /^Placeholder:/.test(previousNotes)) {
+          summary = `Cleared placeholder on ${tradeName || 'a trade'}`;
+        }
+        await api.logActivity(projectId, 'sub_removed', summary, { tradeId });
+      } catch { /* ignore */ }
+    }
+
+    return { data: camelify(data) };
+  },
 };

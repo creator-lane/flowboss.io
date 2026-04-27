@@ -166,26 +166,38 @@ export function InviteLanding() {
     }
   }
 
-  // Pre-focus the Accept button when the sub returns from signup/login with a
-  // matching pending invite. Previously we silently auto-mutated — which
-  // worked most of the time but risked auto-assigning a stale invite or one
-  // the sub didn't mean to click. One explicit Enter/click is worth the
-  // clarity; the accept button is big and already centered.
+  // Auto-accept when a logged-in user lands here with a pendingInvite that
+  // matches this URL — meaning they just came back from /login or /signup
+  // *for this invite*. Without this, the page just sits with a focused
+  // Accept button and the user, expecting login alone to be enough, navigates
+  // away (Go to Dashboard / Trade Pro link) and lands on /pricing. The safety
+  // branches above (already-assigned, GC-self, project-not-found) still
+  // short-circuit before this fires, and assignSubToTrade now throws
+  // precise messages on RLS rejection — so a wrong-email auto-accept
+  // surfaces the same "your account isn't authorized" red banner the user
+  // would see clicking the button manually. We avoid auto-accepting on
+  // direct links (no pendingInvite set) so a sub who casually opens an
+  // invite link to read it doesn't get silently committed.
   useEffect(() => {
     if (autoAcceptTried.current) return;
     if (!isLoggedIn || !projectId || !tradeId) return;
     if (accepted || alreadyAssigned || assignMutation.isPending) return;
+    if (isProjectCreator) return; // amber GC branch handles this case
+    // Wait for the project query to settle so we don't race past the
+    // alreadyAssigned / isProjectCreator checks before they have data.
+    if (projectQuery.isLoading) return;
     try {
       const pending = localStorage.getItem(PENDING_INVITE_KEY);
       if (!pending) return;
       const p = JSON.parse(pending);
       if (p.projectId === projectId && p.tradeId === tradeId) {
         autoAcceptTried.current = true;
-        setAutoFocus(true);
+        setAutoFocus(true); // visual hint while the mutation runs
+        assignMutation.mutate();
       }
     } catch { /* ignore */ }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoggedIn, projectId, tradeId, alreadyAssigned, accepted]);
+  }, [isLoggedIn, projectId, tradeId, alreadyAssigned, accepted, isProjectCreator, projectQuery.isLoading]);
 
   // Pre-focus Accept button so returning users can hit Enter to confirm.
   useEffect(() => {

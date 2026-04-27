@@ -14,8 +14,10 @@ import {
   DollarSign,
   Phone,
   Mail,
+  Plus,
   StickyNote,
   Megaphone,
+  Trash2,
   AlertTriangle,
   AlertCircle,
 } from 'lucide-react';
@@ -405,20 +407,75 @@ function TaskSection({ trade, projectId, accent }: { trade: any; projectId: stri
     },
   });
 
+  // Subs run their own job. The original page treated this list as "tasks
+  // the GC assigned" and offered no way to add anything — culturally wrong
+  // for trades, who don't take a checklist from the GC, they make their
+  // own. Let the sub add and remove their own line items inline; RLS on
+  // gc_project_tasks already allows it via the assigned_user_id branch.
+  const [newTask, setNewTask] = useState('');
+  const addTask = useMutation({
+    mutationFn: (name: string) => api.addGCTask(trade.id, name),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['gc-project', projectId] });
+      setNewTask('');
+    },
+    onError: (err: any) => addToast(err.message || 'Failed to add task', 'error'),
+  });
+  const removeTask = useMutation({
+    mutationFn: (taskId: string) => api.deleteGCTask(taskId),
+    onMutate: async (taskId) => {
+      await queryClient.cancelQueries({ queryKey: ['gc-project', projectId] });
+      const prev = queryClient.getQueryData(['gc-project', projectId]);
+      queryClient.setQueryData(['gc-project', projectId], (old: any) => {
+        if (!old?.data?.trades) return old;
+        return {
+          ...old,
+          data: {
+            ...old.data,
+            trades: old.data.trades.map((t: any) =>
+              t.id === trade.id
+                ? { ...t, tasks: t.tasks.filter((tk: any) => tk.id !== taskId) }
+                : t
+            ),
+          },
+        };
+      });
+      return { prev };
+    },
+    onError: (_err, _vars, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(['gc-project', projectId], ctx.prev);
+      addToast('Failed to remove task', 'error');
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ['gc-project', projectId] }),
+  });
+
+  function handleAddTask() {
+    const trimmed = newTask.trim();
+    if (!trimmed || addTask.isPending) return;
+    addTask.mutate(trimmed);
+  }
+
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10 dark:shadow-black/30">
-      <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-2 dark:border-white/10">
-        {/* Lead with the trade — repeating "My Tasks" once per trade reads as
-            copy-paste. "Plumbing tasks" / "Electrical tasks" is clearer when
-            the sub has multiple assignments. */}
+      <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between gap-2 dark:border-white/10">
+        {/* "My work plan" frames the section as the sub's, not a checklist
+            handed down by the GC. The trade name still leads when there are
+            multiple, so a sub on "Plumbing + HVAC" doesn't see two
+            indistinguishable "My work plan" cards. */}
         <h2 className="text-base font-semibold text-gray-900 dark:text-white">
-          {trade.trade ? `${trade.trade} tasks` : 'My Tasks'}
+          {trade.trade ? `${trade.trade} · my work plan` : 'My work plan'}
         </h2>
+        <span className="text-[11px] text-gray-400 dark:text-gray-500">
+          {tasks.filter((t: any) => t.done).length}/{tasks.length || 0} done
+        </span>
       </div>
 
       {tasks.length === 0 ? (
-        <div className="px-5 py-10 text-center">
-          <p className="text-sm text-gray-400 dark:text-gray-500">No tasks assigned yet. Check back later.</p>
+        <div className="px-5 py-8 text-center">
+          <p className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Plan your work for this job</p>
+          <p className="text-xs text-gray-400 dark:text-gray-500 max-w-sm mx-auto">
+            Break the scope down however you run your crew &mdash; daily list, by-the-room, materials before labor, whatever works. The GC sees your progress; you own the plan.
+          </p>
         </div>
       ) : (
         <div className="divide-y divide-gray-100 dark:divide-white/10">
@@ -429,10 +486,40 @@ function TaskSection({ trade, projectId, accent }: { trade: any; projectId: stri
               accent={accent}
               onToggle={(done) => toggleTask.mutate({ taskId: task.id, done })}
               onSaveNote={(notes) => saveNote.mutate({ taskId: task.id, notes })}
+              onRemove={() => removeTask.mutate(task.id)}
             />
           ))}
         </div>
       )}
+
+      {/* Inline composer — single-line entry, no modal. Trades are on a
+          phone in the field; a modal would be hostile. Enter submits,
+          empty input is a no-op. */}
+      <div className="px-4 py-3 border-t border-gray-100 dark:border-white/10 bg-gray-50/50 dark:bg-white/[0.02]">
+        <form
+          onSubmit={(e) => { e.preventDefault(); handleAddTask(); }}
+          className="flex items-center gap-2"
+        >
+          <Plus className="w-4 h-4 text-gray-400 flex-shrink-0 dark:text-gray-500" />
+          <input
+            type="text"
+            value={newTask}
+            onChange={(e) => setNewTask(e.target.value)}
+            placeholder="Add a step to your plan&hellip;"
+            className="flex-1 bg-transparent text-sm placeholder:text-gray-400 focus:outline-none dark:text-white dark:placeholder:text-gray-500"
+            disabled={addTask.isPending}
+          />
+          {newTask.trim() && (
+            <button
+              type="submit"
+              disabled={addTask.isPending}
+              className="text-xs font-semibold text-brand-600 hover:text-brand-700 disabled:opacity-50 transition-colors dark:text-blue-300"
+            >
+              {addTask.isPending ? 'Adding…' : 'Add'}
+            </button>
+          )}
+        </form>
+      </div>
     </div>
   );
 }
@@ -444,12 +531,23 @@ function TaskCard({
   accent,
   onToggle,
   onSaveNote,
+  onRemove,
 }: {
   task: any;
   accent: ReturnType<typeof getZoneAccentClasses>;
   onToggle: (done: boolean) => void;
   onSaveNote: (notes: string) => void;
+  onRemove?: () => void;
 }) {
+  // Inline confirm — small surface; a modal is overkill for "remove a
+  // line item from your own checklist." First click arms it for ~3s,
+  // second click removes. Cancels on outside click.
+  const [confirmingRemove, setConfirmingRemove] = useState(false);
+  useEffect(() => {
+    if (!confirmingRemove) return;
+    const t = setTimeout(() => setConfirmingRemove(false), 3000);
+    return () => clearTimeout(t);
+  }, [confirmingRemove]);
   // Server-backed note — stays in sync with the task row so the GC sees the
   // sub's notes and the sub keeps them across devices.
   const serverNote: string = task.notes ?? '';
@@ -497,9 +595,28 @@ function TaskCard({
             <span className={`text-sm font-medium ${isDone ? 'text-gray-400 line-through' : 'text-gray-900'}`}>
               {task.name}
             </span>
-            <span className={`flex-shrink-0 text-xs font-medium px-2 py-0.5 rounded-full ${isDone ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
-              {isDone ? 'Complete' : 'To Do'}
-            </span>
+            <div className="flex items-center gap-1.5 flex-shrink-0">
+              <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${isDone ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                {isDone ? 'Complete' : 'To Do'}
+              </span>
+              {onRemove && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (confirmingRemove) {
+                      onRemove();
+                      setConfirmingRemove(false);
+                    } else {
+                      setConfirmingRemove(true);
+                    }
+                  }}
+                  title={confirmingRemove ? 'Click again to remove' : 'Remove task'}
+                  className={`p-1 rounded transition-colors ${confirmingRemove ? 'bg-red-100 text-red-600 dark:bg-red-500/20 dark:text-red-300' : 'text-gray-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10'}`}
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Due date */}

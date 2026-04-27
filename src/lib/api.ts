@@ -2598,6 +2598,49 @@ export const api = {
   // on mobile web. maybeSingle() returns null for that case so we can throw
   // a readable message instead.
   assignSubToTrade: async (tradeId: string, userId: string) => {
+    // Read the current state of the trade row first so we can return a
+    // precise failure message. The bare .update() below collapses four
+    // distinct failure modes into a single "0 rows back": (1) trade was
+    // deleted, (2) RLS hides it (wrong account), (3) someone else already
+    // claimed it, (4) the logged-in user is the GC of the project, not the
+    // invited sub. Subs in the field had no idea which applied.
+    const { data: existing, error: readErr } = await supabase
+      .from('gc_project_trades')
+      .select('id, assigned_user_id, gc_project_id, trade, zone_id')
+      .eq('id', tradeId)
+      .maybeSingle();
+
+    if (existing) {
+      if (existing.assigned_user_id && existing.assigned_user_id !== userId) {
+        throw new Error(
+          "This trade slot has already been claimed by someone else. If that's wrong, ask the GC to reassign it or send a fresh invite."
+        );
+      }
+      // Detect the "GC clicked their own invite link" case. created_by on
+      // gc_projects is the GC user. If that's the current user, RLS will
+      // block the assignment update — and the resulting error is mystifying
+      // to a GC who's just trying to test their own invite flow.
+      if (!existing.assigned_user_id && existing.gc_project_id) {
+        const { data: project } = await supabase
+          .from('gc_projects')
+          .select('created_by')
+          .eq('id', existing.gc_project_id)
+          .maybeSingle();
+        if (project && (project as any).created_by === userId) {
+          throw new Error(
+            "This invite is for the trade you invited — not your GC account. Sign out and accept it from the trade's email address."
+          );
+        }
+      }
+    } else if (!readErr) {
+      // Row not visible and no read error → the trade was deleted (or RLS
+      // hides it entirely from this account). Either way the invite is
+      // unusable; tell the truth instead of "reassigned or removed."
+      throw new Error(
+        'This invite no longer exists. The trade may have been removed by the GC. Ask them to send a fresh invite.'
+      );
+    }
+
     const { data, error } = await supabase
       .from('gc_project_trades')
       .update({ assigned_user_id: userId })
@@ -2606,8 +2649,11 @@ export const api = {
       .maybeSingle();
     if (error) throw new Error(error.message);
     if (!data) {
+      // Reaching here means the row was readable a moment ago but the
+      // UPDATE returned 0 rows — almost always RLS rejecting because the
+      // GC invited a different email than the one this account uses.
       throw new Error(
-        'This invite is no longer active. The trade may have been reassigned or removed. Ask the GC to send a fresh invite.'
+        "Your account isn't authorized to accept this invite. The GC may have invited a different email — ask them to confirm the address on file matches the one you signed up with."
       );
     }
 

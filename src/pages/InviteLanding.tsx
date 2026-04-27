@@ -17,6 +17,8 @@ import {
   Loader2,
   AlertCircle,
   Smartphone,
+  UserCog,
+  LogOut,
 } from 'lucide-react';
 
 const FEATURES = [
@@ -46,7 +48,7 @@ const PENDING_INVITE_KEY = 'pendingInvite';
 
 export function InviteLanding() {
   const { projectId, tradeId } = useParams<{ projectId: string; tradeId: string }>();
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, signOut } = useAuth();
   const navigate = useNavigate();
   const [accepted, setAccepted] = useState(false);
   const [assignError, setAssignError] = useState<string | null>(null);
@@ -71,6 +73,13 @@ export function InviteLanding() {
     }
   }, [accepted]);
 
+  // ...also clear it when the logged-in user turns out to be the GC who
+  // created this project. Otherwise Login.tsx will keep bouncing them back
+  // here every time they sign in, trapping them in a redirect loop. The
+  // pending-invite mechanism is only meant for the invited sub.
+  // (isProjectCreator is computed below; this hook depends on it via
+  // project + user, so it stays in sync.)
+
   // Fetch project info (only works if user is authenticated due to RLS)
   const projectQuery = useQuery({
     queryKey: ['gc-project-invite', projectId],
@@ -89,6 +98,19 @@ export function InviteLanding() {
   const projectAddress = project?.address;
   const taskCount = trade?.tasks?.length || 0;
   const alreadyAssigned = trade?.assignedUserId === user?.id;
+  // The current user created this project — they're the GC, not a sub. If
+  // they followed the invite link from their own email or pasted it into
+  // their browser, hand them a clear off-ramp instead of letting them hit
+  // the cryptic RLS-blocked error path.
+  const isProjectCreator = !!project && !!user && (project as any).createdBy === user.id;
+
+  // Companion to the comment above: actually clear the pending-invite
+  // marker once we know this user is the GC of this project.
+  useEffect(() => {
+    if (isProjectCreator) {
+      localStorage.removeItem(PENDING_INVITE_KEY);
+    }
+  }, [isProjectCreator]);
 
   // Format date range for trade
   const tradeDateRange = (() => {
@@ -120,6 +142,19 @@ export function InviteLanding() {
   function handleAccept() {
     setAssignError(null);
     assignMutation.mutate();
+  }
+
+  // Used by the GC-self-detection branch: clear the pending-invite redirect
+  // marker (otherwise Login.tsx will bounce them right back here on next
+  // login), sign out, and land them on the invite URL as a logged-out
+  // visitor so they can sign up / log in with the trade's email.
+  async function handleSignOutAndRetry() {
+    try {
+      localStorage.removeItem(PENDING_INVITE_KEY);
+      await signOut();
+    } finally {
+      navigate(inviteUrl, { replace: true });
+    }
   }
 
   // Pre-focus the Accept button when the sub returns from signup/login with a
@@ -216,6 +251,71 @@ export function InviteLanding() {
             </Link>
           </div>
         </main>
+      </div>
+    );
+  }
+
+  // --- LOGGED IN AS THE GC WHO CREATED THIS PROJECT ---
+  // RLS would silently block their assignment update and they'd hit a vague
+  // "this invite isn't for you" error after clicking Accept. Catch it
+  // up-front and show them the right next step.
+  if (isLoggedIn && isProjectCreator) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50">
+        <Header loginUrl={loginUrl} isLoggedIn={isLoggedIn} />
+        <main className="max-w-lg mx-auto px-4 py-20">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
+            <div className="w-14 h-14 rounded-full bg-amber-100 flex items-center justify-center mx-auto mb-5">
+              <UserCog className="w-7 h-7 text-amber-600" />
+            </div>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2 text-center">
+              This invite is for the trade you invited
+            </h1>
+            <p className="text-gray-500 mb-6 text-center leading-relaxed">
+              You're signed in as the GC of{' '}
+              {projectName ? (
+                <span className="font-semibold text-gray-700">{projectName}</span>
+              ) : (
+                <>this project</>
+              )}
+              . The link you opened is meant for the tradesperson you invited — not your GC account.
+            </p>
+            <div className="space-y-2.5 mb-6">
+              <div className="flex items-start gap-3 px-4 py-3 bg-gray-50 rounded-xl text-sm text-gray-700">
+                <span className="flex-shrink-0 w-5 h-5 rounded-full bg-gray-200 text-gray-700 text-xs font-semibold flex items-center justify-center mt-0.5">
+                  1
+                </span>
+                <span>Sign out of your GC account.</span>
+              </div>
+              <div className="flex items-start gap-3 px-4 py-3 bg-gray-50 rounded-xl text-sm text-gray-700">
+                <span className="flex-shrink-0 w-5 h-5 rounded-full bg-gray-200 text-gray-700 text-xs font-semibold flex items-center justify-center mt-0.5">
+                  2
+                </span>
+                <span>Sign up (or log in) with the email address you invited the trade at.</span>
+              </div>
+              <div className="flex items-start gap-3 px-4 py-3 bg-gray-50 rounded-xl text-sm text-gray-700">
+                <span className="flex-shrink-0 w-5 h-5 rounded-full bg-gray-200 text-gray-700 text-xs font-semibold flex items-center justify-center mt-0.5">
+                  3
+                </span>
+                <span>You'll land back on this invite, ready to accept.</span>
+              </div>
+            </div>
+            <button
+              onClick={handleSignOutAndRetry}
+              className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-gray-900 text-white rounded-xl text-base font-semibold hover:bg-gray-800 shadow-lg shadow-gray-900/20 transition-all hover:shadow-xl"
+            >
+              <LogOut className="w-5 h-5" />
+              Sign out and accept as the trade
+            </button>
+            <Link
+              to={`/dashboard/projects/${projectId}`}
+              className="block text-center text-sm text-gray-500 hover:text-gray-700 mt-4"
+            >
+              Or stay signed in and go to this project as the GC
+            </Link>
+          </div>
+        </main>
+        <Footer />
       </div>
     );
   }

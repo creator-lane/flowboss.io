@@ -2186,6 +2186,28 @@ export const api = {
     }
   },
 
+  // Update fields on a gc_project_task (rename, notes, due date, etc).
+  // Subs running their own work plan need to fix typos and edit details
+  // — the existing api.updateTask wrote to phase_tasks (a different
+  // table from a different surface of the product) and silently no-op'd
+  // for gc_project_tasks. RLS allows assigned subs to update tasks on
+  // their own trade row.
+  updateGCTask: async (taskId: string, updates: { name?: string; notes?: string; dueDate?: string | null }) => {
+    const payload: any = {};
+    if (typeof updates.name === 'string') payload.name = updates.name;
+    if (typeof updates.notes === 'string') payload.notes = updates.notes;
+    if ('dueDate' in updates) payload.due_date = updates.dueDate ?? null;
+    if (Object.keys(payload).length === 0) return { data: null };
+    const { data, error } = await supabase
+      .from('gc_project_tasks')
+      .update(payload)
+      .eq('id', taskId)
+      .select()
+      .single();
+    if (error) throw new Error(error.message);
+    return { data: camelify(data) };
+  },
+
   addGCTask: async (tradeId: string, name: string) => {
     const { data, error } = await supabase
       .from('gc_project_tasks')

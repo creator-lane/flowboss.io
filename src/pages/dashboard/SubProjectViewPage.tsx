@@ -273,7 +273,10 @@ export function SubProjectViewPage() {
         </div>
       </div>
 
-      {/* ── 2. My Tasks — grouped by zone when the sub is in more than one ── */}
+      {/* ── 2. Quick update to the GC ── */}
+      <UpdateGCComposer projectId={id!} gcName={project.gcBusinessName} />
+
+      {/* ── 3. My Tasks — grouped by zone when the sub is in more than one ── */}
       {zoneGroups.length === 1 ? (
         // Single-zone: flat list of task sections per trade (legacy layout).
         zoneGroups[0].trades.map((trade: any) => (
@@ -376,9 +379,12 @@ function TaskSection({ trade, projectId, accent }: { trade: any; projectId: stri
 
   // Persist task notes server-side with optimistic update so the GC sees them
   // and the sub keeps them across devices. (Was localStorage — lost everywhere.)
+  // Note: was previously calling api.updateTask which writes to the
+  // unrelated phase_tasks table. Notes silently never persisted for
+  // gc_project_tasks. updateGCTask hits the right table.
   const saveNote = useMutation({
     mutationFn: ({ taskId, notes }: { taskId: string; notes: string }) =>
-      api.updateTask(taskId, { notes }),
+      api.updateGCTask(taskId, { notes }),
     onMutate: async ({ taskId, notes }) => {
       await queryClient.cancelQueries({ queryKey: ['gc-project', projectId] });
       const prev = queryClient.getQueryData(['gc-project', projectId]);
@@ -455,6 +461,61 @@ function TaskSection({ trade, projectId, accent }: { trade: any; projectId: stri
     addTask.mutate(trimmed);
   }
 
+  // Inline rename — the sub typo'd "Hand rock" instead of "Hang rock"; let
+  // them fix it without delete + retype. Optimistic so the field worker
+  // doesn't see a flash of stale text on a slow connection.
+  const renameTask = useMutation({
+    mutationFn: ({ taskId, name }: { taskId: string; name: string }) =>
+      api.updateGCTask(taskId, { name }),
+    onMutate: async ({ taskId, name }) => {
+      await queryClient.cancelQueries({ queryKey: ['gc-project', projectId] });
+      const prev = queryClient.getQueryData(['gc-project', projectId]);
+      queryClient.setQueryData(['gc-project', projectId], (old: any) => {
+        if (!old?.data?.trades) return old;
+        return {
+          ...old,
+          data: {
+            ...old.data,
+            trades: old.data.trades.map((t: any) =>
+              t.id === trade.id
+                ? { ...t, tasks: t.tasks.map((tk: any) => tk.id === taskId ? { ...tk, name } : tk) }
+                : t
+            ),
+          },
+        };
+      });
+      return { prev };
+    },
+    onError: (_err, _vars, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(['gc-project', projectId], ctx.prev);
+      addToast('Failed to rename task', 'error');
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ['gc-project', projectId] }),
+  });
+
+  // Sub-driven trade status: this is the most product-defining change in
+  // the sub view. Subs decide when their portion is in_progress and when
+  // it's done — the GC reads status, they don't dictate it. The GC
+  // dashboard's existing TradeDetailPanel (read by the GC, not editable)
+  // already reflects this column live.
+  const updateStatus = useMutation({
+    mutationFn: (status: string) => api.updateGCTrade(trade.id, { status }),
+    onSuccess: (_data, status) => {
+      queryClient.invalidateQueries({ queryKey: ['gc-project', projectId] });
+      const friendly: Record<string, string> = {
+        not_started: 'Marked not started',
+        in_progress: 'Marked in progress',
+        completed: 'Marked complete',
+        blocked: 'Marked blocked',
+      };
+      addToast(friendly[status] || 'Status updated', 'success');
+    },
+    onError: (err: any) => addToast(err.message || 'Failed to update status', 'error'),
+  });
+
+  const allDone = tasks.length > 0 && tasks.every((t: any) => t.done);
+  const currentStatus: string = trade.status || 'not_started';
+
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10 dark:shadow-black/30">
       <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between gap-2 dark:border-white/10">
@@ -465,9 +526,16 @@ function TaskSection({ trade, projectId, accent }: { trade: any; projectId: stri
         <h2 className="text-base font-semibold text-gray-900 dark:text-white">
           {trade.trade ? `${trade.trade} · my work plan` : 'My work plan'}
         </h2>
-        <span className="text-[11px] text-gray-400 dark:text-gray-500">
-          {tasks.filter((t: any) => t.done).length}/{tasks.length || 0} done
-        </span>
+        <div className="flex items-center gap-2">
+          <SubStatusPill
+            status={currentStatus}
+            onChange={(next) => updateStatus.mutate(next)}
+            disabled={updateStatus.isPending}
+          />
+          <span className="text-[11px] text-gray-400 dark:text-gray-500">
+            {tasks.filter((t: any) => t.done).length}/{tasks.length || 0}
+          </span>
+        </div>
       </div>
 
       {tasks.length === 0 ? (
@@ -487,6 +555,7 @@ function TaskSection({ trade, projectId, accent }: { trade: any; projectId: stri
               onToggle={(done) => toggleTask.mutate({ taskId: task.id, done })}
               onSaveNote={(notes) => saveNote.mutate({ taskId: task.id, notes })}
               onRemove={() => removeTask.mutate(task.id)}
+              onRename={(name) => renameTask.mutate({ taskId: task.id, name })}
             />
           ))}
         </div>
@@ -519,7 +588,177 @@ function TaskSection({ trade, projectId, accent }: { trade: any; projectId: stri
             </button>
           )}
         </form>
+        {/* Celebratory finish-line CTA: when every line is checked but the
+            trade isn't yet flagged complete, surface a single big-deal
+            button that does the closing transition. Skipping this used to
+            require digging into the (read-only) GC dashboard. */}
+        {allDone && currentStatus !== 'completed' && (
+          <button
+            onClick={() => updateStatus.mutate('completed')}
+            disabled={updateStatus.isPending}
+            className="mt-3 w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-green-600 text-white rounded-lg text-sm font-semibold hover:bg-green-700 disabled:opacity-50 transition-colors"
+          >
+            <CheckSquare className="w-4 h-4" />
+            {updateStatus.isPending ? 'Marking complete…' : `Mark ${trade.trade || 'this trade'} complete`}
+          </button>
+        )}
       </div>
+    </div>
+  );
+}
+
+/* ─── Sub-driven trade status pill ─── */
+
+const SUB_STATUS_OPTIONS: { key: string; label: string; color: string }[] = [
+  { key: 'not_started', label: 'Not started', color: 'text-gray-600 bg-gray-100 dark:bg-white/10 dark:text-gray-300' },
+  { key: 'in_progress', label: 'In progress', color: 'text-blue-700 bg-blue-100 dark:bg-blue-500/20 dark:text-blue-200' },
+  { key: 'blocked', label: 'Blocked', color: 'text-red-700 bg-red-100 dark:bg-red-500/20 dark:text-red-200' },
+  { key: 'completed', label: 'Complete', color: 'text-green-700 bg-green-100 dark:bg-green-500/20 dark:text-green-200' },
+];
+
+function SubStatusPill({
+  status,
+  onChange,
+  disabled,
+}: {
+  status: string;
+  onChange: (next: string) => void;
+  disabled?: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const current = SUB_STATUS_OPTIONS.find((s) => s.key === status) || SUB_STATUS_OPTIONS[0];
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        disabled={disabled}
+        className={`text-[11px] font-semibold px-2.5 py-1 rounded-full transition-colors ${current.color} ${disabled ? 'opacity-50 cursor-not-allowed' : 'hover:opacity-80'}`}
+      >
+        {current.label}
+      </button>
+      {open && (
+        <>
+          <div className="fixed inset-0 z-30" onClick={() => setOpen(false)} />
+          <div className="absolute right-0 top-full mt-1 z-40 w-36 bg-white rounded-lg shadow-lg border border-gray-200 py-1 dark:bg-gray-900 dark:border-white/10">
+            {SUB_STATUS_OPTIONS.map((opt) => (
+              <button
+                key={opt.key}
+                onClick={() => { setOpen(false); if (opt.key !== status) onChange(opt.key); }}
+                className={`w-full text-left px-3 py-1.5 text-xs hover:bg-gray-50 dark:hover:bg-white/10 ${opt.key === status ? 'font-semibold' : ''}`}
+              >
+                <span className={`inline-block w-2 h-2 rounded-full mr-2 ${opt.color.split(' ')[1]}`} />
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+/* ─── Quick "Update the GC" composer ─── */
+//
+// Subs message GCs constantly: "I'm here, started today", "rough-in
+// passed inspection", "we're going to need a 6-foot ladder, no power
+// run yet". Forcing them to navigate to a separate Chat tab would be
+// hostile — the most natural place to send a status update is on the
+// project page itself. This posts straight into the existing
+// gc_project_messages thread (so chat history stays unified) and shows
+// a small Sent confirmation in place of the textarea after.
+
+function UpdateGCComposer({ projectId, gcName }: { projectId: string; gcName?: string | null }) {
+  const queryClient = useQueryClient();
+  const { addToast } = useToast();
+  const [open, setOpen] = useState(false);
+  const [draft, setDraft] = useState('');
+  const [justSent, setJustSent] = useState(false);
+  const taRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (open && taRef.current) taRef.current.focus();
+  }, [open]);
+
+  const sendMessage = useMutation({
+    mutationFn: (message: string) => api.sendGCMessage(projectId, message),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['gc-project', projectId] });
+      setDraft('');
+      setJustSent(true);
+      setOpen(false);
+      // Auto-clear the "Sent ✓" badge after a few seconds — confirmation
+      // is reassuring; permanent triumphalism is not.
+      setTimeout(() => setJustSent(false), 3500);
+    },
+    onError: (err: any) => addToast(err.message || 'Failed to send update', 'error'),
+  });
+
+  function handleSend() {
+    const trimmed = draft.trim();
+    if (!trimmed || sendMessage.isPending) return;
+    sendMessage.mutate(trimmed);
+  }
+
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 shadow-sm dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10 dark:shadow-black/30">
+      {!open ? (
+        <button
+          onClick={() => setOpen(true)}
+          className="w-full flex items-center justify-between px-5 py-3.5 text-left hover:bg-gray-50/60 transition-colors rounded-xl dark:hover:bg-white/5"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-full bg-brand-50 flex items-center justify-center dark:bg-blue-500/10">
+              <Megaphone className="w-4 h-4 text-brand-600 dark:text-blue-300" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-900 dark:text-white">
+                {justSent ? 'Sent to the GC ✓' : `Update ${gcName || 'the GC'}`}
+              </p>
+              <p className="text-xs text-gray-400 dark:text-gray-500">
+                {justSent ? "They'll see it in the project chat." : 'Status, blockers, photos coming, anything they should know.'}
+              </p>
+            </div>
+          </div>
+          <ChevronRight className="w-4 h-4 text-gray-400 dark:text-gray-500" />
+        </button>
+      ) : (
+        <div className="p-4 space-y-3">
+          <textarea
+            ref={taRef}
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); handleSend(); }
+              if (e.key === 'Escape') { setOpen(false); setDraft(''); }
+            }}
+            rows={3}
+            placeholder={`What should ${gcName || 'the GC'} know? (Cmd+Enter to send)`}
+            className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none resize-none dark:border-white/10 dark:bg-white/5 dark:text-white dark:focus:ring-blue-400 dark:focus:border-blue-400"
+          />
+          <div className="flex items-center justify-between">
+            <p className="text-[11px] text-gray-400 dark:text-gray-500">
+              Posts to the project chat &mdash; the GC sees it instantly.
+            </p>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => { setOpen(false); setDraft(''); }}
+                disabled={sendMessage.isPending}
+                className="px-3 py-1.5 text-xs font-medium text-gray-600 hover:text-gray-900 disabled:opacity-50 dark:text-gray-300"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSend}
+                disabled={!draft.trim() || sendMessage.isPending}
+                className="px-3 py-1.5 bg-gray-900 text-white rounded-lg text-xs font-semibold hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {sendMessage.isPending ? 'Sending…' : 'Send update'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -532,13 +771,36 @@ function TaskCard({
   onToggle,
   onSaveNote,
   onRemove,
+  onRename,
 }: {
   task: any;
   accent: ReturnType<typeof getZoneAccentClasses>;
   onToggle: (done: boolean) => void;
   onSaveNote: (notes: string) => void;
   onRemove?: () => void;
+  onRename?: (name: string) => void;
 }) {
+  // Inline rename — click the task name to edit, Enter to save, Esc to
+  // cancel. Disabled when the task is already marked done so a stray
+  // click on a finished line doesn't unintentionally re-open editing.
+  const [renaming, setRenaming] = useState(false);
+  const [draftName, setDraftName] = useState<string>(task.name ?? '');
+  const renameInputRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (renaming && renameInputRef.current) {
+      renameInputRef.current.focus();
+      renameInputRef.current.select();
+    }
+  }, [renaming]);
+  useEffect(() => {
+    if (!renaming) setDraftName(task.name ?? '');
+  }, [task.name, renaming]);
+  function commitRename() {
+    const trimmed = draftName.trim();
+    setRenaming(false);
+    if (!trimmed || trimmed === task.name || !onRename) return;
+    onRename(trimmed);
+  }
   // Inline confirm — small surface; a modal is overkill for "remove a
   // line item from your own checklist." First click arms it for ~3s,
   // second click removes. Cancels on outside click.
@@ -592,9 +854,28 @@ function TaskCard({
         {/* Content */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between gap-2">
-            <span className={`text-sm font-medium ${isDone ? 'text-gray-400 line-through' : 'text-gray-900'}`}>
-              {task.name}
-            </span>
+            {renaming && onRename && !isDone ? (
+              <input
+                ref={renameInputRef}
+                type="text"
+                value={draftName}
+                onChange={(e) => setDraftName(e.target.value)}
+                onBlur={commitRename}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') { e.preventDefault(); commitRename(); }
+                  if (e.key === 'Escape') { setDraftName(task.name ?? ''); setRenaming(false); }
+                }}
+                className="flex-1 text-sm font-medium bg-transparent border-b border-brand-400 focus:outline-none focus:border-brand-600 dark:text-white dark:border-blue-400"
+              />
+            ) : (
+              <button
+                onClick={() => { if (onRename && !isDone) setRenaming(true); }}
+                className={`text-left text-sm font-medium truncate ${isDone ? 'text-gray-400 line-through cursor-default' : 'text-gray-900 dark:text-white hover:text-brand-700 dark:hover:text-blue-300'}`}
+                title={onRename && !isDone ? 'Click to rename' : undefined}
+              >
+                {task.name}
+              </button>
+            )}
             <div className="flex items-center gap-1.5 flex-shrink-0">
               <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${isDone ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
                 {isDone ? 'Complete' : 'To Do'}

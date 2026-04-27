@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api';
 import { useAuth } from '../lib/auth';
 import {
@@ -50,6 +50,7 @@ export function InviteLanding() {
   const { projectId, tradeId } = useParams<{ projectId: string; tradeId: string }>();
   const { user, loading: authLoading, signOut } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [accepted, setAccepted] = useState(false);
   const [assignError, setAssignError] = useState<string | null>(null);
 
@@ -130,6 +131,14 @@ export function InviteLanding() {
     mutationFn: () => api.assignSubToTrade(tradeId!, user!.id),
     onSuccess: () => {
       setAccepted(true);
+      // RequireSubscription on /dashboard/* keys subs-are-free off the
+      // ['is-invited-sub'] query, which has a 60s staleTime. If the user
+      // hit /dashboard before accepting, the cache says "no assignments"
+      // and they get bounced to /pricing despite having just claimed the
+      // trade. Invalidating both queries here forces a fresh check before
+      // we navigate, so RequireSubscription sees the new assignment.
+      queryClient.invalidateQueries({ queryKey: ['is-invited-sub'] });
+      queryClient.invalidateQueries({ queryKey: ['settings'] });
       setTimeout(() => {
         navigate(`/dashboard/projects/assigned/${projectId}`, { replace: true });
       }, 2000);

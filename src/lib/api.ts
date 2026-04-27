@@ -2633,11 +2633,15 @@ export const api = {
         }
       }
     } else if (!readErr) {
-      // Row not visible and no read error → the trade was deleted (or RLS
-      // hides it entirely from this account). Either way the invite is
-      // unusable; tell the truth instead of "reassigned or removed."
+      // Row not visible to this account. From the client we can't tell two
+      // cases apart: (a) the trade was actually deleted, (b) RLS hides it
+      // because the GC invited a different email than this account uses.
+      // (b) is overwhelmingly the more common reason in practice — every
+      // sub who signs up with a slightly-off email lands here. Lead with
+      // the actionable wrong-email message and mention deletion as a
+      // fallback so the user knows what to ask the GC.
       throw new Error(
-        'This invite no longer exists. The trade may have been removed by the GC. Ask them to send a fresh invite.'
+        "Your account isn't authorized to accept this invite. The GC likely invited a different email — sign in with the address they sent the invite to (or ask them to confirm the address on file). If the trade was removed, you'll need a fresh invite."
       );
     }
 

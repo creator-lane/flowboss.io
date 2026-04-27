@@ -549,10 +549,12 @@ function TaskSection({ trade, projectId, accent }: { trade: any; projectId: stri
           </p>
           {/* Template CTA leads when the plan is empty — that's the "wow"
               moment Geoff has on mobile and the sub view shipped without.
-              Big, prominent, free for invited subs. */}
+              Purple matches the mobile design system's template accent
+              (#7c3aed) so the visual identity stays consistent across
+              surfaces. Big, prominent, free for invited subs. */}
           <button
             onClick={() => setTemplatePickerOpen(true)}
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-br from-brand-500 to-brand-600 text-white rounded-lg text-sm font-semibold hover:from-brand-500 hover:to-brand-500 shadow-lg shadow-brand-500/30 transition-all dark:from-blue-500 dark:to-blue-600"
+            className="inline-flex items-center gap-2 px-5 py-3 bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-xl text-sm font-semibold hover:from-purple-500 hover:to-purple-500 shadow-lg shadow-purple-500/30 hover:shadow-purple-500/40 transition-all"
           >
             <Sparkles className="w-4 h-4" />
             Use a starter template

@@ -21,13 +21,14 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   ArrowLeft,
   ArrowRight,
+  Calendar,
   CheckCircle2,
   CheckSquare,
+  ChevronRight,
   ClipboardList,
-  Clock,
   DollarSign,
   Hammer,
-  Layers,
+  List,
   Loader2,
   Package,
   Search,
@@ -255,35 +256,43 @@ export function TemplatePicker({ open, onClose, tradeId, tradeLabel, projectId }
             {search ? `No templates match "${search}".` : `No templates yet for ${tradeLabel}.`}
           </p>
         ) : (
-          <div className="grid sm:grid-cols-2 gap-2.5">
+          // Template list — visual parity with apps/mobile/app/project/create.tsx
+          // styles.templateCard. Same purple accent (#7c3aed on #f3e8ff),
+          // same meta-icon row (calendar / list / cash), same right-side
+          // chevron-forward affordance. Mobile uses native SafeArea +
+          // Pressable; web uses card buttons inside a single-column list
+          // for thumbable scanning on desktop too.
+          <div className="space-y-2.5">
             {filteredTemplates.map((t) => (
               <button
                 key={t.id}
                 onClick={() => chooseTemplate(t)}
-                className="text-left p-4 border border-gray-200 rounded-xl hover:border-brand-300 hover:bg-brand-50/40 transition-all group dark:border-white/10 dark:hover:border-blue-400/40 dark:hover:bg-blue-500/5"
+                className="w-full flex items-center gap-4 text-left p-4 bg-white border border-gray-200 rounded-2xl hover:border-purple-300 hover:bg-purple-50/30 transition-all group dark:bg-white/[0.03] dark:border-white/10 dark:hover:border-purple-400/40 dark:hover:bg-purple-500/[0.07]"
               >
-                <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-brand-50 flex items-center justify-center flex-shrink-0 group-hover:bg-brand-100 transition-colors dark:bg-blue-500/10">
-                    <Sparkles className="w-4 h-4 text-brand-600 dark:text-blue-300" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <h3 className="text-sm font-semibold text-gray-900 truncate dark:text-white">{t.name}</h3>
-                    <p className="text-xs text-gray-500 line-clamp-2 leading-relaxed mt-0.5 dark:text-gray-400">{t.description}</p>
-                    <div className="flex items-center gap-3 mt-2 text-[11px] text-gray-400 dark:text-gray-500">
+                <div className="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center flex-shrink-0 group-hover:bg-purple-200 transition-colors dark:bg-purple-500/15 dark:group-hover:bg-purple-500/25">
+                  <Sparkles className="w-5 h-5 text-purple-600 dark:text-purple-300" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h3 className="text-base font-bold text-gray-900 truncate dark:text-white">{t.name}</h3>
+                  <p className="text-[13px] text-gray-500 line-clamp-2 leading-snug mt-0.5 dark:text-gray-400">{t.description}</p>
+                  <div className="flex items-center gap-3 mt-2 text-[11px] font-semibold text-gray-400 dark:text-gray-500">
+                    <span className="flex items-center gap-1">
+                      <Calendar className="w-3 h-3" />
+                      ~{t.estimatedDays} days
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <DollarSign className="w-3 h-3" />
+                      ${(t.estimatedBudgetLow / 1000).toFixed(0)}k&ndash;${(t.estimatedBudgetHigh / 1000).toFixed(0)}k
+                    </span>
+                    {t.category && (
                       <span className="flex items-center gap-1">
-                        <Clock className="w-3 h-3" /> ~{t.estimatedDays}d
+                        <List className="w-3 h-3" />
+                        {t.category}
                       </span>
-                      <span className="flex items-center gap-1">
-                        <DollarSign className="w-3 h-3" /> ${(t.estimatedBudgetLow / 1000).toFixed(0)}k&ndash;${(t.estimatedBudgetHigh / 1000).toFixed(0)}k
-                      </span>
-                      {t.category && (
-                        <span className="flex items-center gap-1">
-                          <Layers className="w-3 h-3" /> {t.category}
-                        </span>
-                      )}
-                    </div>
+                    )}
                   </div>
                 </div>
+                <ChevronRight className="w-5 h-5 text-gray-300 flex-shrink-0 dark:text-gray-600" />
               </button>
             ))}
           </div>
@@ -448,7 +457,7 @@ export function TemplatePicker({ open, onClose, tradeId, tradeLabel, projectId }
         <button
           onClick={() => apply.mutate()}
           disabled={apply.isPending || selectedTaskCount === 0}
-          className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-br from-brand-500 to-brand-600 text-white rounded-lg text-sm font-semibold shadow-lg shadow-brand-500/30 hover:from-brand-500 hover:to-brand-500 hover:shadow-brand-500/40 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none transition-all dark:from-blue-500 dark:to-blue-600 dark:shadow-blue-500/30"
+          className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-lg text-sm font-semibold shadow-lg shadow-purple-500/30 hover:from-purple-500 hover:to-purple-500 hover:shadow-purple-500/40 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none transition-all"
         >
           {apply.isPending ? (
             <>

@@ -1176,4 +1176,860 @@ INSERT INTO template_materials (id, phase_id, name, estimated_cost, category, op
   ('smart_home_wiring__5__m1', 'smart_home_wiring__5', 'Cable certifier / tester', 0, 'Tools', false, 1),
   ('smart_home_wiring__5__m2', 'smart_home_wiring__5', 'Conduit (spare runs for future)', 25, 'Conduit', true, 2);
 
+-- Drywall Hang & Finish (drywall)
+INSERT INTO project_templates (id, name, icon, category, trade, description, estimated_days, estimated_budget_low, estimated_budget_high, sort_order) VALUES ('drywall_hang_finish', 'Drywall Hang & Finish', 'square', 'Install', 'drywall', 'Hang, tape, mud, and finish a room or unit ready for paint. Includes corner bead, three coats of mud, and final sanding.', 5, 1800, 4500, 19);
+INSERT INTO template_phases (id, template_id, name, sort_order, estimated_days, description, inspection_required) VALUES ('drywall_hang_finish__1', 'drywall_hang_finish', 'Hang Rock', 1, 1, 'Cut and hang sheets — ceilings first, walls second. Stagger seams, screw on schedule.', NULL);
+INSERT INTO template_tasks (id, phase_id, name, sort_order, optional) VALUES
+  ('drywall_hang_finish__1__t1', 'drywall_hang_finish__1', 'Verify framing is straight, blocking present where needed', 1, false),
+  ('drywall_hang_finish__1__t2', 'drywall_hang_finish__1', 'Measure and cut ceiling sheets', 2, false),
+  ('drywall_hang_finish__1__t3', 'drywall_hang_finish__1', 'Hang ceilings (perpendicular to joists)', 3, false),
+  ('drywall_hang_finish__1__t4', 'drywall_hang_finish__1', 'Hang upper wall sheets', 4, false),
+  ('drywall_hang_finish__1__t5', 'drywall_hang_finish__1', 'Hang lower wall sheets, scribe to floor', 5, false),
+  ('drywall_hang_finish__1__t6', 'drywall_hang_finish__1', 'Cut openings for outlets, switches, fixtures', 6, false),
+  ('drywall_hang_finish__1__t7', 'drywall_hang_finish__1', 'Screw schedule (8" ceilings, 12" walls)', 7, false),
+  ('drywall_hang_finish__1__t8', 'drywall_hang_finish__1', 'Verify no nail/screw pops, tight seams', 8, false);
+INSERT INTO template_materials (id, phase_id, name, estimated_cost, category, optional, sort_order) VALUES
+  ('drywall_hang_finish__1__m1', 'drywall_hang_finish__1', '1/2" drywall sheets (4x8)', 14, 'Sheetrock', false, 1),
+  ('drywall_hang_finish__1__m2', 'drywall_hang_finish__1', '5/8" type-X (ceilings/garage)', 18, 'Sheetrock', true, 2),
+  ('drywall_hang_finish__1__m3', 'drywall_hang_finish__1', 'Drywall screws (1-5/8", 5lb box)', 18, 'Fasteners', false, 3),
+  ('drywall_hang_finish__1__m4', 'drywall_hang_finish__1', 'Construction adhesive (PL Premium)', 8, 'Adhesive', false, 4),
+  ('drywall_hang_finish__1__m5', 'drywall_hang_finish__1', 'Disposal / haul-out', 150, 'Labor', false, 5);
+INSERT INTO template_phases (id, template_id, name, sort_order, estimated_days, description, inspection_required) VALUES ('drywall_hang_finish__2', 'drywall_hang_finish', 'Tape & First Coat', 2, 1, 'Tape every seam, mud corners, fill screw holes. Let dry overnight.', NULL);
+INSERT INTO template_tasks (id, phase_id, name, sort_order, optional) VALUES
+  ('drywall_hang_finish__2__t1', 'drywall_hang_finish__2', 'Mix joint compound to working consistency', 1, false),
+  ('drywall_hang_finish__2__t2', 'drywall_hang_finish__2', 'Apply tape to all flat seams', 2, false),
+  ('drywall_hang_finish__2__t3', 'drywall_hang_finish__2', 'Apply paper tape or mesh to inside corners', 3, false),
+  ('drywall_hang_finish__2__t4', 'drywall_hang_finish__2', 'Install metal/paper-faced corner bead on outside corners', 4, false),
+  ('drywall_hang_finish__2__t5', 'drywall_hang_finish__2', 'Skim screw holes', 5, false),
+  ('drywall_hang_finish__2__t6', 'drywall_hang_finish__2', 'First-coat all seams', 6, false),
+  ('drywall_hang_finish__2__t7', 'drywall_hang_finish__2', 'Photo: tape work for record', 7, false);
+INSERT INTO template_materials (id, phase_id, name, estimated_cost, category, optional, sort_order) VALUES
+  ('drywall_hang_finish__2__m1', 'drywall_hang_finish__2', 'All-purpose joint compound (5gal)', 17, 'Mud', false, 1),
+  ('drywall_hang_finish__2__m2', 'drywall_hang_finish__2', 'Paper tape (500ft roll)', 6, 'Tape', false, 2),
+  ('drywall_hang_finish__2__m3', 'drywall_hang_finish__2', 'Mesh tape (300ft)', 8, 'Tape', true, 3),
+  ('drywall_hang_finish__2__m4', 'drywall_hang_finish__2', 'Metal corner bead (8ft)', 3, 'Corner Bead', false, 4),
+  ('drywall_hang_finish__2__m5', 'drywall_hang_finish__2', 'Paper-faced corner bead', 5, 'Corner Bead', true, 5);
+INSERT INTO template_phases (id, template_id, name, sort_order, estimated_days, description, inspection_required) VALUES ('drywall_hang_finish__3', 'drywall_hang_finish', 'Second & Third Coat', 3, 2, 'Wider knife each pass, feather every edge. Two more coats with overnight dry between.', NULL);
+INSERT INTO template_tasks (id, phase_id, name, sort_order, optional) VALUES
+  ('drywall_hang_finish__3__t1', 'drywall_hang_finish__3', 'Sand first coat lightly', 1, false),
+  ('drywall_hang_finish__3__t2', 'drywall_hang_finish__3', 'Apply second coat with 8-10" knife, feather wide', 2, false),
+  ('drywall_hang_finish__3__t3', 'drywall_hang_finish__3', 'Let dry overnight', 3, false),
+  ('drywall_hang_finish__3__t4', 'drywall_hang_finish__3', 'Spot-fix any low spots, divots', 4, false),
+  ('drywall_hang_finish__3__t5', 'drywall_hang_finish__3', 'Apply third / skim coat with 12" knife', 5, false),
+  ('drywall_hang_finish__3__t6', 'drywall_hang_finish__3', 'Let dry fully (24h+)', 6, false);
+INSERT INTO template_materials (id, phase_id, name, estimated_cost, category, optional, sort_order) VALUES
+  ('drywall_hang_finish__3__m1', 'drywall_hang_finish__3', 'Topping/finish compound (5gal)', 17, 'Mud', false, 1),
+  ('drywall_hang_finish__3__m2', 'drywall_hang_finish__3', 'Sanding sponges (medium)', 4, 'Sanding', false, 2);
+INSERT INTO template_phases (id, template_id, name, sort_order, estimated_days, description, inspection_required) VALUES ('drywall_hang_finish__4', 'drywall_hang_finish', 'Sand & Punch', 4, 1, 'Final sand, walk-through with raking light, fix anything that telegraphs.', 'GC walk-through before paint');
+INSERT INTO template_tasks (id, phase_id, name, sort_order, optional) VALUES
+  ('drywall_hang_finish__4__t1', 'drywall_hang_finish__4', 'Pole-sand all flats with 220 grit', 1, false),
+  ('drywall_hang_finish__4__t2', 'drywall_hang_finish__4', 'Hand-sand corners and edges', 2, false),
+  ('drywall_hang_finish__4__t3', 'drywall_hang_finish__4', 'Raking-light walk-through (flashlight on the wall)', 3, false),
+  ('drywall_hang_finish__4__t4', 'drywall_hang_finish__4', 'Skim any divots, sand again', 4, false),
+  ('drywall_hang_finish__4__t5', 'drywall_hang_finish__4', 'Vacuum and broom-clean room', 5, false),
+  ('drywall_hang_finish__4__t6', 'drywall_hang_finish__4', 'Wipe walls down with damp rag (paint prep)', 6, false),
+  ('drywall_hang_finish__4__t7', 'drywall_hang_finish__4', 'GC walk-through and sign-off', 7, false);
+INSERT INTO template_materials (id, phase_id, name, estimated_cost, category, optional, sort_order) VALUES
+  ('drywall_hang_finish__4__m1', 'drywall_hang_finish__4', 'Sandpaper / drywall sanding screens', 12, 'Sanding', false, 1),
+  ('drywall_hang_finish__4__m2', 'drywall_hang_finish__4', 'Dust masks (N95, box)', 18, 'Safety', false, 2),
+  ('drywall_hang_finish__4__m3', 'drywall_hang_finish__4', 'Plastic sheeting / dust containment', 25, 'Containment', true, 3);
+
+-- Drywall Patch & Repair (drywall)
+INSERT INTO project_templates (id, name, icon, category, trade, description, estimated_days, estimated_budget_low, estimated_budget_high, sort_order) VALUES ('drywall_patch_repair', 'Drywall Patch & Repair', 'build', 'Repair', 'drywall', 'Targeted patches — door knob holes, water damage, settlement cracks. Match existing texture and prep for paint.', 2, 250, 900, 20);
+INSERT INTO template_phases (id, template_id, name, sort_order, estimated_days, description, inspection_required) VALUES ('drywall_patch_repair__1', 'drywall_patch_repair', 'Assess & Cut Out', 1, 1, 'Inspect damage, cut clean square around each patch, install backing if needed.', NULL);
+INSERT INTO template_tasks (id, phase_id, name, sort_order, optional) VALUES
+  ('drywall_patch_repair__1__t1', 'drywall_patch_repair__1', 'Walk job, photograph each patch location', 1, false),
+  ('drywall_patch_repair__1__t2', 'drywall_patch_repair__1', 'Cut damaged sections to clean rectangles', 2, false),
+  ('drywall_patch_repair__1__t3', 'drywall_patch_repair__1', 'Install backing strips behind each patch', 3, false),
+  ('drywall_patch_repair__1__t4', 'drywall_patch_repair__1', 'Cut new drywall to fit, screw in place', 4, false);
+INSERT INTO template_materials (id, phase_id, name, estimated_cost, category, optional, sort_order) VALUES
+  ('drywall_patch_repair__1__m1', 'drywall_patch_repair__1', 'Drywall scraps (1/2" off-cuts)', 0, 'Sheetrock', false, 1),
+  ('drywall_patch_repair__1__m2', 'drywall_patch_repair__1', 'Backing strips (1x3 or plywood)', 8, 'Backing', false, 2),
+  ('drywall_patch_repair__1__m3', 'drywall_patch_repair__1', 'Drywall screws', 6, 'Fasteners', false, 3);
+INSERT INTO template_phases (id, template_id, name, sort_order, estimated_days, description, inspection_required) VALUES ('drywall_patch_repair__2', 'drywall_patch_repair', 'Tape, Mud, Texture', 2, 1, 'Tape, three-coat each patch, then texture-match.', NULL);
+INSERT INTO template_tasks (id, phase_id, name, sort_order, optional) VALUES
+  ('drywall_patch_repair__2__t1', 'drywall_patch_repair__2', 'Tape and first-coat each patch', 1, false),
+  ('drywall_patch_repair__2__t2', 'drywall_patch_repair__2', 'Second coat, feather wide', 2, false),
+  ('drywall_patch_repair__2__t3', 'drywall_patch_repair__2', 'Third coat / skim', 3, false),
+  ('drywall_patch_repair__2__t4', 'drywall_patch_repair__2', 'Sand smooth', 4, false),
+  ('drywall_patch_repair__2__t5', 'drywall_patch_repair__2', 'Match existing texture (orange peel / knockdown / smooth)', 5, false),
+  ('drywall_patch_repair__2__t6', 'drywall_patch_repair__2', 'Let dry, prime patches', 6, false);
+INSERT INTO template_materials (id, phase_id, name, estimated_cost, category, optional, sort_order) VALUES
+  ('drywall_patch_repair__2__m1', 'drywall_patch_repair__2', 'Joint compound (1gal pail)', 8, 'Mud', false, 1),
+  ('drywall_patch_repair__2__m2', 'drywall_patch_repair__2', 'Mesh tape (300ft)', 8, 'Tape', false, 2),
+  ('drywall_patch_repair__2__m3', 'drywall_patch_repair__2', 'Aerosol orange peel / knockdown', 12, 'Texture', true, 3),
+  ('drywall_patch_repair__2__m4', 'drywall_patch_repair__2', 'PVA primer (1gal)', 18, 'Primer', false, 4);
+
+-- Interior Wall Framing (framing)
+INSERT INTO project_templates (id, name, icon, category, trade, description, estimated_days, estimated_budget_low, estimated_budget_high, sort_order) VALUES ('framing_interior_wall', 'Interior Wall Framing', 'hammer', 'Install', 'framing', 'Frame a non-load-bearing interior wall — stud layout, top and bottom plates, door rough opening.', 2, 600, 1800, 21);
+INSERT INTO template_phases (id, template_id, name, sort_order, estimated_days, description, inspection_required) VALUES ('framing_interior_wall__1', 'framing_interior_wall', 'Layout & Plates', 1, 1, 'Snap lines on floor and ceiling, install top and bottom plates.', NULL);
+INSERT INTO template_tasks (id, phase_id, name, sort_order, optional) VALUES
+  ('framing_interior_wall__1__t1', 'framing_interior_wall__1', 'Confirm wall location with GC / plans', 1, false),
+  ('framing_interior_wall__1__t2', 'framing_interior_wall__1', 'Snap chalk line on floor (bottom plate)', 2, false),
+  ('framing_interior_wall__1__t3', 'framing_interior_wall__1', 'Plumb up to ceiling, snap matching line', 3, false),
+  ('framing_interior_wall__1__t4', 'framing_interior_wall__1', 'Cut top and bottom plates to length', 4, false),
+  ('framing_interior_wall__1__t5', 'framing_interior_wall__1', 'Mark stud layout on plates (16" o.c.)', 5, false),
+  ('framing_interior_wall__1__t6', 'framing_interior_wall__1', 'Mark door rough opening (RO)', 6, false),
+  ('framing_interior_wall__1__t7', 'framing_interior_wall__1', 'Anchor bottom plate to floor (concrete: powder-actuated; wood: screws)', 7, false),
+  ('framing_interior_wall__1__t8', 'framing_interior_wall__1', 'Anchor top plate to ceiling joists / blocking', 8, false);
+INSERT INTO template_materials (id, phase_id, name, estimated_cost, category, optional, sort_order) VALUES
+  ('framing_interior_wall__1__m1', 'framing_interior_wall__1', '2x4 SPF studs (8ft)', 4, 'Lumber', false, 1),
+  ('framing_interior_wall__1__m2', 'framing_interior_wall__1', 'Pressure-treated 2x4 (bottom plate, concrete)', 6, 'Lumber', true, 2),
+  ('framing_interior_wall__1__m3', 'framing_interior_wall__1', '3" framing screws (5lb)', 25, 'Fasteners', false, 3),
+  ('framing_interior_wall__1__m4', 'framing_interior_wall__1', 'Powder-actuated nails (concrete plate)', 18, 'Fasteners', true, 4),
+  ('framing_interior_wall__1__m5', 'framing_interior_wall__1', 'Construction adhesive', 6, 'Adhesive', false, 5);
+INSERT INTO template_phases (id, template_id, name, sort_order, estimated_days, description, inspection_required) VALUES ('framing_interior_wall__2', 'framing_interior_wall', 'Stud Up', 2, 1, 'Cut studs, install at layout, frame the door rough opening with king + jack studs and header.', 'Framing inspection (if permitted)');
+INSERT INTO template_tasks (id, phase_id, name, sort_order, optional) VALUES
+  ('framing_interior_wall__2__t1', 'framing_interior_wall__2', 'Measure and cut studs to height', 1, false),
+  ('framing_interior_wall__2__t2', 'framing_interior_wall__2', 'Toenail or screw studs to plates at layout', 2, false),
+  ('framing_interior_wall__2__t3', 'framing_interior_wall__2', 'Install king studs at door RO', 3, false),
+  ('framing_interior_wall__2__t4', 'framing_interior_wall__2', 'Install jack studs (cripples)', 4, false),
+  ('framing_interior_wall__2__t5', 'framing_interior_wall__2', 'Cut and install door header (2x6 doubled or LVL)', 5, false),
+  ('framing_interior_wall__2__t6', 'framing_interior_wall__2', 'Install cripple studs above header', 6, false),
+  ('framing_interior_wall__2__t7', 'framing_interior_wall__2', 'Plumb and brace wall', 7, false),
+  ('framing_interior_wall__2__t8', 'framing_interior_wall__2', 'Add blocking for fixtures, towel bars, TVs as needed', 8, false),
+  ('framing_interior_wall__2__t9', 'framing_interior_wall__2', 'Walk-through with GC for sign-off', 9, false);
+INSERT INTO template_materials (id, phase_id, name, estimated_cost, category, optional, sort_order) VALUES
+  ('framing_interior_wall__2__m1', 'framing_interior_wall__2', '2x4 SPF studs (8ft)', 4, 'Lumber', false, 1),
+  ('framing_interior_wall__2__m2', 'framing_interior_wall__2', '2x6 header stock', 10, 'Lumber', false, 2),
+  ('framing_interior_wall__2__m3', 'framing_interior_wall__2', 'Joist hangers / framing connectors', 4, 'Hardware', true, 3),
+  ('framing_interior_wall__2__m4', 'framing_interior_wall__2', '16d framing nails (5lb)', 22, 'Fasteners', false, 4);
+
+-- Deck Framing (framing)
+INSERT INTO project_templates (id, name, icon, category, trade, description, estimated_days, estimated_budget_low, estimated_budget_high, sort_order) VALUES ('framing_deck', 'Deck Framing', 'hammer', 'Install', 'framing', 'Frame a residential deck — ledger to house, posts, beams, joists. Decking and railing are separate scopes.', 4, 3500, 9000, 22);
+INSERT INTO template_phases (id, template_id, name, sort_order, estimated_days, description, inspection_required) VALUES ('framing_deck__1', 'framing_deck', 'Footings & Ledger', 1, 1, 'Locate and pour footings, attach ledger to house with proper flashing.', 'Footing inspection');
+INSERT INTO template_tasks (id, phase_id, name, sort_order, optional) VALUES
+  ('framing_deck__1__t1', 'framing_deck__1', 'Verify deck layout with GC / plans', 1, false),
+  ('framing_deck__1__t2', 'framing_deck__1', 'Mark footing locations', 2, false),
+  ('framing_deck__1__t3', 'framing_deck__1', 'Dig footings to frost depth', 3, false),
+  ('framing_deck__1__t4', 'framing_deck__1', 'Set sonotubes, level, pour concrete', 4, false),
+  ('framing_deck__1__t5', 'framing_deck__1', 'Set post anchors / J-bolts in wet concrete', 5, false),
+  ('framing_deck__1__t6', 'framing_deck__1', 'Cut ledger board to length', 6, false),
+  ('framing_deck__1__t7', 'framing_deck__1', 'Attach Z-flashing or deck flashing kit to house', 7, false),
+  ('framing_deck__1__t8', 'framing_deck__1', 'Lag-bolt ledger to house rim joist (6" o.c.)', 8, false),
+  ('framing_deck__1__t9', 'framing_deck__1', 'Schedule footing inspection', 9, false);
+INSERT INTO template_materials (id, phase_id, name, estimated_cost, category, optional, sort_order) VALUES
+  ('framing_deck__1__m1', 'framing_deck__1', 'Sonotube (10")', 18, 'Concrete', false, 1),
+  ('framing_deck__1__m2', 'framing_deck__1', 'Ready-mix concrete (60lb bag)', 7, 'Concrete', false, 2),
+  ('framing_deck__1__m3', 'framing_deck__1', 'Post anchor / Simpson PB44', 12, 'Hardware', false, 3),
+  ('framing_deck__1__m4', 'framing_deck__1', '2x10 PT ledger', 25, 'Lumber', false, 4),
+  ('framing_deck__1__m5', 'framing_deck__1', '1/2" x 6" lag bolts (10ct)', 18, 'Fasteners', false, 5),
+  ('framing_deck__1__m6', 'framing_deck__1', 'Deck flashing tape / Z-flashing', 22, 'Flashing', false, 6);
+INSERT INTO template_phases (id, template_id, name, sort_order, estimated_days, description, inspection_required) VALUES ('framing_deck__2', 'framing_deck', 'Posts & Beams', 2, 1, 'Set posts, build and install beam, anchor to posts.', NULL);
+INSERT INTO template_tasks (id, phase_id, name, sort_order, optional) VALUES
+  ('framing_deck__2__t1', 'framing_deck__2', 'Cut 6x6 posts to height', 1, false),
+  ('framing_deck__2__t2', 'framing_deck__2', 'Set posts in anchors, plumb, brace', 2, false),
+  ('framing_deck__2__t3', 'framing_deck__2', 'Build doubled 2x10 beam', 3, false),
+  ('framing_deck__2__t4', 'framing_deck__2', 'Lift beam onto post tops', 4, false),
+  ('framing_deck__2__t5', 'framing_deck__2', 'Notch posts or install post-cap brackets', 5, false),
+  ('framing_deck__2__t6', 'framing_deck__2', 'Through-bolt beam to posts', 6, false);
+INSERT INTO template_materials (id, phase_id, name, estimated_cost, category, optional, sort_order) VALUES
+  ('framing_deck__2__m1', 'framing_deck__2', '6x6 PT post (10ft)', 38, 'Lumber', false, 1),
+  ('framing_deck__2__m2', 'framing_deck__2', '2x10 PT beam stock', 25, 'Lumber', false, 2),
+  ('framing_deck__2__m3', 'framing_deck__2', 'Simpson post cap (6x6 to dbl 2x10)', 22, 'Hardware', false, 3),
+  ('framing_deck__2__m4', 'framing_deck__2', '5/8" carriage bolts + washers', 14, 'Fasteners', false, 4);
+INSERT INTO template_phases (id, template_id, name, sort_order, estimated_days, description, inspection_required) VALUES ('framing_deck__3', 'framing_deck', 'Joists', 3, 1, 'Hang joists from ledger to beam, blocking, joist tape on tops.', NULL);
+INSERT INTO template_tasks (id, phase_id, name, sort_order, optional) VALUES
+  ('framing_deck__3__t1', 'framing_deck__3', 'Mark joist layout (16" o.c.) on ledger and beam', 1, false),
+  ('framing_deck__3__t2', 'framing_deck__3', 'Cut joists to length', 2, false),
+  ('framing_deck__3__t3', 'framing_deck__3', 'Install joist hangers on ledger', 3, false),
+  ('framing_deck__3__t4', 'framing_deck__3', 'Set joists, nail to hangers + toenail at beam', 4, false),
+  ('framing_deck__3__t5', 'framing_deck__3', 'Install rim joists', 5, false),
+  ('framing_deck__3__t6', 'framing_deck__3', 'Install blocking mid-span', 6, false),
+  ('framing_deck__3__t7', 'framing_deck__3', 'Apply joist tape to all joist tops', 7, false);
+INSERT INTO template_materials (id, phase_id, name, estimated_cost, category, optional, sort_order) VALUES
+  ('framing_deck__3__m1', 'framing_deck__3', '2x10 PT joist (16ft)', 32, 'Lumber', false, 1),
+  ('framing_deck__3__m2', 'framing_deck__3', 'Simpson LUS210 joist hangers (10ct)', 32, 'Hardware', false, 2),
+  ('framing_deck__3__m3', 'framing_deck__3', 'Joist hanger nails (1lb)', 12, 'Fasteners', false, 3),
+  ('framing_deck__3__m4', 'framing_deck__3', 'Joist tape / butyl flashing', 28, 'Flashing', false, 4);
+INSERT INTO template_phases (id, template_id, name, sort_order, estimated_days, description, inspection_required) VALUES ('framing_deck__4', 'framing_deck', 'Inspection & Punch', 4, 1, 'Schedule framing inspection, address any items, hand off to decking trade.', 'Framing inspection');
+INSERT INTO template_tasks (id, phase_id, name, sort_order, optional) VALUES
+  ('framing_deck__4__t1', 'framing_deck__4', 'Walk frame, square check', 1, false),
+  ('framing_deck__4__t2', 'framing_deck__4', 'Verify lateral connector (DTT2Z) on ledger ends', 2, false),
+  ('framing_deck__4__t3', 'framing_deck__4', 'Schedule framing inspection', 3, false),
+  ('framing_deck__4__t4', 'framing_deck__4', 'Address inspector punch list', 4, false),
+  ('framing_deck__4__t5', 'framing_deck__4', 'Photo: complete frame for record', 5, false),
+  ('framing_deck__4__t6', 'framing_deck__4', 'GC sign-off, hand off to decking trade', 6, false);
+INSERT INTO template_materials (id, phase_id, name, estimated_cost, category, optional, sort_order) VALUES
+  ('framing_deck__4__m1', 'framing_deck__4', 'Simpson DTT2Z lateral connector (2pk)', 24, 'Hardware', false, 1);
+
+-- Interior Repaint (painting)
+INSERT INTO project_templates (id, name, icon, category, trade, description, estimated_days, estimated_budget_low, estimated_budget_high, sort_order) VALUES ('painting_interior_repaint', 'Interior Repaint', 'color-palette', 'Refinish', 'painting', 'Walls, ceilings, and trim throughout an occupied home or unit. Wash, prime spots as needed, two coats of finish.', 4, 1800, 6500, 23);
+INSERT INTO template_phases (id, template_id, name, sort_order, estimated_days, description, inspection_required) VALUES ('painting_interior_repaint__1', 'painting_interior_repaint', 'Prep', 1, 1, 'Move furniture or cover, mask trim and floors, patch and sand.', NULL);
+INSERT INTO template_tasks (id, phase_id, name, sort_order, optional) VALUES
+  ('painting_interior_repaint__1__t1', 'painting_interior_repaint__1', 'Walk-through with homeowner / GC, confirm scope', 1, false),
+  ('painting_interior_repaint__1__t2', 'painting_interior_repaint__1', 'Move furniture to center, cover with drops', 2, false),
+  ('painting_interior_repaint__1__t3', 'painting_interior_repaint__1', 'Remove outlet / switch covers', 3, false),
+  ('painting_interior_repaint__1__t4', 'painting_interior_repaint__1', 'Cover floors, baseboards, doorways with paper / plastic', 4, false),
+  ('painting_interior_repaint__1__t5', 'painting_interior_repaint__1', 'Patch nail holes and dings', 5, false),
+  ('painting_interior_repaint__1__t6', 'painting_interior_repaint__1', 'Caulk trim seams and gaps', 6, false),
+  ('painting_interior_repaint__1__t7', 'painting_interior_repaint__1', 'Sand patches and glossy surfaces', 7, false),
+  ('painting_interior_repaint__1__t8', 'painting_interior_repaint__1', 'Vacuum and tack-cloth all surfaces', 8, false);
+INSERT INTO template_materials (id, phase_id, name, estimated_cost, category, optional, sort_order) VALUES
+  ('painting_interior_repaint__1__m1', 'painting_interior_repaint__1', 'Painters tape (FrogTape, 60yd)', 9, 'Masking', false, 1),
+  ('painting_interior_repaint__1__m2', 'painting_interior_repaint__1', 'Drop cloths (canvas 9x12, 4pk)', 60, 'Masking', false, 2),
+  ('painting_interior_repaint__1__m3', 'painting_interior_repaint__1', 'Spackle (1qt)', 8, 'Patching', false, 3),
+  ('painting_interior_repaint__1__m4', 'painting_interior_repaint__1', 'Acrylic latex caulk (10oz tubes, 12pk)', 45, 'Caulk', false, 4),
+  ('painting_interior_repaint__1__m5', 'painting_interior_repaint__1', 'Sanding sponges', 8, 'Sanding', false, 5),
+  ('painting_interior_repaint__1__m6', 'painting_interior_repaint__1', 'Plastic sheeting (3.5mil 9x400)', 30, 'Masking', false, 6);
+INSERT INTO template_phases (id, template_id, name, sort_order, estimated_days, description, inspection_required) VALUES ('painting_interior_repaint__2', 'painting_interior_repaint', 'Prime as Needed', 2, 1, 'Spot-prime patches, stains, fresh drywall. Full primer only on color changes ≥2 shades.', NULL);
+INSERT INTO template_tasks (id, phase_id, name, sort_order, optional) VALUES
+  ('painting_interior_repaint__2__t1', 'painting_interior_repaint__2', 'Spot-prime all patches', 1, false),
+  ('painting_interior_repaint__2__t2', 'painting_interior_repaint__2', 'Stain-block any water marks (Kilz / BIN)', 2, false),
+  ('painting_interior_repaint__2__t3', 'painting_interior_repaint__2', 'Tannin-block over knots if natural wood is exposed', 3, false),
+  ('painting_interior_repaint__2__t4', 'painting_interior_repaint__2', 'Roll full primer if going light over dark', 4, false),
+  ('painting_interior_repaint__2__t5', 'painting_interior_repaint__2', 'Let primer dry per spec (1-2h)', 5, false);
+INSERT INTO template_materials (id, phase_id, name, estimated_cost, category, optional, sort_order) VALUES
+  ('painting_interior_repaint__2__m1', 'painting_interior_repaint__2', 'PVA drywall primer (1gal)', 22, 'Primer', false, 1),
+  ('painting_interior_repaint__2__m2', 'painting_interior_repaint__2', 'Stain-blocking primer (Kilz Original, 1qt)', 14, 'Primer', false, 2),
+  ('painting_interior_repaint__2__m3', 'painting_interior_repaint__2', 'Shellac primer (BIN, 1qt)', 18, 'Primer', true, 3);
+INSERT INTO template_phases (id, template_id, name, sort_order, estimated_days, description, inspection_required) VALUES ('painting_interior_repaint__3', 'painting_interior_repaint', 'Walls & Ceilings', 3, 1, 'Cut in, then roll. Two coats. Ceilings before walls.', NULL);
+INSERT INTO template_tasks (id, phase_id, name, sort_order, optional) VALUES
+  ('painting_interior_repaint__3__t1', 'painting_interior_repaint__3', 'Cut in ceilings with brush', 1, false),
+  ('painting_interior_repaint__3__t2', 'painting_interior_repaint__3', 'Roll ceilings (overlap wet edges)', 2, false),
+  ('painting_interior_repaint__3__t3', 'painting_interior_repaint__3', 'Cut in walls at ceiling, baseboard, corners', 3, false),
+  ('painting_interior_repaint__3__t4', 'painting_interior_repaint__3', 'Roll walls, top to bottom, maintain wet edge', 4, false),
+  ('painting_interior_repaint__3__t5', 'painting_interior_repaint__3', 'Let first coat dry per spec (2-4h)', 5, false),
+  ('painting_interior_repaint__3__t6', 'painting_interior_repaint__3', 'Second coat: cut + roll', 6, false),
+  ('painting_interior_repaint__3__t7', 'painting_interior_repaint__3', 'Inspect under bright light, touch up holidays', 7, false);
+INSERT INTO template_materials (id, phase_id, name, estimated_cost, category, optional, sort_order) VALUES
+  ('painting_interior_repaint__3__m1', 'painting_interior_repaint__3', 'Wall paint (1gal, eggshell)', 55, 'Paint', false, 1),
+  ('painting_interior_repaint__3__m2', 'painting_interior_repaint__3', 'Ceiling paint (5gal flat)', 130, 'Paint', false, 2),
+  ('painting_interior_repaint__3__m3', 'painting_interior_repaint__3', 'Roller covers (3pk, 3/8" nap)', 14, 'Tools', false, 3),
+  ('painting_interior_repaint__3__m4', 'painting_interior_repaint__3', 'Brushes (2.5" angled sash, 2pk)', 22, 'Tools', false, 4),
+  ('painting_interior_repaint__3__m5', 'painting_interior_repaint__3', 'Roller tray + liners', 18, 'Tools', false, 5);
+INSERT INTO template_phases (id, template_id, name, sort_order, estimated_days, description, inspection_required) VALUES ('painting_interior_repaint__4', 'painting_interior_repaint', 'Trim & Punch', 4, 1, 'Trim, doors, baseboards, then walk-through and touch up.', NULL);
+INSERT INTO template_tasks (id, phase_id, name, sort_order, optional) VALUES
+  ('painting_interior_repaint__4__t1', 'painting_interior_repaint__4', 'Mask floor along baseboards', 1, false),
+  ('painting_interior_repaint__4__t2', 'painting_interior_repaint__4', 'Brush baseboards (two coats)', 2, false),
+  ('painting_interior_repaint__4__t3', 'painting_interior_repaint__4', 'Brush window and door casings', 3, false),
+  ('painting_interior_repaint__4__t4', 'painting_interior_repaint__4', 'Brush doors and door tops/bottoms', 4, false),
+  ('painting_interior_repaint__4__t5', 'painting_interior_repaint__4', 'Pull tape while paint is still tacky', 5, false),
+  ('painting_interior_repaint__4__t6', 'painting_interior_repaint__4', 'Reinstall outlet / switch covers', 6, false),
+  ('painting_interior_repaint__4__t7', 'painting_interior_repaint__4', 'Walk-through with homeowner / GC', 7, false),
+  ('painting_interior_repaint__4__t8', 'painting_interior_repaint__4', 'Touch up any holidays or smudges', 8, false),
+  ('painting_interior_repaint__4__t9', 'painting_interior_repaint__4', 'Clean brushes, drops, haul out', 9, false);
+INSERT INTO template_materials (id, phase_id, name, estimated_cost, category, optional, sort_order) VALUES
+  ('painting_interior_repaint__4__m1', 'painting_interior_repaint__4', 'Trim paint (1gal, semi-gloss)', 60, 'Paint', false, 1),
+  ('painting_interior_repaint__4__m2', 'painting_interior_repaint__4', 'Touch-up brush (1.5")', 8, 'Tools', false, 2);
+
+-- Exterior Repaint (painting)
+INSERT INTO project_templates (id, name, icon, category, trade, description, estimated_days, estimated_budget_low, estimated_budget_high, sort_order) VALUES ('painting_exterior_repaint', 'Exterior Repaint', 'color-palette', 'Refinish', 'painting', 'Pressure-wash, scrape, prime bare wood, two coats acrylic latex on body and trim.', 5, 3500, 9500, 24);
+INSERT INTO template_phases (id, template_id, name, sort_order, estimated_days, description, inspection_required) VALUES ('painting_exterior_repaint__1', 'painting_exterior_repaint', 'Wash & Prep', 1, 1, 'Pressure-wash, scrape loose paint, sand glossy spots.', NULL);
+INSERT INTO template_tasks (id, phase_id, name, sort_order, optional) VALUES
+  ('painting_exterior_repaint__1__t1', 'painting_exterior_repaint__1', 'Pressure-wash all surfaces (start top, work down)', 1, false),
+  ('painting_exterior_repaint__1__t2', 'painting_exterior_repaint__1', 'Let house dry 24h+', 2, false),
+  ('painting_exterior_repaint__1__t3', 'painting_exterior_repaint__1', 'Scrape all loose / failing paint', 3, false),
+  ('painting_exterior_repaint__1__t4', 'painting_exterior_repaint__1', 'Sand transitions, glossy areas', 4, false),
+  ('painting_exterior_repaint__1__t5', 'painting_exterior_repaint__1', 'Caulk gaps in trim, around windows / doors', 5, false),
+  ('painting_exterior_repaint__1__t6', 'painting_exterior_repaint__1', 'Patch wood damage, replace rotted trim where needed', 6, false);
+INSERT INTO template_materials (id, phase_id, name, estimated_cost, category, optional, sort_order) VALUES
+  ('painting_exterior_repaint__1__m1', 'painting_exterior_repaint__1', 'Pressure washer rental (1 day)', 75, 'Tools', false, 1),
+  ('painting_exterior_repaint__1__m2', 'painting_exterior_repaint__1', 'Acrylic exterior caulk (DAP Dynaflex, 12pk)', 75, 'Caulk', false, 2),
+  ('painting_exterior_repaint__1__m3', 'painting_exterior_repaint__1', 'Scrapers + sanding sponges', 22, 'Tools', false, 3);
+INSERT INTO template_phases (id, template_id, name, sort_order, estimated_days, description, inspection_required) VALUES ('painting_exterior_repaint__2', 'painting_exterior_repaint', 'Mask & Cover', 2, 1, 'Cover landscaping, mask windows, doors, light fixtures, AC unit.', NULL);
+INSERT INTO template_tasks (id, phase_id, name, sort_order, optional) VALUES
+  ('painting_exterior_repaint__2__t1', 'painting_exterior_repaint__2', 'Cover plants and shrubs with breathable drops', 1, false),
+  ('painting_exterior_repaint__2__t2', 'painting_exterior_repaint__2', 'Mask windows with paper + tape', 2, false),
+  ('painting_exterior_repaint__2__t3', 'painting_exterior_repaint__2', 'Mask door hardware and lights', 3, false),
+  ('painting_exterior_repaint__2__t4', 'painting_exterior_repaint__2', 'Cover AC condenser', 4, false),
+  ('painting_exterior_repaint__2__t5', 'painting_exterior_repaint__2', 'Drop ground at every face', 5, false);
+INSERT INTO template_materials (id, phase_id, name, estimated_cost, category, optional, sort_order) VALUES
+  ('painting_exterior_repaint__2__m1', 'painting_exterior_repaint__2', 'Painters plastic sheeting (10x100)', 35, 'Masking', false, 1),
+  ('painting_exterior_repaint__2__m2', 'painting_exterior_repaint__2', 'Masking paper (12" x 60yd)', 25, 'Masking', false, 2),
+  ('painting_exterior_repaint__2__m3', 'painting_exterior_repaint__2', 'Painters tape (ScotchBlue, exterior)', 32, 'Masking', false, 3);
+INSERT INTO template_phases (id, template_id, name, sort_order, estimated_days, description, inspection_required) VALUES ('painting_exterior_repaint__3', 'painting_exterior_repaint', 'Prime', 3, 1, 'Spot-prime bare wood and stain-prone areas. Full prime only if specified.', NULL);
+INSERT INTO template_tasks (id, phase_id, name, sort_order, optional) VALUES
+  ('painting_exterior_repaint__3__t1', 'painting_exterior_repaint__3', 'Spot-prime all bare wood', 1, false),
+  ('painting_exterior_repaint__3__t2', 'painting_exterior_repaint__3', 'Stain-block knots and tannin areas', 2, false),
+  ('painting_exterior_repaint__3__t3', 'painting_exterior_repaint__3', 'Let primer dry per spec', 3, false);
+INSERT INTO template_materials (id, phase_id, name, estimated_cost, category, optional, sort_order) VALUES
+  ('painting_exterior_repaint__3__m1', 'painting_exterior_repaint__3', 'Exterior bonding primer (Sherwin ProBlock, 1gal)', 48, 'Primer', false, 1),
+  ('painting_exterior_repaint__3__m2', 'painting_exterior_repaint__3', 'Oil stain-blocking primer (Kilz Adhesion, 1qt)', 16, 'Primer', false, 2);
+INSERT INTO template_phases (id, template_id, name, sort_order, estimated_days, description, inspection_required) VALUES ('painting_exterior_repaint__4', 'painting_exterior_repaint', 'Body & Trim', 4, 2, 'Spray or roll body, brush trim. Two coats. Back-roll spray for adhesion.', NULL);
+INSERT INTO template_tasks (id, phase_id, name, sort_order, optional) VALUES
+  ('painting_exterior_repaint__4__t1', 'painting_exterior_repaint__4', 'Cut in eaves and high spots first', 1, false),
+  ('painting_exterior_repaint__4__t2', 'painting_exterior_repaint__4', 'Spray or roll body (first coat)', 2, false),
+  ('painting_exterior_repaint__4__t3', 'painting_exterior_repaint__4', 'Back-roll if sprayed (adhesion)', 3, false),
+  ('painting_exterior_repaint__4__t4', 'painting_exterior_repaint__4', 'Let dry per spec', 4, false),
+  ('painting_exterior_repaint__4__t5', 'painting_exterior_repaint__4', 'Second coat body', 5, false),
+  ('painting_exterior_repaint__4__t6', 'painting_exterior_repaint__4', 'Brush trim (two coats)', 6, false),
+  ('painting_exterior_repaint__4__t7', 'painting_exterior_repaint__4', 'Doors, shutters, accents', 7, false),
+  ('painting_exterior_repaint__4__t8', 'painting_exterior_repaint__4', 'Pull masking, walk-through with GC', 8, false),
+  ('painting_exterior_repaint__4__t9', 'painting_exterior_repaint__4', 'Touch up', 9, false);
+INSERT INTO template_materials (id, phase_id, name, estimated_cost, category, optional, sort_order) VALUES
+  ('painting_exterior_repaint__4__m1', 'painting_exterior_repaint__4', 'Exterior body paint (5gal acrylic latex)', 220, 'Paint', false, 1),
+  ('painting_exterior_repaint__4__m2', 'painting_exterior_repaint__4', 'Trim paint (1gal acrylic, semi-gloss)', 60, 'Paint', false, 2),
+  ('painting_exterior_repaint__4__m3', 'painting_exterior_repaint__4', 'Airless sprayer rental (2 days)', 120, 'Tools', true, 3),
+  ('painting_exterior_repaint__4__m4', 'painting_exterior_repaint__4', 'Roller covers, brushes', 45, 'Tools', false, 4);
+
+-- Asphalt Re-Roof (roofing)
+INSERT INTO project_templates (id, name, icon, category, trade, description, estimated_days, estimated_budget_low, estimated_budget_high, sort_order) VALUES ('roofing_asphalt_reroof', 'Asphalt Re-Roof', 'home', 'Replace', 'roofing', 'Tear off existing layer(s), inspect deck, install ice & water shield, underlayment, drip edge, starter, shingles, ridge.', 3, 7500, 18000, 25);
+INSERT INTO template_phases (id, template_id, name, sort_order, estimated_days, description, inspection_required) VALUES ('roofing_asphalt_reroof__1', 'roofing_asphalt_reroof', 'Tear-Off & Deck Inspection', 1, 1, 'Strip existing roofing to deck, inspect for rot, replace damaged sheathing.', NULL);
+INSERT INTO template_tasks (id, phase_id, name, sort_order, optional) VALUES
+  ('roofing_asphalt_reroof__1__t1', 'roofing_asphalt_reroof__1', 'Set up dump trailer / disposal', 1, false),
+  ('roofing_asphalt_reroof__1__t2', 'roofing_asphalt_reroof__1', 'Tarp landscaping and AC unit', 2, false),
+  ('roofing_asphalt_reroof__1__t3', 'roofing_asphalt_reroof__1', 'Tear off existing shingles, underlayment, flashing', 3, false),
+  ('roofing_asphalt_reroof__1__t4', 'roofing_asphalt_reroof__1', 'Inspect deck for rot or damage', 4, false),
+  ('roofing_asphalt_reroof__1__t5', 'roofing_asphalt_reroof__1', 'Replace damaged sheathing (1/2" CDX)', 5, false),
+  ('roofing_asphalt_reroof__1__t6', 'roofing_asphalt_reroof__1', 'Re-nail any loose decking (8d ringshank, 6" edge / 12" field)', 6, false),
+  ('roofing_asphalt_reroof__1__t7', 'roofing_asphalt_reroof__1', 'Photo: deck condition for record', 7, false);
+INSERT INTO template_materials (id, phase_id, name, estimated_cost, category, optional, sort_order) VALUES
+  ('roofing_asphalt_reroof__1__m1', 'roofing_asphalt_reroof__1', 'Disposal / dump trailer (per ton)', 250, 'Disposal', false, 1),
+  ('roofing_asphalt_reroof__1__m2', 'roofing_asphalt_reroof__1', '1/2" CDX plywood (4x8)', 55, 'Sheathing', false, 2),
+  ('roofing_asphalt_reroof__1__m3', 'roofing_asphalt_reroof__1', '8d ring-shank nails (5lb)', 28, 'Fasteners', false, 3),
+  ('roofing_asphalt_reroof__1__m4', 'roofing_asphalt_reroof__1', 'Tarps for landscaping (10x20, 4pk)', 60, 'Protection', false, 4);
+INSERT INTO template_phases (id, template_id, name, sort_order, estimated_days, description, inspection_required) VALUES ('roofing_asphalt_reroof__2', 'roofing_asphalt_reroof', 'Underlayment & Flashing', 2, 1, 'Drip edge, ice & water at eaves and valleys, synthetic underlayment elsewhere.', NULL);
+INSERT INTO template_tasks (id, phase_id, name, sort_order, optional) VALUES
+  ('roofing_asphalt_reroof__2__t1', 'roofing_asphalt_reroof__2', 'Install drip edge at eaves (under underlayment)', 1, false),
+  ('roofing_asphalt_reroof__2__t2', 'roofing_asphalt_reroof__2', 'Install ice & water shield at eaves (3ft min, 6ft per code in cold climates)', 2, false),
+  ('roofing_asphalt_reroof__2__t3', 'roofing_asphalt_reroof__2', 'Ice & water in all valleys', 3, false),
+  ('roofing_asphalt_reroof__2__t4', 'roofing_asphalt_reroof__2', 'Ice & water around penetrations', 4, false),
+  ('roofing_asphalt_reroof__2__t5', 'roofing_asphalt_reroof__2', 'Roll synthetic underlayment from eaves up', 5, false),
+  ('roofing_asphalt_reroof__2__t6', 'roofing_asphalt_reroof__2', 'Install drip edge at rakes (over underlayment)', 6, false),
+  ('roofing_asphalt_reroof__2__t7', 'roofing_asphalt_reroof__2', 'Step flashing on sidewalls (woven into shingles later)', 7, false);
+INSERT INTO template_materials (id, phase_id, name, estimated_cost, category, optional, sort_order) VALUES
+  ('roofing_asphalt_reroof__2__m1', 'roofing_asphalt_reroof__2', 'Aluminum drip edge (10ft)', 8, 'Flashing', false, 1),
+  ('roofing_asphalt_reroof__2__m2', 'roofing_asphalt_reroof__2', 'Ice & water shield (Grace Ice & Water, 200sf)', 95, 'Underlayment', false, 2),
+  ('roofing_asphalt_reroof__2__m3', 'roofing_asphalt_reroof__2', 'Synthetic underlayment (10sq roll)', 110, 'Underlayment', false, 3),
+  ('roofing_asphalt_reroof__2__m4', 'roofing_asphalt_reroof__2', 'Step flashing (3"x4"x7", box)', 32, 'Flashing', false, 4),
+  ('roofing_asphalt_reroof__2__m5', 'roofing_asphalt_reroof__2', 'Cap nails (1.25", 2500ct)', 38, 'Fasteners', false, 5);
+INSERT INTO template_phases (id, template_id, name, sort_order, estimated_days, description, inspection_required) VALUES ('roofing_asphalt_reroof__3', 'roofing_asphalt_reroof', 'Shingles & Ridge', 3, 1, 'Starter, full courses, ridge cap. Pipe boots and step flashing weave in as we go.', 'Final roofing inspection');
+INSERT INTO template_tasks (id, phase_id, name, sort_order, optional) VALUES
+  ('roofing_asphalt_reroof__3__t1', 'roofing_asphalt_reroof__3', 'Install starter strip at eaves and rakes', 1, false),
+  ('roofing_asphalt_reroof__3__t2', 'roofing_asphalt_reroof__3', 'Snap chalk lines for shingle courses', 2, false),
+  ('roofing_asphalt_reroof__3__t3', 'roofing_asphalt_reroof__3', 'Install shingles per manufacturer (4-nail or 6-nail high-wind)', 3, false),
+  ('roofing_asphalt_reroof__3__t4', 'roofing_asphalt_reroof__3', 'Install pipe boots / vent collars', 4, false),
+  ('roofing_asphalt_reroof__3__t5', 'roofing_asphalt_reroof__3', 'Weave step flashing into shingle courses on sidewalls', 5, false),
+  ('roofing_asphalt_reroof__3__t6', 'roofing_asphalt_reroof__3', 'Trim shingles at valleys, peaks, edges', 6, false),
+  ('roofing_asphalt_reroof__3__t7', 'roofing_asphalt_reroof__3', 'Install ridge vent (if specified)', 7, false),
+  ('roofing_asphalt_reroof__3__t8', 'roofing_asphalt_reroof__3', 'Cap ridge with hip & ridge shingles', 8, false),
+  ('roofing_asphalt_reroof__3__t9', 'roofing_asphalt_reroof__3', 'Magnetic sweep yard for nails (twice)', 9, false),
+  ('roofing_asphalt_reroof__3__t10', 'roofing_asphalt_reroof__3', 'Photo: completed roof, all flashings', 10, false),
+  ('roofing_asphalt_reroof__3__t11', 'roofing_asphalt_reroof__3', 'Schedule final inspection', 11, false);
+INSERT INTO template_materials (id, phase_id, name, estimated_cost, category, optional, sort_order) VALUES
+  ('roofing_asphalt_reroof__3__m1', 'roofing_asphalt_reroof__3', 'Architectural shingles (per square)', 110, 'Shingles', false, 1),
+  ('roofing_asphalt_reroof__3__m2', 'roofing_asphalt_reroof__3', 'Starter strip', 60, 'Shingles', false, 2),
+  ('roofing_asphalt_reroof__3__m3', 'roofing_asphalt_reroof__3', 'Hip & ridge shingles', 75, 'Shingles', false, 3),
+  ('roofing_asphalt_reroof__3__m4', 'roofing_asphalt_reroof__3', 'Roofing nails (1.25" galvanized, 5lb)', 22, 'Fasteners', false, 4),
+  ('roofing_asphalt_reroof__3__m5', 'roofing_asphalt_reroof__3', 'Pipe boots (1.5", 2", 3")', 18, 'Flashing', false, 5),
+  ('roofing_asphalt_reroof__3__m6', 'roofing_asphalt_reroof__3', 'Ridge vent (10ft)', 24, 'Ventilation', true, 6),
+  ('roofing_asphalt_reroof__3__m7', 'roofing_asphalt_reroof__3', 'Roofing sealant / NP1', 12, 'Sealant', false, 7);
+
+-- Roof Repair (roofing)
+INSERT INTO project_templates (id, name, icon, category, trade, description, estimated_days, estimated_budget_low, estimated_budget_high, sort_order) VALUES ('roofing_repair', 'Roof Repair', 'build', 'Repair', 'roofing', 'Targeted repair — flashing, missing shingles, pipe boot replacement, leak chase. Diagnostic-first.', 1, 350, 1500, 26);
+INSERT INTO template_phases (id, template_id, name, sort_order, estimated_days, description, inspection_required) VALUES ('roofing_repair__1', 'roofing_repair', 'Diagnose', 1, 1, 'Find the actual leak source. Water travels — entry point may be feet from the ceiling stain.', NULL);
+INSERT INTO template_tasks (id, phase_id, name, sort_order, optional) VALUES
+  ('roofing_repair__1__t1', 'roofing_repair__1', 'Interior inspection: locate stain, attic check', 1, false),
+  ('roofing_repair__1__t2', 'roofing_repair__1', 'Roof inspection: missing shingles, flashing, boots', 2, false),
+  ('roofing_repair__1__t3', 'roofing_repair__1', 'Photo every suspect area', 3, false),
+  ('roofing_repair__1__t4', 'roofing_repair__1', 'Hose test if needed (start low, work up)', 4, false),
+  ('roofing_repair__1__t5', 'roofing_repair__1', 'Identify leak source(s)', 5, false),
+  ('roofing_repair__1__t6', 'roofing_repair__1', 'Walk findings with GC / homeowner', 6, false);
+INSERT INTO template_materials (id, phase_id, name, estimated_cost, category, optional, sort_order) VALUES
+  ('roofing_repair__1__m1', 'roofing_repair__1', 'Roof safety harness / anchor', 0, 'Safety', false, 1);
+INSERT INTO template_phases (id, template_id, name, sort_order, estimated_days, description, inspection_required) VALUES ('roofing_repair__2', 'roofing_repair', 'Repair', 2, 1, 'Fix the issue cleanly — patch flashing, replace boots, reset shingles. Document with photos.', NULL);
+INSERT INTO template_tasks (id, phase_id, name, sort_order, optional) VALUES
+  ('roofing_repair__2__t1', 'roofing_repair__2', 'Replace damaged shingles (lift courses above to access)', 1, false),
+  ('roofing_repair__2__t2', 'roofing_repair__2', 'Replace pipe boot if cracked', 2, false),
+  ('roofing_repair__2__t3', 'roofing_repair__2', 'Re-flash chimney / sidewall as needed', 3, false),
+  ('roofing_repair__2__t4', 'roofing_repair__2', 'Seal nail heads and exposed sealant', 4, false),
+  ('roofing_repair__2__t5', 'roofing_repair__2', 'Photo: before / after of repair', 5, false);
+INSERT INTO template_materials (id, phase_id, name, estimated_cost, category, optional, sort_order) VALUES
+  ('roofing_repair__2__m1', 'roofing_repair__2', 'Matching shingles (bundle)', 38, 'Shingles', false, 1),
+  ('roofing_repair__2__m2', 'roofing_repair__2', 'Pipe boot replacement', 16, 'Flashing', false, 2),
+  ('roofing_repair__2__m3', 'roofing_repair__2', 'Step flashing kit', 32, 'Flashing', true, 3),
+  ('roofing_repair__2__m4', 'roofing_repair__2', 'Roofing sealant (NP1 or equivalent)', 12, 'Sealant', false, 4);
+
+-- Driveway Pour (concrete)
+INSERT INTO project_templates (id, name, icon, category, trade, description, estimated_days, estimated_budget_low, estimated_budget_high, sort_order) VALUES ('concrete_driveway', 'Driveway Pour', 'cube', 'Install', 'concrete', 'New 4" residential driveway — sub-base, forms, mesh, pour, broom finish, control joints.', 3, 4500, 12000, 27);
+INSERT INTO template_phases (id, template_id, name, sort_order, estimated_days, description, inspection_required) VALUES ('concrete_driveway__1', 'concrete_driveway', 'Excavate & Sub-Base', 1, 1, 'Strip topsoil, grade for slope, compact sub-base.', NULL);
+INSERT INTO template_tasks (id, phase_id, name, sort_order, optional) VALUES
+  ('concrete_driveway__1__t1', 'concrete_driveway__1', 'Mark area, call 811 for utilities', 1, false),
+  ('concrete_driveway__1__t2', 'concrete_driveway__1', 'Strip topsoil to subgrade', 2, false),
+  ('concrete_driveway__1__t3', 'concrete_driveway__1', 'Grade for 1-2% slope away from house', 3, false),
+  ('concrete_driveway__1__t4', 'concrete_driveway__1', 'Spread 4-6" of crushed stone / road base', 4, false),
+  ('concrete_driveway__1__t5', 'concrete_driveway__1', 'Compact in lifts with plate compactor', 5, false);
+INSERT INTO template_materials (id, phase_id, name, estimated_cost, category, optional, sort_order) VALUES
+  ('concrete_driveway__1__m1', 'concrete_driveway__1', '3/4" crushed stone (per yard)', 32, 'Aggregate', false, 1),
+  ('concrete_driveway__1__m2', 'concrete_driveway__1', 'Plate compactor rental (1 day)', 75, 'Equipment', false, 2),
+  ('concrete_driveway__1__m3', 'concrete_driveway__1', 'Disposal / haul-out topsoil', 200, 'Disposal', false, 3);
+INSERT INTO template_phases (id, template_id, name, sort_order, estimated_days, description, inspection_required) VALUES ('concrete_driveway__2', 'concrete_driveway', 'Form & Reinforce', 2, 1, 'Set 2x4 forms to grade, install wire mesh and rebar at edges.', 'Pre-pour inspection (if permitted)');
+INSERT INTO template_tasks (id, phase_id, name, sort_order, optional) VALUES
+  ('concrete_driveway__2__t1', 'concrete_driveway__2', 'Set string lines for grade', 1, false),
+  ('concrete_driveway__2__t2', 'concrete_driveway__2', 'Install 2x4 forms, stake every 4ft', 2, false),
+  ('concrete_driveway__2__t3', 'concrete_driveway__2', 'Install isolation joint at house / sidewalk', 3, false),
+  ('concrete_driveway__2__t4', 'concrete_driveway__2', 'Lay 6x6 wire mesh, lift with chairs', 4, false),
+  ('concrete_driveway__2__t5', 'concrete_driveway__2', 'Install #4 rebar at edges (perimeter)', 5, false),
+  ('concrete_driveway__2__t6', 'concrete_driveway__2', 'Spray release / form oil on insides of forms', 6, false),
+  ('concrete_driveway__2__t7', 'concrete_driveway__2', 'Verify slope and grade with level', 7, false),
+  ('concrete_driveway__2__t8', 'concrete_driveway__2', 'Photo: forms and reinforcement', 8, false);
+INSERT INTO template_materials (id, phase_id, name, estimated_cost, category, optional, sort_order) VALUES
+  ('concrete_driveway__2__m1', 'concrete_driveway__2', '2x4 form lumber (10ft)', 8, 'Lumber', false, 1),
+  ('concrete_driveway__2__m2', 'concrete_driveway__2', '6x6 W2.9 wire mesh (5x10 sheet)', 18, 'Reinforcement', false, 2),
+  ('concrete_driveway__2__m3', 'concrete_driveway__2', '#4 rebar (20ft)', 12, 'Reinforcement', false, 3),
+  ('concrete_driveway__2__m4', 'concrete_driveway__2', 'Mesh chairs', 0.5, 'Reinforcement', false, 4),
+  ('concrete_driveway__2__m5', 'concrete_driveway__2', 'Form release', 18, 'Form Oil', false, 5),
+  ('concrete_driveway__2__m6', 'concrete_driveway__2', 'Wood stakes (12" pkg)', 12, 'Forms', false, 6),
+  ('concrete_driveway__2__m7', 'concrete_driveway__2', 'Isolation joint material', 22, 'Joints', false, 7);
+INSERT INTO template_phases (id, template_id, name, sort_order, estimated_days, description, inspection_required) VALUES ('concrete_driveway__3', 'concrete_driveway', 'Pour & Finish', 3, 1, 'Coordinate truck, pour, screed, float, broom finish, cut control joints.', NULL);
+INSERT INTO template_tasks (id, phase_id, name, sort_order, optional) VALUES
+  ('concrete_driveway__3__t1', 'concrete_driveway__3', 'Schedule concrete truck (early AM in summer)', 1, false),
+  ('concrete_driveway__3__t2', 'concrete_driveway__3', 'Pour, screed to grade with 2x4', 2, false),
+  ('concrete_driveway__3__t3', 'concrete_driveway__3', 'Bull float to flatten', 3, false),
+  ('concrete_driveway__3__t4', 'concrete_driveway__3', 'Wait for bleed water to evaporate', 4, false),
+  ('concrete_driveway__3__t5', 'concrete_driveway__3', 'Edge perimeter with edging tool', 5, false),
+  ('concrete_driveway__3__t6', 'concrete_driveway__3', 'Broom finish (perpendicular to traffic)', 6, false),
+  ('concrete_driveway__3__t7', 'concrete_driveway__3', 'Cut control joints every 8-10ft', 7, false),
+  ('concrete_driveway__3__t8', 'concrete_driveway__3', 'Spray cure-and-seal compound', 8, false),
+  ('concrete_driveway__3__t9', 'concrete_driveway__3', 'Cover if rain in forecast', 9, false),
+  ('concrete_driveway__3__t10', 'concrete_driveway__3', 'Photo: completed pour', 10, false);
+INSERT INTO template_materials (id, phase_id, name, estimated_cost, category, optional, sort_order) VALUES
+  ('concrete_driveway__3__m1', 'concrete_driveway__3', '4000psi concrete (per yard)', 165, 'Concrete', false, 1),
+  ('concrete_driveway__3__m2', 'concrete_driveway__3', 'Concrete pump truck (if needed)', 600, 'Equipment', true, 2),
+  ('concrete_driveway__3__m3', 'concrete_driveway__3', 'Cure-and-seal compound (5gal)', 60, 'Curing', false, 3),
+  ('concrete_driveway__3__m4', 'concrete_driveway__3', 'Bull float, broom, edger (rental kit)', 75, 'Tools', true, 4);
+
+-- Patio Slab (concrete)
+INSERT INTO project_templates (id, name, icon, category, trade, description, estimated_days, estimated_budget_low, estimated_budget_high, sort_order) VALUES ('concrete_patio_slab', 'Patio Slab', 'cube', 'Install', 'concrete', 'New residential concrete patio — 4" slab on prepared sub-base, broom or stamped finish.', 2, 2200, 6500, 28);
+INSERT INTO template_phases (id, template_id, name, sort_order, estimated_days, description, inspection_required) VALUES ('concrete_patio_slab__1', 'concrete_patio_slab', 'Layout & Excavation', 1, 1, 'Mark slab, excavate, install sub-base.', NULL);
+INSERT INTO template_tasks (id, phase_id, name, sort_order, optional) VALUES
+  ('concrete_patio_slab__1__t1', 'concrete_patio_slab__1', 'Stake out slab footprint', 1, false),
+  ('concrete_patio_slab__1__t2', 'concrete_patio_slab__1', 'Strip sod and topsoil', 2, false),
+  ('concrete_patio_slab__1__t3', 'concrete_patio_slab__1', 'Excavate to sub-base depth', 3, false),
+  ('concrete_patio_slab__1__t4', 'concrete_patio_slab__1', 'Add 4" of crushed stone, compact', 4, false);
+INSERT INTO template_materials (id, phase_id, name, estimated_cost, category, optional, sort_order) VALUES
+  ('concrete_patio_slab__1__m1', 'concrete_patio_slab__1', '3/4" crushed stone (per yard)', 32, 'Aggregate', false, 1),
+  ('concrete_patio_slab__1__m2', 'concrete_patio_slab__1', 'Plate compactor rental', 75, 'Equipment', false, 2);
+INSERT INTO template_phases (id, template_id, name, sort_order, estimated_days, description, inspection_required) VALUES ('concrete_patio_slab__2', 'concrete_patio_slab', 'Forms, Mesh, Pour', 2, 1, 'Set forms, install mesh, pour and finish.', NULL);
+INSERT INTO template_tasks (id, phase_id, name, sort_order, optional) VALUES
+  ('concrete_patio_slab__2__t1', 'concrete_patio_slab__2', 'Set 2x4 forms, stake', 1, false),
+  ('concrete_patio_slab__2__t2', 'concrete_patio_slab__2', 'Lay wire mesh, lift on chairs', 2, false),
+  ('concrete_patio_slab__2__t3', 'concrete_patio_slab__2', 'Pour, screed, bull-float', 3, false),
+  ('concrete_patio_slab__2__t4', 'concrete_patio_slab__2', 'Edge perimeter', 4, false),
+  ('concrete_patio_slab__2__t5', 'concrete_patio_slab__2', 'Broom or stamp finish', 5, false),
+  ('concrete_patio_slab__2__t6', 'concrete_patio_slab__2', 'Cut control joints', 6, false),
+  ('concrete_patio_slab__2__t7', 'concrete_patio_slab__2', 'Spray cure-and-seal', 7, false);
+INSERT INTO template_materials (id, phase_id, name, estimated_cost, category, optional, sort_order) VALUES
+  ('concrete_patio_slab__2__m1', 'concrete_patio_slab__2', '4000psi concrete (per yard)', 165, 'Concrete', false, 1),
+  ('concrete_patio_slab__2__m2', 'concrete_patio_slab__2', '6x6 W2.9 wire mesh', 18, 'Reinforcement', false, 2),
+  ('concrete_patio_slab__2__m3', 'concrete_patio_slab__2', '2x4 form lumber', 8, 'Lumber', false, 3),
+  ('concrete_patio_slab__2__m4', 'concrete_patio_slab__2', 'Cure-and-seal compound', 60, 'Curing', false, 4),
+  ('concrete_patio_slab__2__m5', 'concrete_patio_slab__2', 'Stamped pattern overlay (optional)', 250, 'Finish', true, 5);
+
+-- Hardwood Floor Install (flooring)
+INSERT INTO project_templates (id, name, icon, category, trade, description, estimated_days, estimated_budget_low, estimated_budget_high, sort_order) VALUES ('flooring_hardwood', 'Hardwood Floor Install', 'apps', 'Install', 'flooring', 'Acclimate, layout, nail-down or float-install solid or engineered hardwood. Trim and shoe molding follow.', 3, 2500, 9000, 29);
+INSERT INTO template_phases (id, template_id, name, sort_order, estimated_days, description, inspection_required) VALUES ('flooring_hardwood__1', 'flooring_hardwood', 'Prep & Acclimate', 1, 1, 'Move flooring on-site to acclimate, prep subfloor, install moisture barrier.', NULL);
+INSERT INTO template_tasks (id, phase_id, name, sort_order, optional) VALUES
+  ('flooring_hardwood__1__t1', 'flooring_hardwood__1', 'Deliver flooring 3-5 days early to acclimate', 1, false),
+  ('flooring_hardwood__1__t2', 'flooring_hardwood__1', 'Verify subfloor flat to 3/16" in 10ft', 2, false),
+  ('flooring_hardwood__1__t3', 'flooring_hardwood__1', 'Sand high spots, fill low spots', 3, false),
+  ('flooring_hardwood__1__t4', 'flooring_hardwood__1', 'Sweep and vacuum subfloor', 4, false),
+  ('flooring_hardwood__1__t5', 'flooring_hardwood__1', 'Roll out moisture barrier paper', 5, false),
+  ('flooring_hardwood__1__t6', 'flooring_hardwood__1', 'Mark joists if nailing solid hardwood', 6, false);
+INSERT INTO template_materials (id, phase_id, name, estimated_cost, category, optional, sort_order) VALUES
+  ('flooring_hardwood__1__m1', 'flooring_hardwood__1', 'Asphalt moisture barrier (Aquabar)', 65, 'Underlayment', false, 1),
+  ('flooring_hardwood__1__m2', 'flooring_hardwood__1', 'Patching compound', 18, 'Patching', true, 2);
+INSERT INTO template_phases (id, template_id, name, sort_order, estimated_days, description, inspection_required) VALUES ('flooring_hardwood__2', 'flooring_hardwood', 'Layout & Install', 2, 2, 'Snap working line, rack rows, nail or float, stagger joints.', NULL);
+INSERT INTO template_tasks (id, phase_id, name, sort_order, optional) VALUES
+  ('flooring_hardwood__2__t1', 'flooring_hardwood__2', 'Find longest run, snap working line', 1, false),
+  ('flooring_hardwood__2__t2', 'flooring_hardwood__2', 'Rack rows from multiple boxes (color blend)', 2, false),
+  ('flooring_hardwood__2__t3', 'flooring_hardwood__2', 'Face-nail first row, blind-nail thereafter', 3, false),
+  ('flooring_hardwood__2__t4', 'flooring_hardwood__2', 'Maintain 3/4" expansion gap at walls', 4, false),
+  ('flooring_hardwood__2__t5', 'flooring_hardwood__2', 'Stagger end joints minimum 6"', 5, false),
+  ('flooring_hardwood__2__t6', 'flooring_hardwood__2', 'Trim around doorways with undercut saw', 6, false),
+  ('flooring_hardwood__2__t7', 'flooring_hardwood__2', 'Last row: rip to fit, face-nail', 7, false),
+  ('flooring_hardwood__2__t8', 'flooring_hardwood__2', 'Install transition strips', 8, false),
+  ('flooring_hardwood__2__t9', 'flooring_hardwood__2', 'Install shoe molding / quarter round', 9, false),
+  ('flooring_hardwood__2__t10', 'flooring_hardwood__2', 'Touch up nail holes with stain marker', 10, false),
+  ('flooring_hardwood__2__t11', 'flooring_hardwood__2', 'Final clean and walk-through', 11, false);
+INSERT INTO template_materials (id, phase_id, name, estimated_cost, category, optional, sort_order) VALUES
+  ('flooring_hardwood__2__m1', 'flooring_hardwood__2', 'Hardwood flooring (per sf)', 6, 'Flooring', false, 1),
+  ('flooring_hardwood__2__m2', 'flooring_hardwood__2', 'Engineered hardwood (per sf)', 5, 'Flooring', true, 2),
+  ('flooring_hardwood__2__m3', 'flooring_hardwood__2', 'Cleat nails (16ga, 5000ct)', 65, 'Fasteners', false, 3),
+  ('flooring_hardwood__2__m4', 'flooring_hardwood__2', 'Shoe molding (8ft)', 8, 'Trim', false, 4),
+  ('flooring_hardwood__2__m5', 'flooring_hardwood__2', 'Transition strips (T-mold, reducer)', 28, 'Trim', false, 5),
+  ('flooring_hardwood__2__m6', 'flooring_hardwood__2', 'Stain marker (color match)', 12, 'Touch-up', false, 6);
+
+-- Luxury Vinyl Plank Install (flooring)
+INSERT INTO project_templates (id, name, icon, category, trade, description, estimated_days, estimated_budget_low, estimated_budget_high, sort_order) VALUES ('flooring_lvp', 'Luxury Vinyl Plank Install', 'apps', 'Install', 'flooring', 'Click-lock LVP install — fast, waterproof, floats over most subfloors. Includes underlayment and trim.', 2, 1500, 4500, 30);
+INSERT INTO template_phases (id, template_id, name, sort_order, estimated_days, description, inspection_required) VALUES ('flooring_lvp__1', 'flooring_lvp', 'Prep', 1, 1, 'Verify flat subfloor, install underlayment, undercut door jambs.', NULL);
+INSERT INTO template_tasks (id, phase_id, name, sort_order, optional) VALUES
+  ('flooring_lvp__1__t1', 'flooring_lvp__1', 'Acclimate planks 48h on site', 1, false),
+  ('flooring_lvp__1__t2', 'flooring_lvp__1', 'Verify subfloor flatness (3/16" in 10ft)', 2, false),
+  ('flooring_lvp__1__t3', 'flooring_lvp__1', 'Patch any low spots', 3, false),
+  ('flooring_lvp__1__t4', 'flooring_lvp__1', 'Sweep / vacuum thoroughly', 4, false),
+  ('flooring_lvp__1__t5', 'flooring_lvp__1', 'Roll out underlayment if not pre-attached', 5, false),
+  ('flooring_lvp__1__t6', 'flooring_lvp__1', 'Undercut door jambs and casings', 6, false);
+INSERT INTO template_materials (id, phase_id, name, estimated_cost, category, optional, sort_order) VALUES
+  ('flooring_lvp__1__m1', 'flooring_lvp__1', 'LVP underlayment (200sf roll)', 45, 'Underlayment', true, 1),
+  ('flooring_lvp__1__m2', 'flooring_lvp__1', 'Floor patching compound', 18, 'Patching', true, 2);
+INSERT INTO template_phases (id, template_id, name, sort_order, estimated_days, description, inspection_required) VALUES ('flooring_lvp__2', 'flooring_lvp', 'Install', 2, 1, 'Plan layout, install with 1/4" gap at walls, stagger end joints, trim.', NULL);
+INSERT INTO template_tasks (id, phase_id, name, sort_order, optional) VALUES
+  ('flooring_lvp__2__t1', 'flooring_lvp__2', 'Plan layout — measure last row, want > 1/3 plank', 1, false),
+  ('flooring_lvp__2__t2', 'flooring_lvp__2', 'Snap chalk line for first row', 2, false),
+  ('flooring_lvp__2__t3', 'flooring_lvp__2', 'Install first row, tongue facing wall, 1/4" gap', 3, false),
+  ('flooring_lvp__2__t4', 'flooring_lvp__2', 'Stagger joints minimum 8"', 4, false),
+  ('flooring_lvp__2__t5', 'flooring_lvp__2', 'Tap planks tight with tapping block', 5, false),
+  ('flooring_lvp__2__t6', 'flooring_lvp__2', 'Trim around obstructions with utility knife', 6, false),
+  ('flooring_lvp__2__t7', 'flooring_lvp__2', 'Last row: rip to fit, click in with pull bar', 7, false),
+  ('flooring_lvp__2__t8', 'flooring_lvp__2', 'Install shoe molding or baseboard', 8, false),
+  ('flooring_lvp__2__t9', 'flooring_lvp__2', 'Install transitions at doorways', 9, false),
+  ('flooring_lvp__2__t10', 'flooring_lvp__2', 'Final clean and walk-through', 10, false);
+INSERT INTO template_materials (id, phase_id, name, estimated_cost, category, optional, sort_order) VALUES
+  ('flooring_lvp__2__m1', 'flooring_lvp__2', 'LVP planks (per sf)', 3.5, 'Flooring', false, 1),
+  ('flooring_lvp__2__m2', 'flooring_lvp__2', 'Tapping block / pull bar / spacer kit', 28, 'Tools', false, 2),
+  ('flooring_lvp__2__m3', 'flooring_lvp__2', 'Shoe molding', 8, 'Trim', false, 3),
+  ('flooring_lvp__2__m4', 'flooring_lvp__2', 'Transition strips', 22, 'Trim', false, 4),
+  ('flooring_lvp__2__m5', 'flooring_lvp__2', 'Utility knife blades (50pk)', 12, 'Consumables', false, 5);
+
+-- Sod Install (landscaping)
+INSERT INTO project_templates (id, name, icon, category, trade, description, estimated_days, estimated_budget_low, estimated_budget_high, sort_order) VALUES ('landscaping_sod', 'Sod Install', 'leaf', 'Install', 'landscaping', 'Strip existing turf, amend soil, lay sod. Includes initial watering schedule handoff to homeowner.', 2, 1200, 4000, 31);
+INSERT INTO template_phases (id, template_id, name, sort_order, estimated_days, description, inspection_required) VALUES ('landscaping_sod__1', 'landscaping_sod', 'Prep Soil', 1, 1, 'Strip old turf, till, amend, level.', NULL);
+INSERT INTO template_tasks (id, phase_id, name, sort_order, optional) VALUES
+  ('landscaping_sod__1__t1', 'landscaping_sod__1', 'Strip existing turf (sod cutter)', 1, false),
+  ('landscaping_sod__1__t2', 'landscaping_sod__1', 'Till top 4-6" of soil', 2, false),
+  ('landscaping_sod__1__t3', 'landscaping_sod__1', 'Spread topsoil / compost (2-3" if needed)', 3, false),
+  ('landscaping_sod__1__t4', 'landscaping_sod__1', 'Apply starter fertilizer per spec', 4, false),
+  ('landscaping_sod__1__t5', 'landscaping_sod__1', 'Rake to grade, slope away from house', 5, false),
+  ('landscaping_sod__1__t6', 'landscaping_sod__1', 'Roll lightly to firm', 6, false);
+INSERT INTO template_materials (id, phase_id, name, estimated_cost, category, optional, sort_order) VALUES
+  ('landscaping_sod__1__m1', 'landscaping_sod__1', 'Sod cutter rental (1 day)', 95, 'Equipment', false, 1),
+  ('landscaping_sod__1__m2', 'landscaping_sod__1', 'Topsoil / compost mix (per yard)', 38, 'Soil', false, 2),
+  ('landscaping_sod__1__m3', 'landscaping_sod__1', 'Starter fertilizer (15lb)', 28, 'Fertilizer', false, 3),
+  ('landscaping_sod__1__m4', 'landscaping_sod__1', 'Disposal of old turf', 150, 'Disposal', false, 4);
+INSERT INTO template_phases (id, template_id, name, sort_order, estimated_days, description, inspection_required) VALUES ('landscaping_sod__2', 'landscaping_sod', 'Lay Sod', 2, 1, 'Lay rolls in brick pattern, water in heavily, hand off watering plan.', NULL);
+INSERT INTO template_tasks (id, phase_id, name, sort_order, optional) VALUES
+  ('landscaping_sod__2__t1', 'landscaping_sod__2', 'Schedule sod delivery for day-of (don’t let it sit)', 1, false),
+  ('landscaping_sod__2__t2', 'landscaping_sod__2', 'Lay first row along longest straight edge', 2, false),
+  ('landscaping_sod__2__t3', 'landscaping_sod__2', 'Stagger seams brick-pattern', 3, false),
+  ('landscaping_sod__2__t4', 'landscaping_sod__2', 'Butt edges tight — no gaps', 4, false),
+  ('landscaping_sod__2__t5', 'landscaping_sod__2', 'Cut sod with utility knife around obstacles', 5, false),
+  ('landscaping_sod__2__t6', 'landscaping_sod__2', 'Roll lightly to ensure soil contact', 6, false),
+  ('landscaping_sod__2__t7', 'landscaping_sod__2', 'Water deeply (1" of water immediately)', 7, false),
+  ('landscaping_sod__2__t8', 'landscaping_sod__2', 'Walk customer through 2-week watering schedule', 8, false),
+  ('landscaping_sod__2__t9', 'landscaping_sod__2', 'Photo: completed lawn', 9, false);
+INSERT INTO template_materials (id, phase_id, name, estimated_cost, category, optional, sort_order) VALUES
+  ('landscaping_sod__2__m1', 'landscaping_sod__2', 'Sod (per pallet, ~450sf)', 425, 'Sod', false, 1),
+  ('landscaping_sod__2__m2', 'landscaping_sod__2', 'Lawn roller rental', 35, 'Equipment', false, 2),
+  ('landscaping_sod__2__m3', 'landscaping_sod__2', 'Watering schedule handout', 0, 'Customer', false, 3);
+
+-- Irrigation System Install (landscaping)
+INSERT INTO project_templates (id, name, icon, category, trade, description, estimated_days, estimated_budget_low, estimated_budget_high, sort_order) VALUES ('landscaping_irrigation', 'Irrigation System Install', 'water', 'Install', 'landscaping', 'Residential underground irrigation — design, trench, lay PVC, install heads, controller, backflow.', 3, 2500, 7500, 32);
+INSERT INTO template_phases (id, template_id, name, sort_order, estimated_days, description, inspection_required) VALUES ('landscaping_irrigation__1', 'landscaping_irrigation', 'Design & Permit', 1, 1, 'Lay out zones, get backflow prevention permitted with city.', NULL);
+INSERT INTO template_tasks (id, phase_id, name, sort_order, optional) VALUES
+  ('landscaping_irrigation__1__t1', 'landscaping_irrigation__1', 'Walk yard, measure zones, calculate gpm', 1, false),
+  ('landscaping_irrigation__1__t2', 'landscaping_irrigation__1', 'Design head layout for full coverage', 2, false),
+  ('landscaping_irrigation__1__t3', 'landscaping_irrigation__1', 'Sketch zone plan, head types, pipe runs', 3, false),
+  ('landscaping_irrigation__1__t4', 'landscaping_irrigation__1', 'Pull permit (most jurisdictions require for backflow)', 4, false),
+  ('landscaping_irrigation__1__t5', 'landscaping_irrigation__1', 'Order parts based on zone count and gpm', 5, false);
+INSERT INTO template_materials (id, phase_id, name, estimated_cost, category, optional, sort_order) VALUES
+  ('landscaping_irrigation__1__m1', 'landscaping_irrigation__1', 'Irrigation design software / paper', 0, 'Design', false, 1),
+  ('landscaping_irrigation__1__m2', 'landscaping_irrigation__1', 'Permit fee', 75, 'Permits', false, 2);
+INSERT INTO template_phases (id, template_id, name, sort_order, estimated_days, description, inspection_required) VALUES ('landscaping_irrigation__2', 'landscaping_irrigation', 'Trench & Pipe', 2, 1, 'Mark utilities, trench lines, lay PVC, glue joints.', NULL);
+INSERT INTO template_tasks (id, phase_id, name, sort_order, optional) VALUES
+  ('landscaping_irrigation__2__t1', 'landscaping_irrigation__2', 'Call 811, mark all utilities', 1, false),
+  ('landscaping_irrigation__2__t2', 'landscaping_irrigation__2', 'Mark head locations and pipe runs', 2, false),
+  ('landscaping_irrigation__2__t3', 'landscaping_irrigation__2', 'Trench (vibratory plow or trencher)', 3, false),
+  ('landscaping_irrigation__2__t4', 'landscaping_irrigation__2', 'Lay PVC main and lateral lines', 4, false),
+  ('landscaping_irrigation__2__t5', 'landscaping_irrigation__2', 'Glue all joints with primer + cement', 5, false),
+  ('landscaping_irrigation__2__t6', 'landscaping_irrigation__2', 'Install zone valves in valve boxes', 6, false),
+  ('landscaping_irrigation__2__t7', 'landscaping_irrigation__2', 'Pressure test before backfilling', 7, false);
+INSERT INTO template_materials (id, phase_id, name, estimated_cost, category, optional, sort_order) VALUES
+  ('landscaping_irrigation__2__m1', 'landscaping_irrigation__2', 'PVC pipe 1" SCH 40 (10ft)', 6, 'Pipe', false, 1),
+  ('landscaping_irrigation__2__m2', 'landscaping_irrigation__2', 'PVC pipe 3/4" (10ft)', 4, 'Pipe', false, 2),
+  ('landscaping_irrigation__2__m3', 'landscaping_irrigation__2', 'PVC fittings assortment', 85, 'Fittings', false, 3),
+  ('landscaping_irrigation__2__m4', 'landscaping_irrigation__2', 'PVC primer + cement', 28, 'Adhesive', false, 4),
+  ('landscaping_irrigation__2__m5', 'landscaping_irrigation__2', 'Zone valves (1" anti-siphon)', 32, 'Valves', false, 5),
+  ('landscaping_irrigation__2__m6', 'landscaping_irrigation__2', 'Valve boxes (10")', 18, 'Boxes', false, 6),
+  ('landscaping_irrigation__2__m7', 'landscaping_irrigation__2', 'Trencher rental (1 day)', 285, 'Equipment', false, 7);
+INSERT INTO template_phases (id, template_id, name, sort_order, estimated_days, description, inspection_required) VALUES ('landscaping_irrigation__3', 'landscaping_irrigation', 'Heads, Controller, Test', 3, 1, 'Install heads at correct height, wire controller, walk every zone.', 'Backflow inspection');
+INSERT INTO template_tasks (id, phase_id, name, sort_order, optional) VALUES
+  ('landscaping_irrigation__3__t1', 'landscaping_irrigation__3', 'Install spray heads (lawn flush, beds 2" above grade)', 1, false),
+  ('landscaping_irrigation__3__t2', 'landscaping_irrigation__3', 'Install rotor heads at corners', 2, false),
+  ('landscaping_irrigation__3__t3', 'landscaping_irrigation__3', 'Install backflow preventer (RPZ or PVB per code)', 3, false),
+  ('landscaping_irrigation__3__t4', 'landscaping_irrigation__3', 'Mount controller (indoor or weatherproof outdoor)', 4, false),
+  ('landscaping_irrigation__3__t5', 'landscaping_irrigation__3', 'Run wire from controller to each zone valve', 5, false),
+  ('landscaping_irrigation__3__t6', 'landscaping_irrigation__3', 'Connect wires using DBY / DBR connectors (waterproof)', 6, false),
+  ('landscaping_irrigation__3__t7', 'landscaping_irrigation__3', 'Connect rain sensor (if specified)', 7, false),
+  ('landscaping_irrigation__3__t8', 'landscaping_irrigation__3', 'Walk every zone, adjust head pattern + arc', 8, false),
+  ('landscaping_irrigation__3__t9', 'landscaping_irrigation__3', 'Set program: days, start times, zone runtimes', 9, false),
+  ('landscaping_irrigation__3__t10', 'landscaping_irrigation__3', 'Walk customer through controller', 10, false),
+  ('landscaping_irrigation__3__t11', 'landscaping_irrigation__3', 'Schedule backflow inspection', 11, false),
+  ('landscaping_irrigation__3__t12', 'landscaping_irrigation__3', 'Backfill trenches', 12, false);
+INSERT INTO template_materials (id, phase_id, name, estimated_cost, category, optional, sort_order) VALUES
+  ('landscaping_irrigation__3__m1', 'landscaping_irrigation__3', 'Spray heads (Hunter PRS40 or Rain Bird 1804)', 8, 'Heads', false, 1),
+  ('landscaping_irrigation__3__m2', 'landscaping_irrigation__3', 'Rotor heads (Hunter PGP)', 18, 'Heads', false, 2),
+  ('landscaping_irrigation__3__m3', 'landscaping_irrigation__3', 'Controller (Hunter X-Core 8 zone)', 165, 'Controller', false, 3),
+  ('landscaping_irrigation__3__m4', 'landscaping_irrigation__3', 'Backflow preventer (RPZ 1")', 285, 'Plumbing', false, 4),
+  ('landscaping_irrigation__3__m5', 'landscaping_irrigation__3', 'Sprinkler wire (18ga 7-conductor, 500ft)', 95, 'Wire', false, 5),
+  ('landscaping_irrigation__3__m6', 'landscaping_irrigation__3', 'Waterproof wire connectors (DBY, 25pk)', 32, 'Wire', false, 6),
+  ('landscaping_irrigation__3__m7', 'landscaping_irrigation__3', 'Rain sensor', 38, 'Sensors', true, 7);
+
+-- Bathroom Tile Install (tiling)
+INSERT INTO project_templates (id, name, icon, category, trade, description, estimated_days, estimated_budget_low, estimated_budget_high, sort_order) VALUES ('tiling_bathroom', 'Bathroom Tile Install', 'grid', 'Install', 'tiling', 'Floor + shower walls + niche. Includes substrate prep, waterproofing, layout, tile, grout, and seal.', 4, 2500, 7500, 33);
+INSERT INTO template_phases (id, template_id, name, sort_order, estimated_days, description, inspection_required) VALUES ('tiling_bathroom__1', 'tiling_bathroom', 'Substrate & Waterproofing', 1, 1, 'Verify substrate is flat and structural. Apply waterproofing membrane in shower.', NULL);
+INSERT INTO template_tasks (id, phase_id, name, sort_order, optional) VALUES
+  ('tiling_bathroom__1__t1', 'tiling_bathroom__1', 'Verify subfloor is flat and structural (1/2" deflection max)', 1, false),
+  ('tiling_bathroom__1__t2', 'tiling_bathroom__1', 'Install cement board on floor (1/4")', 2, false),
+  ('tiling_bathroom__1__t3', 'tiling_bathroom__1', 'Install cement board or foam panels in shower', 3, false),
+  ('tiling_bathroom__1__t4', 'tiling_bathroom__1', 'Tape and mud all seams', 4, false),
+  ('tiling_bathroom__1__t5', 'tiling_bathroom__1', 'Apply waterproofing membrane (RedGard or Kerdi) in shower', 5, false),
+  ('tiling_bathroom__1__t6', 'tiling_bathroom__1', 'Two coats waterproofing, let dry per spec', 6, false),
+  ('tiling_bathroom__1__t7', 'tiling_bathroom__1', 'Install shower drain assembly', 7, false);
+INSERT INTO template_materials (id, phase_id, name, estimated_cost, category, optional, sort_order) VALUES
+  ('tiling_bathroom__1__m1', 'tiling_bathroom__1', 'Cement board (1/4" 3x5)', 14, 'Substrate', false, 1),
+  ('tiling_bathroom__1__m2', 'tiling_bathroom__1', 'Backer board screws', 12, 'Fasteners', false, 2),
+  ('tiling_bathroom__1__m3', 'tiling_bathroom__1', 'Mesh tape (alkali-resistant)', 8, 'Tape', false, 3),
+  ('tiling_bathroom__1__m4', 'tiling_bathroom__1', 'Thinset (50lb)', 18, 'Thinset', false, 4),
+  ('tiling_bathroom__1__m5', 'tiling_bathroom__1', 'RedGard waterproofing (1gal)', 65, 'Waterproofing', false, 5);
+INSERT INTO template_phases (id, template_id, name, sort_order, estimated_days, description, inspection_required) VALUES ('tiling_bathroom__2', 'tiling_bathroom', 'Layout & Floor Tile', 2, 1, 'Layout floor for symmetrical cuts, install field tile.', NULL);
+INSERT INTO template_tasks (id, phase_id, name, sort_order, optional) VALUES
+  ('tiling_bathroom__2__t1', 'tiling_bathroom__2', 'Dry-fit floor layout — center on visible feature', 1, false),
+  ('tiling_bathroom__2__t2', 'tiling_bathroom__2', 'Snap reference lines', 2, false),
+  ('tiling_bathroom__2__t3', 'tiling_bathroom__2', 'Mix thinset to manufacturer ratio', 3, false),
+  ('tiling_bathroom__2__t4', 'tiling_bathroom__2', 'Trowel and set tile, beat in for full bond', 4, false),
+  ('tiling_bathroom__2__t5', 'tiling_bathroom__2', 'Use leveling clips for large-format tile', 5, false),
+  ('tiling_bathroom__2__t6', 'tiling_bathroom__2', 'Cut tile around toilet flange, vanity', 6, false),
+  ('tiling_bathroom__2__t7', 'tiling_bathroom__2', 'Wipe excess thinset before it cures', 7, false),
+  ('tiling_bathroom__2__t8', 'tiling_bathroom__2', 'Let set overnight before grout', 8, false);
+INSERT INTO template_materials (id, phase_id, name, estimated_cost, category, optional, sort_order) VALUES
+  ('tiling_bathroom__2__m1', 'tiling_bathroom__2', 'Floor tile (per sf)', 6, 'Tile', false, 1),
+  ('tiling_bathroom__2__m2', 'tiling_bathroom__2', 'Thinset (modified, 50lb)', 25, 'Thinset', false, 2),
+  ('tiling_bathroom__2__m3', 'tiling_bathroom__2', 'Tile spacers (1/8")', 8, 'Spacers', false, 3),
+  ('tiling_bathroom__2__m4', 'tiling_bathroom__2', 'Tile leveling system kit', 45, 'Tools', true, 4);
+INSERT INTO template_phases (id, template_id, name, sort_order, estimated_days, description, inspection_required) VALUES ('tiling_bathroom__3', 'tiling_bathroom', 'Shower Walls & Niche', 3, 1, 'Install wall tile, niche, accent strip, all corners and trim pieces.', NULL);
+INSERT INTO template_tasks (id, phase_id, name, sort_order, optional) VALUES
+  ('tiling_bathroom__3__t1', 'tiling_bathroom__3', 'Snap level reference line for first full row', 1, false),
+  ('tiling_bathroom__3__t2', 'tiling_bathroom__3', 'Set support ledger at first-row line', 2, false),
+  ('tiling_bathroom__3__t3', 'tiling_bathroom__3', 'Install wall tile from ledger up', 3, false),
+  ('tiling_bathroom__3__t4', 'tiling_bathroom__3', 'Cut and install niche tile (frame first)', 4, false),
+  ('tiling_bathroom__3__t5', 'tiling_bathroom__3', 'Install accent strip if specified', 5, false),
+  ('tiling_bathroom__3__t6', 'tiling_bathroom__3', 'Bullnose or pencil trim at outside edges', 6, false),
+  ('tiling_bathroom__3__t7', 'tiling_bathroom__3', 'Remove ledger, install bottom row last (cuts to floor)', 7, false),
+  ('tiling_bathroom__3__t8', 'tiling_bathroom__3', 'Let set overnight', 8, false);
+INSERT INTO template_materials (id, phase_id, name, estimated_cost, category, optional, sort_order) VALUES
+  ('tiling_bathroom__3__m1', 'tiling_bathroom__3', 'Wall tile (per sf)', 7, 'Tile', false, 1),
+  ('tiling_bathroom__3__m2', 'tiling_bathroom__3', 'Accent strip / mosaic', 12, 'Tile', true, 2),
+  ('tiling_bathroom__3__m3', 'tiling_bathroom__3', 'Bullnose / pencil trim (per LF)', 6, 'Trim', false, 3),
+  ('tiling_bathroom__3__m4', 'tiling_bathroom__3', 'Thinset', 25, 'Thinset', false, 4);
+INSERT INTO template_phases (id, template_id, name, sort_order, estimated_days, description, inspection_required) VALUES ('tiling_bathroom__4', 'tiling_bathroom', 'Grout & Seal', 4, 1, 'Grout all joints, sponge clean, seal grout, caulk corners.', 'GC walk-through, water test before fixtures');
+INSERT INTO template_tasks (id, phase_id, name, sort_order, optional) VALUES
+  ('tiling_bathroom__4__t1', 'tiling_bathroom__4', 'Mix grout to manufacturer ratio', 1, false),
+  ('tiling_bathroom__4__t2', 'tiling_bathroom__4', 'Pack grout into joints with float', 2, false),
+  ('tiling_bathroom__4__t3', 'tiling_bathroom__4', 'Wipe diagonally with damp sponge', 3, false),
+  ('tiling_bathroom__4__t4', 'tiling_bathroom__4', 'Wait for haze, buff clean', 4, false),
+  ('tiling_bathroom__4__t5', 'tiling_bathroom__4', 'Caulk all change-of-plane joints (corners, floor/wall)', 5, false),
+  ('tiling_bathroom__4__t6', 'tiling_bathroom__4', 'Apply grout sealer 24h after grout cure', 6, false),
+  ('tiling_bathroom__4__t7', 'tiling_bathroom__4', 'Walk-through with GC', 7, false),
+  ('tiling_bathroom__4__t8', 'tiling_bathroom__4', 'Water test shower', 8, false);
+INSERT INTO template_materials (id, phase_id, name, estimated_cost, category, optional, sort_order) VALUES
+  ('tiling_bathroom__4__m1', 'tiling_bathroom__4', 'Grout (sanded, 25lb)', 22, 'Grout', false, 1),
+  ('tiling_bathroom__4__m2', 'tiling_bathroom__4', 'Color-matched silicone caulk', 8, 'Caulk', false, 2),
+  ('tiling_bathroom__4__m3', 'tiling_bathroom__4', 'Grout sealer (1qt)', 28, 'Sealer', false, 3);
+
+-- Kitchen Backsplash (tiling)
+INSERT INTO project_templates (id, name, icon, category, trade, description, estimated_days, estimated_budget_low, estimated_budget_high, sort_order) VALUES ('tiling_backsplash', 'Kitchen Backsplash', 'grid', 'Install', 'tiling', 'Kitchen backsplash — typical run from countertop to underside of upper cabinets, around outlets and range.', 2, 700, 2500, 34);
+INSERT INTO template_phases (id, template_id, name, sort_order, estimated_days, description, inspection_required) VALUES ('tiling_backsplash__1', 'tiling_backsplash', 'Prep & Layout', 1, 1, 'Verify drywall is paint-ready, plan layout, layout outlets.', NULL);
+INSERT INTO template_tasks (id, phase_id, name, sort_order, optional) VALUES
+  ('tiling_backsplash__1__t1', 'tiling_backsplash__1', 'Pull all outlet covers', 1, false),
+  ('tiling_backsplash__1__t2', 'tiling_backsplash__1', 'Verify drywall is sound, primed', 2, false),
+  ('tiling_backsplash__1__t3', 'tiling_backsplash__1', 'Mark outlet boxes with painters tape', 3, false),
+  ('tiling_backsplash__1__t4', 'tiling_backsplash__1', 'Plan layout — center over range or sink', 4, false),
+  ('tiling_backsplash__1__t5', 'tiling_backsplash__1', 'Snap or laser reference line', 5, false),
+  ('tiling_backsplash__1__t6', 'tiling_backsplash__1', 'Set ledger if needed for first row', 6, false);
+INSERT INTO template_materials (id, phase_id, name, estimated_cost, category, optional, sort_order) VALUES
+  ('tiling_backsplash__1__m1', 'tiling_backsplash__1', 'Painters tape', 6, 'Tape', false, 1),
+  ('tiling_backsplash__1__m2', 'tiling_backsplash__1', 'Outlet box extenders', 14, 'Electrical', false, 2);
+INSERT INTO template_phases (id, template_id, name, sort_order, estimated_days, description, inspection_required) VALUES ('tiling_backsplash__2', 'tiling_backsplash', 'Install, Grout, Seal', 2, 1, 'Set tile, cut around outlets and ends, grout, caulk.', NULL);
+INSERT INTO template_tasks (id, phase_id, name, sort_order, optional) VALUES
+  ('tiling_backsplash__2__t1', 'tiling_backsplash__2', 'Trowel thinset, set tile', 1, false),
+  ('tiling_backsplash__2__t2', 'tiling_backsplash__2', 'Cut tile around outlets (oscillating tool / wet saw)', 2, false),
+  ('tiling_backsplash__2__t3', 'tiling_backsplash__2', 'Cut at end of run / bullnose if specified', 3, false),
+  ('tiling_backsplash__2__t4', 'tiling_backsplash__2', 'Wipe excess thinset', 4, false),
+  ('tiling_backsplash__2__t5', 'tiling_backsplash__2', 'Let set 24h', 5, false),
+  ('tiling_backsplash__2__t6', 'tiling_backsplash__2', 'Grout joints with rubber float', 6, false),
+  ('tiling_backsplash__2__t7', 'tiling_backsplash__2', 'Sponge clean, buff haze', 7, false),
+  ('tiling_backsplash__2__t8', 'tiling_backsplash__2', 'Caulk at countertop and cabinet seams', 8, false),
+  ('tiling_backsplash__2__t9', 'tiling_backsplash__2', 'Apply grout sealer', 9, false),
+  ('tiling_backsplash__2__t10', 'tiling_backsplash__2', 'Reinstall outlet covers', 10, false);
+INSERT INTO template_materials (id, phase_id, name, estimated_cost, category, optional, sort_order) VALUES
+  ('tiling_backsplash__2__m1', 'tiling_backsplash__2', 'Backsplash tile (per sf)', 8, 'Tile', false, 1),
+  ('tiling_backsplash__2__m2', 'tiling_backsplash__2', 'Premixed thinset (1gal)', 32, 'Thinset', false, 2),
+  ('tiling_backsplash__2__m3', 'tiling_backsplash__2', 'Sanded or unsanded grout (per joint width)', 18, 'Grout', false, 3),
+  ('tiling_backsplash__2__m4', 'tiling_backsplash__2', 'Color-matched caulk', 8, 'Caulk', false, 4),
+  ('tiling_backsplash__2__m5', 'tiling_backsplash__2', 'Grout sealer', 18, 'Sealer', false, 5);
+
+-- Vinyl Siding Install (siding)
+INSERT INTO project_templates (id, name, icon, category, trade, description, estimated_days, estimated_budget_low, estimated_budget_high, sort_order) VALUES ('siding_vinyl', 'Vinyl Siding Install', 'home', 'Install', 'siding', 'New vinyl siding install — house wrap, starter, J-channels, full courses, accessories around windows and doors.', 5, 6500, 16000, 35);
+INSERT INTO template_phases (id, template_id, name, sort_order, estimated_days, description, inspection_required) VALUES ('siding_vinyl__1', 'siding_vinyl', 'Prep & House Wrap', 1, 1, 'Tear off old siding (if reroof), inspect sheathing, install house wrap.', NULL);
+INSERT INTO template_tasks (id, phase_id, name, sort_order, optional) VALUES
+  ('siding_vinyl__1__t1', 'siding_vinyl__1', 'Tear off old siding if not new construction', 1, false),
+  ('siding_vinyl__1__t2', 'siding_vinyl__1', 'Inspect sheathing, replace damaged sections', 2, false),
+  ('siding_vinyl__1__t3', 'siding_vinyl__1', 'Roll out house wrap, overlap horizontal seams 6"', 3, false),
+  ('siding_vinyl__1__t4', 'siding_vinyl__1', 'Tape all seams', 4, false),
+  ('siding_vinyl__1__t5', 'siding_vinyl__1', 'Flash all openings (windows, doors, penetrations)', 5, false);
+INSERT INTO template_materials (id, phase_id, name, estimated_cost, category, optional, sort_order) VALUES
+  ('siding_vinyl__1__m1', 'siding_vinyl__1', 'House wrap (Tyvek 9x100)', 175, 'Wrap', false, 1),
+  ('siding_vinyl__1__m2', 'siding_vinyl__1', 'House wrap tape (4" 165ft)', 22, 'Tape', false, 2),
+  ('siding_vinyl__1__m3', 'siding_vinyl__1', 'Flashing tape (Vycor)', 32, 'Flashing', false, 3),
+  ('siding_vinyl__1__m4', 'siding_vinyl__1', 'Cap nails (2", 5lb)', 28, 'Fasteners', false, 4);
+INSERT INTO template_phases (id, template_id, name, sort_order, estimated_days, description, inspection_required) VALUES ('siding_vinyl__2', 'siding_vinyl', 'Trim & Channel', 2, 1, 'Install starter, corner posts, J-channels around openings.', NULL);
+INSERT INTO template_tasks (id, phase_id, name, sort_order, optional) VALUES
+  ('siding_vinyl__2__t1', 'siding_vinyl__2', 'Snap level line for starter strip', 1, false),
+  ('siding_vinyl__2__t2', 'siding_vinyl__2', 'Install starter strip', 2, false),
+  ('siding_vinyl__2__t3', 'siding_vinyl__2', 'Install outside corner posts', 3, false),
+  ('siding_vinyl__2__t4', 'siding_vinyl__2', 'Install inside corner posts (if any)', 4, false),
+  ('siding_vinyl__2__t5', 'siding_vinyl__2', 'Install J-channel around windows and doors', 5, false),
+  ('siding_vinyl__2__t6', 'siding_vinyl__2', 'Install J-channel where siding meets soffit', 6, false);
+INSERT INTO template_materials (id, phase_id, name, estimated_cost, category, optional, sort_order) VALUES
+  ('siding_vinyl__2__m1', 'siding_vinyl__2', 'Starter strip (12.5ft)', 8, 'Trim', false, 1),
+  ('siding_vinyl__2__m2', 'siding_vinyl__2', 'Outside corner post (10ft)', 22, 'Trim', false, 2),
+  ('siding_vinyl__2__m3', 'siding_vinyl__2', 'J-channel (12.5ft)', 7, 'Trim', false, 3),
+  ('siding_vinyl__2__m4', 'siding_vinyl__2', 'Galvanized nails (2", 5lb)', 22, 'Fasteners', false, 4);
+INSERT INTO template_phases (id, template_id, name, sort_order, estimated_days, description, inspection_required) VALUES ('siding_vinyl__3', 'siding_vinyl', 'Siding Courses', 3, 2, 'Install courses bottom-to-top, leave room for thermal expansion, alternate seam locations.', NULL);
+INSERT INTO template_tasks (id, phase_id, name, sort_order, optional) VALUES
+  ('siding_vinyl__3__t1', 'siding_vinyl__3', 'Lock first course into starter', 1, false),
+  ('siding_vinyl__3__t2', 'siding_vinyl__3', 'Nail loose — center of slot, leave 1/16" head-up gap', 2, false),
+  ('siding_vinyl__3__t3', 'siding_vinyl__3', 'Cut to fit at corners and openings', 3, false),
+  ('siding_vinyl__3__t4', 'siding_vinyl__3', 'Continue full courses up the wall', 4, false),
+  ('siding_vinyl__3__t5', 'siding_vinyl__3', 'Alternate vertical seams (no two seams within 3 courses)', 5, false),
+  ('siding_vinyl__3__t6', 'siding_vinyl__3', 'Install last course under soffit with utility trim', 6, false),
+  ('siding_vinyl__3__t7', 'siding_vinyl__3', 'Install gable triangles', 7, false);
+INSERT INTO template_materials (id, phase_id, name, estimated_cost, category, optional, sort_order) VALUES
+  ('siding_vinyl__3__m1', 'siding_vinyl__3', 'Vinyl siding (per square)', 165, 'Siding', false, 1),
+  ('siding_vinyl__3__m2', 'siding_vinyl__3', 'Utility trim (12.5ft)', 6, 'Trim', false, 2);
+INSERT INTO template_phases (id, template_id, name, sort_order, estimated_days, description, inspection_required) VALUES ('siding_vinyl__4', 'siding_vinyl', 'Accessories & Punch', 4, 1, 'Install mounting blocks, vent covers, walk job, touch up.', NULL);
+INSERT INTO template_tasks (id, phase_id, name, sort_order, optional) VALUES
+  ('siding_vinyl__4__t1', 'siding_vinyl__4', 'Install mounting blocks for lights / faucets / receptacles', 1, false),
+  ('siding_vinyl__4__t2', 'siding_vinyl__4', 'Install dryer vent / soffit vent covers', 2, false),
+  ('siding_vinyl__4__t3', 'siding_vinyl__4', 'Caulk where vinyl meets brick / stone (if any)', 3, false),
+  ('siding_vinyl__4__t4', 'siding_vinyl__4', 'Walk every face, photograph completion', 4, false),
+  ('siding_vinyl__4__t5', 'siding_vinyl__4', 'Walk-through with GC', 5, false);
+INSERT INTO template_materials (id, phase_id, name, estimated_cost, category, optional, sort_order) VALUES
+  ('siding_vinyl__4__m1', 'siding_vinyl__4', 'Mounting blocks (light / faucet / receptacle)', 18, 'Accessories', false, 1),
+  ('siding_vinyl__4__m2', 'siding_vinyl__4', 'Color-matched caulk', 14, 'Caulk', false, 2);
+
+-- Attic Blow-In Insulation (insulation)
+INSERT INTO project_templates (id, name, icon, category, trade, description, estimated_days, estimated_budget_low, estimated_budget_high, sort_order) VALUES ('insulation_attic_blow', 'Attic Blow-In Insulation', 'cloud', 'Install', 'insulation', 'Air-seal attic floor, install baffles, blow loose-fill cellulose or fiberglass to R-value spec.', 2, 1500, 4500, 36);
+INSERT INTO template_phases (id, template_id, name, sort_order, estimated_days, description, inspection_required) VALUES ('insulation_attic_blow__1', 'insulation_attic_blow', 'Air-Seal & Baffles', 1, 1, 'Seal every penetration, install baffles at eaves so soffits stay vented.', NULL);
+INSERT INTO template_tasks (id, phase_id, name, sort_order, optional) VALUES
+  ('insulation_attic_blow__1__t1', 'insulation_attic_blow__1', 'Walk attic, photograph existing condition', 1, false),
+  ('insulation_attic_blow__1__t2', 'insulation_attic_blow__1', 'Air-seal top plates, around penetrations (caulk + foam)', 2, false),
+  ('insulation_attic_blow__1__t3', 'insulation_attic_blow__1', 'Foam-seal around recessed lights (IC-rated only)', 3, false),
+  ('insulation_attic_blow__1__t4', 'insulation_attic_blow__1', 'Build dam around attic hatch', 4, false),
+  ('insulation_attic_blow__1__t5', 'insulation_attic_blow__1', 'Install baffles at every rafter bay at eave', 5, false),
+  ('insulation_attic_blow__1__t6', 'insulation_attic_blow__1', 'Dam around bath fans, prevent fiber from re-entering ducts', 6, false);
+INSERT INTO template_materials (id, phase_id, name, estimated_cost, category, optional, sort_order) VALUES
+  ('insulation_attic_blow__1__m1', 'insulation_attic_blow__1', 'Spray foam (large can, 24oz)', 18, 'Air Sealing', false, 1),
+  ('insulation_attic_blow__1__m2', 'insulation_attic_blow__1', 'Fire-rated caulk (3M FB-3000WT)', 14, 'Air Sealing', false, 2),
+  ('insulation_attic_blow__1__m3', 'insulation_attic_blow__1', 'Attic baffles (Provent, 22"x4ft, 70pk)', 95, 'Baffles', false, 3),
+  ('insulation_attic_blow__1__m4', 'insulation_attic_blow__1', 'Recessed light covers (IC-rated)', 22, 'Air Sealing', true, 4),
+  ('insulation_attic_blow__1__m5', 'insulation_attic_blow__1', 'Hatch insulation kit / dam', 45, 'Air Sealing', false, 5);
+INSERT INTO template_phases (id, template_id, name, sort_order, estimated_days, description, inspection_required) VALUES ('insulation_attic_blow__2', 'insulation_attic_blow', 'Blow Insulation', 2, 1, 'Set up blower, blow to depth-marker rulers spaced across attic, walk depth check.', NULL);
+INSERT INTO template_tasks (id, phase_id, name, sort_order, optional) VALUES
+  ('insulation_attic_blow__2__t1', 'insulation_attic_blow__2', 'Set up blower outside, run hose into attic', 1, false),
+  ('insulation_attic_blow__2__t2', 'insulation_attic_blow__2', 'Place depth-marker rulers across attic (1 per 300sf)', 2, false),
+  ('insulation_attic_blow__2__t3', 'insulation_attic_blow__2', 'Blow insulation to spec depth (R49 = ~13" cellulose, ~18" fiberglass)', 3, false),
+  ('insulation_attic_blow__2__t4', 'insulation_attic_blow__2', 'Walk attic, verify depth at each marker', 4, false),
+  ('insulation_attic_blow__2__t5', 'insulation_attic_blow__2', 'Top off any low spots', 5, false),
+  ('insulation_attic_blow__2__t6', 'insulation_attic_blow__2', 'Hang insulation tag at hatch (R-value, sf, install date)', 6, false),
+  ('insulation_attic_blow__2__t7', 'insulation_attic_blow__2', 'Photo: each ruler showing depth', 7, false);
+INSERT INTO template_materials (id, phase_id, name, estimated_cost, category, optional, sort_order) VALUES
+  ('insulation_attic_blow__2__m1', 'insulation_attic_blow__2', 'Cellulose insulation (per bag)', 13, 'Insulation', false, 1),
+  ('insulation_attic_blow__2__m2', 'insulation_attic_blow__2', 'Fiberglass insulation (per bag)', 22, 'Insulation', true, 2),
+  ('insulation_attic_blow__2__m3', 'insulation_attic_blow__2', 'Blower rental (1 day, free with bag count)', 0, 'Equipment', false, 3),
+  ('insulation_attic_blow__2__m4', 'insulation_attic_blow__2', 'Depth-marker rulers (10pk)', 18, 'Tools', false, 4),
+  ('insulation_attic_blow__2__m5', 'insulation_attic_blow__2', 'Insulation tag (R-value record)', 0, 'Documentation', false, 5);
+
+-- Wall Batt Insulation (insulation)
+INSERT INTO project_templates (id, name, icon, category, trade, description, estimated_days, estimated_budget_low, estimated_budget_high, sort_order) VALUES ('insulation_wall_batt', 'Wall Batt Insulation', 'cloud', 'Install', 'insulation', 'Fiberglass batts in stud bays — exterior walls, interior sound walls, rim joists.', 2, 800, 2500, 37);
+INSERT INTO template_phases (id, template_id, name, sort_order, estimated_days, description, inspection_required) VALUES ('insulation_wall_batt__1', 'insulation_wall_batt', 'Pre-Insulation Air Sealing', 1, 1, 'Plug every hole — top plates, electrical penetrations, plumbing.', 'Pre-insulation inspection');
+INSERT INTO template_tasks (id, phase_id, name, sort_order, optional) VALUES
+  ('insulation_wall_batt__1__t1', 'insulation_wall_batt__1', 'Walk every wall, photograph penetrations', 1, false),
+  ('insulation_wall_batt__1__t2', 'insulation_wall_batt__1', 'Caulk top and bottom plate to sheathing', 2, false),
+  ('insulation_wall_batt__1__t3', 'insulation_wall_batt__1', 'Foam around electrical boxes', 3, false),
+  ('insulation_wall_batt__1__t4', 'insulation_wall_batt__1', 'Foam around plumbing penetrations', 4, false),
+  ('insulation_wall_batt__1__t5', 'insulation_wall_batt__1', 'Foam at rim joist between bays', 5, false),
+  ('insulation_wall_batt__1__t6', 'insulation_wall_batt__1', 'Schedule pre-insulation inspection (jurisdictions vary)', 6, false);
+INSERT INTO template_materials (id, phase_id, name, estimated_cost, category, optional, sort_order) VALUES
+  ('insulation_wall_batt__1__m1', 'insulation_wall_batt__1', 'Spray foam (large can)', 18, 'Air Sealing', false, 1),
+  ('insulation_wall_batt__1__m2', 'insulation_wall_batt__1', 'Acoustical sealant (DAP, 28oz)', 14, 'Sealant', false, 2);
+INSERT INTO template_phases (id, template_id, name, sort_order, estimated_days, description, inspection_required) VALUES ('insulation_wall_batt__2', 'insulation_wall_batt', 'Install Batts', 2, 1, 'Cut to fit, friction-fit in bays, no gaps or compression.', NULL);
+INSERT INTO template_tasks (id, phase_id, name, sort_order, optional) VALUES
+  ('insulation_wall_batt__2__t1', 'insulation_wall_batt__2', 'Cut batts 1/2" wider than stud bay (friction fit)', 1, false),
+  ('insulation_wall_batt__2__t2', 'insulation_wall_batt__2', 'Cut around every penetration carefully (don’t compress)', 2, false),
+  ('insulation_wall_batt__2__t3', 'insulation_wall_batt__2', 'Split batts around wires and pipes (front + back)', 3, false),
+  ('insulation_wall_batt__2__t4', 'insulation_wall_batt__2', 'Friction-fit, no gaps at top, bottom, edges', 4, false),
+  ('insulation_wall_batt__2__t5', 'insulation_wall_batt__2', 'Verify no compression (R-value depends on full loft)', 5, false),
+  ('insulation_wall_batt__2__t6', 'insulation_wall_batt__2', 'Photo: every wall before drywall', 6, false);
+INSERT INTO template_materials (id, phase_id, name, estimated_cost, category, optional, sort_order) VALUES
+  ('insulation_wall_batt__2__m1', 'insulation_wall_batt__2', 'R15 fiberglass batt (2x4 wall, 88sf)', 60, 'Insulation', false, 1),
+  ('insulation_wall_batt__2__m2', 'insulation_wall_batt__2', 'R21 fiberglass batt (2x6 wall)', 72, 'Insulation', true, 2),
+  ('insulation_wall_batt__2__m3', 'insulation_wall_batt__2', 'Insulation knife / utility knife', 8, 'Tools', false, 3),
+  ('insulation_wall_batt__2__m4', 'insulation_wall_batt__2', 'Vapor barrier (poly 6mil, if specified)', 38, 'Vapor Barrier', true, 4);
+
+-- Kitchen Cabinet Install (cabinetry)
+INSERT INTO project_templates (id, name, icon, category, trade, description, estimated_days, estimated_budget_low, estimated_budget_high, sort_order) VALUES ('cabinetry_kitchen_install', 'Kitchen Cabinet Install', 'apps', 'Install', 'cabinetry', 'Install pre-built cabinets — uppers first, then bases. Includes leveling, scribing, fillers, hardware.', 3, 1800, 5500, 38);
+INSERT INTO template_phases (id, template_id, name, sort_order, estimated_days, description, inspection_required) VALUES ('cabinetry_kitchen_install__1', 'cabinetry_kitchen_install', 'Layout & Prep', 1, 1, 'Mark high point of floor, draw level lines, locate studs.', NULL);
+INSERT INTO template_tasks (id, phase_id, name, sort_order, optional) VALUES
+  ('cabinetry_kitchen_install__1__t1', 'cabinetry_kitchen_install__1', 'Verify cabinet order against plan, count and inspect', 1, false),
+  ('cabinetry_kitchen_install__1__t2', 'cabinetry_kitchen_install__1', 'Find high point of floor with level', 2, false),
+  ('cabinetry_kitchen_install__1__t3', 'cabinetry_kitchen_install__1', 'Mark base cabinet height line (34.5") off high point', 3, false),
+  ('cabinetry_kitchen_install__1__t4', 'cabinetry_kitchen_install__1', 'Mark upper cabinet bottom height (54" typical)', 4, false),
+  ('cabinetry_kitchen_install__1__t5', 'cabinetry_kitchen_install__1', 'Find and mark every stud in each wall', 5, false),
+  ('cabinetry_kitchen_install__1__t6', 'cabinetry_kitchen_install__1', 'Install cleat for uppers if helping single installer', 6, false);
+INSERT INTO template_materials (id, phase_id, name, estimated_cost, category, optional, sort_order) VALUES
+  ('cabinetry_kitchen_install__1__m1', 'cabinetry_kitchen_install__1', '1x3 ledger / cleat', 6, 'Lumber', false, 1),
+  ('cabinetry_kitchen_install__1__m2', 'cabinetry_kitchen_install__1', 'Stud finder / chalk line', 0, 'Tools', false, 2);
+INSERT INTO template_phases (id, template_id, name, sort_order, estimated_days, description, inspection_required) VALUES ('cabinetry_kitchen_install__2', 'cabinetry_kitchen_install', 'Hang Uppers', 2, 1, 'Hang uppers first while floor is clear. Start in a corner.', NULL);
+INSERT INTO template_tasks (id, phase_id, name, sort_order, optional) VALUES
+  ('cabinetry_kitchen_install__2__t1', 'cabinetry_kitchen_install__2', 'Start with corner cabinet', 1, false),
+  ('cabinetry_kitchen_install__2__t2', 'cabinetry_kitchen_install__2', 'Hang each cabinet from cleat, screw 2.5" cabinet screws into studs (top + bottom rail)', 2, false),
+  ('cabinetry_kitchen_install__2__t3', 'cabinetry_kitchen_install__2', 'Clamp adjacent cabinets together face-frame to face-frame', 3, false),
+  ('cabinetry_kitchen_install__2__t4', 'cabinetry_kitchen_install__2', 'Drill and screw cabinets together (6 screws minimum)', 4, false),
+  ('cabinetry_kitchen_install__2__t5', 'cabinetry_kitchen_install__2', 'Scribe and trim filler strips at end walls', 5, false),
+  ('cabinetry_kitchen_install__2__t6', 'cabinetry_kitchen_install__2', 'Verify level and plumb on every cabinet', 6, false);
+INSERT INTO template_materials (id, phase_id, name, estimated_cost, category, optional, sort_order) VALUES
+  ('cabinetry_kitchen_install__2__m1', 'cabinetry_kitchen_install__2', '2.5" cabinet screws (50pk)', 22, 'Fasteners', false, 1),
+  ('cabinetry_kitchen_install__2__m2', 'cabinetry_kitchen_install__2', '1.25" cabinet-to-cabinet screws (50pk)', 18, 'Fasteners', false, 2),
+  ('cabinetry_kitchen_install__2__m3', 'cabinetry_kitchen_install__2', 'Filler strips (3" matching)', 28, 'Fillers', false, 3),
+  ('cabinetry_kitchen_install__2__m4', 'cabinetry_kitchen_install__2', 'Shims (cedar, 12pk)', 6, 'Shims', false, 4);
+INSERT INTO template_phases (id, template_id, name, sort_order, estimated_days, description, inspection_required) VALUES ('cabinetry_kitchen_install__3', 'cabinetry_kitchen_install', 'Set Bases & Trim', 3, 1, 'Set base cabinets, level with shims, trim toe kick, install hardware.', NULL);
+INSERT INTO template_tasks (id, phase_id, name, sort_order, optional) VALUES
+  ('cabinetry_kitchen_install__3__t1', 'cabinetry_kitchen_install__3', 'Set corner base first, level', 1, false),
+  ('cabinetry_kitchen_install__3__t2', 'cabinetry_kitchen_install__3', 'Walk bases out, shim each at high spots', 2, false),
+  ('cabinetry_kitchen_install__3__t3', 'cabinetry_kitchen_install__3', 'Screw to studs through back rail', 3, false),
+  ('cabinetry_kitchen_install__3__t4', 'cabinetry_kitchen_install__3', 'Connect base cabinets face-frame to face-frame', 4, false),
+  ('cabinetry_kitchen_install__3__t5', 'cabinetry_kitchen_install__3', 'Scribe and install filler strips', 5, false),
+  ('cabinetry_kitchen_install__3__t6', 'cabinetry_kitchen_install__3', 'Cut and install toe kick', 6, false),
+  ('cabinetry_kitchen_install__3__t7', 'cabinetry_kitchen_install__3', 'Hang doors, adjust for gap and reveal', 7, false),
+  ('cabinetry_kitchen_install__3__t8', 'cabinetry_kitchen_install__3', 'Install drawer fronts, level', 8, false),
+  ('cabinetry_kitchen_install__3__t9', 'cabinetry_kitchen_install__3', 'Install knobs and pulls', 9, false),
+  ('cabinetry_kitchen_install__3__t10', 'cabinetry_kitchen_install__3', 'Walk-through with GC', 10, false);
+INSERT INTO template_materials (id, phase_id, name, estimated_cost, category, optional, sort_order) VALUES
+  ('cabinetry_kitchen_install__3__m1', 'cabinetry_kitchen_install__3', 'Toe kick (matching, 8ft)', 18, 'Trim', false, 1),
+  ('cabinetry_kitchen_install__3__m2', 'cabinetry_kitchen_install__3', 'Knobs / pulls (per piece)', 4, 'Hardware', false, 2),
+  ('cabinetry_kitchen_install__3__m3', 'cabinetry_kitchen_install__3', 'Pull-template jig', 22, 'Tools', true, 3);
+
+-- Bathroom Vanity Install (cabinetry)
+INSERT INTO project_templates (id, name, icon, category, trade, description, estimated_days, estimated_budget_low, estimated_budget_high, sort_order) VALUES ('cabinetry_vanity', 'Bathroom Vanity Install', 'apps', 'Install', 'cabinetry', 'Set vanity cabinet, scribe to wall, install top, hook up drains and supplies (after plumber).', 1, 350, 1200, 39);
+INSERT INTO template_phases (id, template_id, name, sort_order, estimated_days, description, inspection_required) VALUES ('cabinetry_vanity__1', 'cabinetry_vanity', 'Set & Connect', 1, 1, 'Position vanity, level, anchor, install top, hand off to plumber for fixture set.', NULL);
+INSERT INTO template_tasks (id, phase_id, name, sort_order, optional) VALUES
+  ('cabinetry_vanity__1__t1', 'cabinetry_vanity__1', 'Verify floor is clean and level', 1, false),
+  ('cabinetry_vanity__1__t2', 'cabinetry_vanity__1', 'Locate studs behind vanity', 2, false),
+  ('cabinetry_vanity__1__t3', 'cabinetry_vanity__1', 'Set vanity, level front-to-back and side-to-side with shims', 3, false),
+  ('cabinetry_vanity__1__t4', 'cabinetry_vanity__1', 'Scribe vanity to wall if not flush', 4, false),
+  ('cabinetry_vanity__1__t5', 'cabinetry_vanity__1', 'Anchor through back into studs', 5, false),
+  ('cabinetry_vanity__1__t6', 'cabinetry_vanity__1', 'Apply silicone bead on top of cabinet, set top', 6, false),
+  ('cabinetry_vanity__1__t7', 'cabinetry_vanity__1', 'Caulk top to wall (color-matched)', 7, false),
+  ('cabinetry_vanity__1__t8', 'cabinetry_vanity__1', 'Install drawer fronts and doors', 8, false),
+  ('cabinetry_vanity__1__t9', 'cabinetry_vanity__1', 'Install hardware (knobs / pulls)', 9, false),
+  ('cabinetry_vanity__1__t10', 'cabinetry_vanity__1', 'Hand off to plumber for faucet and drain', 10, false);
+INSERT INTO template_materials (id, phase_id, name, estimated_cost, category, optional, sort_order) VALUES
+  ('cabinetry_vanity__1__m1', 'cabinetry_vanity__1', 'Cedar shims (12pk)', 6, 'Shims', false, 1),
+  ('cabinetry_vanity__1__m2', 'cabinetry_vanity__1', '2.5" cabinet screws', 12, 'Fasteners', false, 2),
+  ('cabinetry_vanity__1__m3', 'cabinetry_vanity__1', 'Silicone caulk (color-matched)', 8, 'Caulk', false, 3),
+  ('cabinetry_vanity__1__m4', 'cabinetry_vanity__1', 'Knobs / pulls', 8, 'Hardware', false, 4);
+
 COMMIT;

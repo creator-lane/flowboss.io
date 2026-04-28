@@ -3,7 +3,32 @@
  * Components use useTrade() hook to access the config for the current user's trade.
  */
 
-export type TradeId = 'plumbing' | 'hvac' | 'electrical';
+// Every value here corresponds to a row in project_templates.trade and to
+// one of the labels the GC can invite from CreateGCProjectModal's
+// TRADE_OPTIONS. New trades added here MUST also be added to
+// normalizeTradeLabel() so the GC's human label maps cleanly.
+//
+// TRADE_CONFIGS only carries the legacy three (plumbing/hvac/electrical)
+// because mobile's UI customization (categories, jobPlaceholder, etc.)
+// only ships for those today. The remaining trades fall back to
+// plumbing's config via getTradeConfig() — fine for now since the new
+// surfaces (template library, sub work plan) don't need per-trade UI
+// customization.
+export type TradeId =
+  | 'plumbing'
+  | 'hvac'
+  | 'electrical'
+  | 'drywall'
+  | 'framing'
+  | 'painting'
+  | 'roofing'
+  | 'concrete'
+  | 'flooring'
+  | 'landscaping'
+  | 'tiling'
+  | 'siding'
+  | 'insulation'
+  | 'cabinetry';
 
 export interface TradeCategory {
   name: string;
@@ -30,7 +55,12 @@ export interface TradeConfig {
   guidedJobExample: string;
 }
 
-export const TRADE_CONFIGS: Record<TradeId, TradeConfig> = {
+// Partial — newer trade ids (drywall, painting, etc.) don't have full
+// TRADE_CONFIGS entries yet. getTradeConfig() falls back to plumbing's
+// config when there's no match, which is fine because the surfaces
+// that actually read these (mobile category filters, jobPlaceholder
+// copy) only ship for the original three trades today.
+export const TRADE_CONFIGS: Partial<Record<TradeId, TradeConfig>> = {
   plumbing: {
     id: 'plumbing',
     label: 'Plumbing',
@@ -104,7 +134,7 @@ export const TRADE_CONFIGS: Record<TradeId, TradeConfig> = {
 
 /** Get config for a trade, with plumbing fallback */
 export function getTradeConfig(trade: string | undefined | null): TradeConfig {
-  return TRADE_CONFIGS[(trade as TradeId)] || TRADE_CONFIGS.plumbing;
+  return TRADE_CONFIGS[(trade as TradeId)] || TRADE_CONFIGS.plumbing!;
 }
 
 /**
@@ -119,11 +149,23 @@ export function normalizeTradeLabel(label: string | undefined | null): TradeId |
   if (!label) return null;
   const k = label.trim().toLowerCase();
   if (!k) return null;
+
+  // Order matters — more-specific matches first. e.g. "tiling" must hit
+  // before "tile flooring" gets routed to flooring. Each branch covers
+  // the singular, plural, and a few common variants the GC might type.
   if (k.includes('plumb')) return 'plumbing';
   if (k.includes('electric')) return 'electrical';
   if (k === 'hvac' || k.includes('hvac') || k.includes('heat') || k.includes('cool') || k.includes('air condition') || k.includes('mechanical')) return 'hvac';
-  // Trades the GC supports today that aren't yet templated. Drywall,
-  // Framing, Tile, etc. fall through and the picker shows a friendly
-  // "templates coming for <Trade>" empty state.
+  if (k.includes('drywall') || k.includes('sheetrock')) return 'drywall';
+  if (k.includes('framing') || k === 'framer') return 'framing';
+  if (k.includes('paint')) return 'painting';
+  if (k.includes('roof')) return 'roofing';
+  if (k.includes('concrete') || k.includes('mason') || k === 'foundation') return 'concrete';
+  if (k.includes('floor') && !k.includes('tile')) return 'flooring';
+  if (k.includes('landscap') || k.includes('lawn') || k.includes('hardscape')) return 'landscaping';
+  if (k.includes('til')) return 'tiling';
+  if (k.includes('siding')) return 'siding';
+  if (k.includes('insulation') || k.includes('foam')) return 'insulation';
+  if (k.includes('cabinet') || k.includes('millwork')) return 'cabinetry';
   return null;
 }

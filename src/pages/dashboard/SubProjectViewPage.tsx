@@ -861,10 +861,22 @@ function MaterialsSection({ tradeId, projectId }: { tradeId: string; projectId: 
 // so it's clear which line items the sub created vs which came from the
 // starter scope.
 
+// Progress palette mirrors mobile's project-context coloration:
+//   purple = upcoming (not started yet — purple is the project surface
+//            accent across the in-app UI)
+//   orange = in progress (some checked, not yet done — same warning /
+//            attention-needed tone mobile uses for overdue and active)
+//   green  = complete (every task in the phase is done)
+// Bar uses #EA580C (semantic.orange) and #16A34A (semantic.success) to
+// match mobile's exact tokens; purple uses #7C3AED (projects.accent).
 const PHASE_PROGRESS_TONE = (pct: number) => {
-  if (pct === 100) return { bar: '#22c55e', dot: 'bg-green-500', text: 'text-green-700 dark:text-green-300', soft: 'bg-green-100 dark:bg-green-500/20' };
-  if (pct >= 50)   return { bar: '#f59e0b', dot: 'bg-amber-500', text: 'text-amber-700 dark:text-amber-300', soft: 'bg-amber-100 dark:bg-amber-500/20' };
-  return            { bar: '#3b82f6', dot: 'bg-blue-500',  text: 'text-blue-700 dark:text-blue-300',   soft: 'bg-blue-100 dark:bg-blue-500/20' };
+  if (pct === 100) {
+    return { bar: '#16A34A', dot: 'bg-green-500',  text: 'text-green-700 dark:text-green-300',   soft: 'bg-green-100 dark:bg-green-500/20' };
+  }
+  if (pct > 0) {
+    return { bar: '#EA580C', dot: 'bg-orange-500', text: 'text-orange-700 dark:text-orange-300', soft: 'bg-orange-100 dark:bg-orange-500/20' };
+  }
+  return     { bar: '#7C3AED', dot: 'bg-purple-500', text: 'text-purple-700 dark:text-purple-300', soft: 'bg-purple-100 dark:bg-purple-500/20' };
 };
 
 function PhaseGroupedList({
@@ -1058,11 +1070,16 @@ function PhaseGroup({
 
 /* ─── Sub-driven trade status pill ─── */
 
+// Status palette tracks the same progress coloration as the phase
+// accordion: purple = upcoming (the project accent reserved for "not
+// started"), orange = in progress (active/working tone, mobile uses
+// the same orange for "needs attention"), green = complete. Blocked
+// stays red because it's a hard alert state, not a progress step.
 const SUB_STATUS_OPTIONS: { key: string; label: string; color: string }[] = [
-  { key: 'not_started', label: 'Not started', color: 'text-gray-600 bg-gray-100 dark:bg-white/10 dark:text-gray-300' },
-  { key: 'in_progress', label: 'In progress', color: 'text-blue-700 bg-blue-100 dark:bg-blue-500/20 dark:text-blue-200' },
-  { key: 'blocked', label: 'Blocked', color: 'text-red-700 bg-red-100 dark:bg-red-500/20 dark:text-red-200' },
-  { key: 'completed', label: 'Complete', color: 'text-green-700 bg-green-100 dark:bg-green-500/20 dark:text-green-200' },
+  { key: 'not_started', label: 'Not started', color: 'text-purple-700 bg-purple-100 dark:bg-purple-500/20 dark:text-purple-200' },
+  { key: 'in_progress', label: 'In progress', color: 'text-orange-700 bg-orange-100 dark:bg-orange-500/20 dark:text-orange-200' },
+  { key: 'blocked',     label: 'Blocked',     color: 'text-red-700 bg-red-100 dark:bg-red-500/20 dark:text-red-200' },
+  { key: 'completed',   label: 'Complete',    color: 'text-green-700 bg-green-100 dark:bg-green-500/20 dark:text-green-200' },
 ];
 
 function SubStatusPill({

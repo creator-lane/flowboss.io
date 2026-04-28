@@ -24,6 +24,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { TemplatePicker } from '../../components/sub/TemplatePicker';
+import { SubOnboardingOverlay } from '../../components/sub/SubOnboardingOverlay';
 
 /* ─── Zone color / emoji maps (mirrored from ZoneClusterDiagram) ─── */
 
@@ -215,6 +216,8 @@ export function SubProjectViewPage() {
 
   return (
     <div className="p-4 lg:p-6 max-w-4xl mx-auto space-y-6">
+      {/* First-visit walkthrough — fires once per browser, dismissible. */}
+      <SubOnboardingOverlay />
       {/* Breadcrumbs */}
       <div className="flex items-center gap-1.5 text-sm">
         <Link to="/dashboard/schedule" className="text-gray-500 hover:text-gray-700 transition-colors dark:text-gray-400 dark:hover:text-gray-200">

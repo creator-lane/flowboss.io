@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../lib/api';
@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { TemplatePicker } from '../../components/sub/TemplatePicker';
 import { SubOnboardingOverlay } from '../../components/sub/SubOnboardingOverlay';
+import { normalizeTradeLabel } from '../../lib/tradeConfig';
 
 /* ─── Zone color / emoji maps (mirrored from ZoneClusterDiagram) ─── */
 
@@ -290,6 +291,7 @@ export function SubProjectViewPage() {
             key={trade.id}
             trade={trade}
             projectId={id!}
+            projectName={project?.name}
             accent={accent}
           />
         ))
@@ -311,6 +313,7 @@ export function SubProjectViewPage() {
                   key={trade.id}
                   trade={trade}
                   projectId={id!}
+                  projectName={project?.name}
                   accent={zoneAccent}
                 />
               ))}
@@ -343,7 +346,7 @@ export function SubProjectViewPage() {
 /*  2. Task Section                                                           */
 /* ========================================================================= */
 
-function TaskSection({ trade, projectId, accent }: { trade: any; projectId: string; accent: ReturnType<typeof getZoneAccentClasses> }) {
+function TaskSection({ trade, projectId, projectName, accent }: { trade: any; projectId: string; projectName?: string; accent: ReturnType<typeof getZoneAccentClasses> }) {
   const queryClient = useQueryClient();
   const { addToast } = useToast();
   const tasks: any[] = (trade.tasks || []).slice().sort((a: any, b: any) => {
@@ -522,6 +525,29 @@ function TaskSection({ trade, projectId, accent }: { trade: any; projectId: stri
   const allDone = tasks.length > 0 && tasks.every((t: any) => t.done);
   const currentStatus: string = trade.status || 'not_started';
   const [templatePickerOpen, setTemplatePickerOpen] = useState(false);
+  const [pickerInitialId, setPickerInitialId] = useState<string | undefined>(undefined);
+
+  // Pull the trade-filtered template catalog and score it against the
+  // project name to surface a "Looks like a Bathroom Remodel?" prompt
+  // when the empty state shows. Skipped when the work plan already has
+  // tasks (the suggestion is a nudge for *first* visit, not a permanent
+  // banner). Geoff's framing: "you can't force it because he's the sub
+  // and the pro" — so it's a soft suggestion, never auto-applied.
+  const tradeKeyForSuggest = useMemo(
+    () => normalizeTradeLabel(trade.trade || ''),
+    [trade.trade],
+  );
+  const { data: templateListResp } = useQuery({
+    queryKey: ['project-templates', tradeKeyForSuggest || 'none'],
+    queryFn: () => api.getProjectTemplates(tradeKeyForSuggest || undefined),
+    enabled: tasks.length === 0 && !!tradeKeyForSuggest,
+    staleTime: 5 * 60 * 1000,
+  });
+  const suggestedTemplate = useMemo(() => {
+    const list = (templateListResp?.data || []) as any[];
+    if (!list.length || !projectName) return null;
+    return scoreTemplateMatch(projectName, list);
+  }, [templateListResp, projectName]);
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10 dark:shadow-black/30">
@@ -546,24 +572,74 @@ function TaskSection({ trade, projectId, accent }: { trade: any; projectId: stri
       </div>
 
       {tasks.length === 0 ? (
-        <div className="px-5 py-8 text-center">
-          <p className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Plan your work for this job</p>
-          <p className="text-xs text-gray-400 dark:text-gray-500 max-w-sm mx-auto mb-4">
-            Start from a {trade.trade || 'trade'} starter template (phases, tasks, materials &mdash; all editable) or build your plan inline below.
-          </p>
-          {/* Template CTA leads when the plan is empty — that's the "wow"
-              moment Geoff has on mobile and the sub view shipped without.
-              Purple matches the mobile design system's template accent
-              (#7c3aed) so the visual identity stays consistent across
-              surfaces. Big, prominent, free for invited subs. */}
-          <button
-            onClick={() => setTemplatePickerOpen(true)}
-            className="inline-flex items-center gap-2 px-5 py-3 bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-xl text-sm font-semibold hover:from-purple-500 hover:to-purple-500 shadow-lg shadow-purple-500/30 hover:shadow-purple-500/40 transition-all"
-          >
-            <Sparkles className="w-4 h-4" />
-            Use a starter template
-          </button>
-          <p className="text-[11px] text-gray-400 mt-3 dark:text-gray-500">Free on this project &mdash; no subscription needed.</p>
+        <div className="px-5 py-7">
+          {suggestedTemplate ? (
+            // Soft suggestion based on the project name + the sub's trade.
+            // Two CTAs: "Use this template" jumps straight to the review
+            // step pre-loaded, "Pick a different one" opens the full
+            // catalog. There's a "skip" affordance below — the sub is the
+            // pro, and skipping into a hand-typed plan is a first-class
+            // path, not a hidden one.
+            <div className="rounded-xl border-2 border-purple-300 bg-gradient-to-br from-purple-50 to-white p-5 dark:border-purple-400/40 dark:from-purple-500/10 dark:to-transparent">
+              <div className="flex items-start gap-3 mb-3">
+                <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center flex-shrink-0 dark:bg-purple-500/20">
+                  <Sparkles className="w-5 h-5 text-purple-600 dark:text-purple-300" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-purple-600 dark:text-purple-300">
+                    Suggested for this job
+                  </p>
+                  <h3 className="text-base font-bold text-gray-900 dark:text-white">
+                    {suggestedTemplate.name}
+                  </h3>
+                  <p className="text-xs text-gray-500 leading-relaxed mt-0.5 dark:text-gray-400">
+                    {suggestedTemplate.description}
+                  </p>
+                </div>
+              </div>
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                <button
+                  onClick={() => {
+                    setPickerInitialId(suggestedTemplate.id);
+                    setTemplatePickerOpen(true);
+                  }}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-lg text-sm font-semibold hover:from-purple-500 hover:to-purple-500 shadow-lg shadow-purple-500/30 transition-all"
+                >
+                  Use {suggestedTemplate.name}
+                </button>
+                <button
+                  onClick={() => {
+                    setPickerInitialId(undefined);
+                    setTemplatePickerOpen(true);
+                  }}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors dark:bg-white/5 dark:border-white/10 dark:text-gray-200 dark:hover:bg-white/10"
+                >
+                  Pick a different one
+                </button>
+              </div>
+              <p className="text-[11px] text-gray-400 text-center mt-3 dark:text-gray-500">
+                Or skip and add steps yourself below &mdash; free on this project, no subscription needed.
+              </p>
+            </div>
+          ) : (
+            <div className="text-center">
+              <p className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Plan your work for this job</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500 max-w-sm mx-auto mb-4">
+                Start from a {trade.trade || 'trade'} starter template (phases, tasks, materials &mdash; all editable) or build your plan inline below.
+              </p>
+              <button
+                onClick={() => {
+                  setPickerInitialId(undefined);
+                  setTemplatePickerOpen(true);
+                }}
+                className="inline-flex items-center gap-2 px-5 py-3 bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-xl text-sm font-semibold hover:from-purple-500 hover:to-purple-500 shadow-lg shadow-purple-500/30 hover:shadow-purple-500/40 transition-all"
+              >
+                <Sparkles className="w-4 h-4" />
+                Use a starter template
+              </button>
+              <p className="text-[11px] text-gray-400 mt-3 dark:text-gray-500">Free on this project &mdash; no subscription needed.</p>
+            </div>
+          )}
         </div>
       ) : (
         <PhaseGroupedList
@@ -646,10 +722,11 @@ function TaskSection({ trade, projectId, accent }: { trade: any; projectId: stri
           library each time. */}
       <TemplatePicker
         open={templatePickerOpen}
-        onClose={() => setTemplatePickerOpen(false)}
+        onClose={() => { setTemplatePickerOpen(false); setPickerInitialId(undefined); }}
         tradeId={trade.id}
         tradeLabel={trade.trade || ''}
         projectId={projectId}
+        initialTemplateId={pickerInitialId}
       />
     </div>
   );
@@ -849,6 +926,53 @@ function MaterialsSection({ tradeId, projectId }: { tradeId: string; projectId: 
     </div>
   );
 }
+
+/* ─── Smart template suggestion ──────────────────────────────────────────
+//
+// When a sub lands on a fresh GC project with an empty work plan, score
+// the trade-filtered template catalog against the project name and
+// surface the top hit as a "Looks like a Bathroom Remodel?" nudge. The
+// match is a soft suggestion — sub clicks to use it, picks a different
+// one, or skips entirely. Geoff: "you cant force it because hes the sub
+// and the pro."
+//
+// Scoring is intentionally simple: split the project name into tokens
+// of length > 2, count how many appear in (template name + description
+// + category). Name matches weighted 2x because "Bathroom Remodel — 41
+// Hudson" should pick up the "bathroom" / "remodel" hits in the
+// template name even when the template description is generic.
+*/
+
+function scoreTemplateMatch(
+  projectName: string,
+  templates: { id: string; name: string; description: string; category?: string }[],
+): { id: string; name: string; description: string } | null {
+  const haystackOf = (t: { name: string; description: string; category?: string }) =>
+    `${t.name} ${t.name} ${t.description} ${t.category || ''}`.toLowerCase(); // name doubled for weight
+  const tokens = (projectName || '')
+    .toLowerCase()
+    .split(/\W+/)
+    .filter((t) => t.length > 2 && !STOPWORDS.has(t));
+  if (tokens.length === 0) return null;
+  let best: { template: any; score: number } | null = null;
+  for (const t of templates) {
+    const haystack = haystackOf(t);
+    let score = 0;
+    for (const token of tokens) {
+      if (haystack.includes(token)) score += 1;
+    }
+    if (score > 0 && (!best || score > best.score)) best = { template: t, score };
+  }
+  // Require at least one match to surface — anything below that is noise.
+  if (!best || best.score < 1) return null;
+  return best.template;
+}
+
+const STOPWORDS = new Set([
+  'project', 'job', 'work', 'unit', 'house', 'home', 'street', 'avenue', 'ave',
+  'lane', 'road', 'rd', 'drive', 'dr', 'place', 'court', 'ct', 'apartment', 'apt',
+  'suite', 'building', 'bldg', 'and', 'the', 'with', 'for', 'new', 'old',
+]);
 
 /* ─── Phase-grouped task list (mobile-aligned) ─────────────────────────── */
 //

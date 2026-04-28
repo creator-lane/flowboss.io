@@ -16,7 +16,7 @@
  * piece of that pitch.
  */
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   ArrowLeft,
@@ -78,6 +78,11 @@ interface TemplatePickerProps {
   tradeId: string;
   tradeLabel: string; // e.g. "Plumbing" — what the GC put on the trade row
   projectId: string;
+  // Optional: jump straight to the review step for a specific template id.
+  // Used by the project-name-based suggestion in the empty state — when
+  // the sub clicks "Use Bathroom Remodel as your starting point", we
+  // open the picker already on the customize/preview screen.
+  initialTemplateId?: string;
 }
 
 // Local copy of the row-level state the picker keeps. We don't mutate the
@@ -86,7 +91,7 @@ interface TemplatePickerProps {
 type SelectableTask = { name: string; phaseName: string; selected: boolean };
 type SelectableMaterial = { name: string; cost: number; category: string; selected: boolean };
 
-export function TemplatePicker({ open, onClose, tradeId, tradeLabel, projectId }: TemplatePickerProps) {
+export function TemplatePicker({ open, onClose, tradeId, tradeLabel, projectId, initialTemplateId }: TemplatePickerProps) {
   const queryClient = useQueryClient();
   const { addToast } = useToast();
 
@@ -106,7 +111,19 @@ export function TemplatePicker({ open, onClose, tradeId, tradeLabel, projectId }
 
   const [step, setStep] = useState<'pick' | 'review' | 'done'>('pick');
   const [search, setSearch] = useState('');
-  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(initialTemplateId ?? null);
+
+  // If the caller hands us a pre-selected template (from the suggestion
+  // surface in the empty state), jump straight to the review step the
+  // moment the modal opens. Re-evaluated on each open so a follow-up
+  // "Use Bathroom Remodel" click after dismiss-without-apply still works.
+  useEffect(() => {
+    if (!open) return;
+    if (initialTemplateId) {
+      setSelectedTemplateId(initialTemplateId);
+      setStep('review');
+    }
+  }, [open, initialTemplateId]);
   const [tasks, setTasks] = useState<SelectableTask[]>([]);
   const [materials, setMaterials] = useState<SelectableMaterial[]>([]);
 

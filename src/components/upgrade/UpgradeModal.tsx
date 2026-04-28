@@ -197,7 +197,7 @@ export function UpgradeModal({ open, onClose, feature = 'generic' }: UpgradeModa
                   <div className="text-right">
                     <div className="text-[10px] font-bold tracking-wider uppercase text-gray-400 dark:text-gray-500">Or annual</div>
                     <div className="flex items-baseline gap-1 justify-end">
-                      <span className="text-lg font-bold text-gray-700 dark:text-gray-300">$99</span>
+                      <span className="text-lg font-bold text-gray-700 dark:text-gray-300">$99.99</span>
                       <span className="text-xs text-gray-500 dark:text-gray-400">/yr</span>
                     </div>
                   </div>

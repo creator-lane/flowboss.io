@@ -11,6 +11,7 @@ import {
   Plus,
   Square,
   Star,
+  StickyNote,
   Trash2,
   UserMinus,
   UserPlus,
@@ -549,9 +550,25 @@ function TradeDetailPanelInner({
                       <Square className="w-[18px] h-[18px] text-gray-300 group-hover:text-gray-400 transition-colors" />
                     )}
                   </button>
-                  <span className={`text-sm leading-snug ${task.done ? 'text-gray-400 line-through' : 'text-gray-700'}`}>
-                    {task.name}
-                  </span>
+                  <div className="flex-1 min-w-0">
+                    <span className={`block text-sm leading-snug ${task.done ? 'text-gray-400 line-through' : 'text-gray-700 dark:text-gray-200'}`}>
+                      {task.name}
+                    </span>
+                    {/* Sub-authored note (gc_project_tasks.notes). Subs write
+                        these via SubProjectViewPage::TaskCard inline note
+                        editor and now (2026-04-28) via mobile's sub-card
+                        through api.updateGCTask. The GC's read view here
+                        lagged by a session — without rendering it, the GC
+                        couldn't see "rough-in passed inspection" the sub
+                        typed two minutes ago. Italic + StickyNote glyph so
+                        it visually distinguishes from the task name. */}
+                    {task.notes && (
+                      <div className="mt-1 flex items-start gap-1.5 text-xs text-gray-500 italic leading-snug dark:text-gray-400">
+                        <StickyNote className="w-3 h-3 mt-0.5 flex-shrink-0 not-italic" />
+                        <span className="break-words">{task.notes}</span>
+                      </div>
+                    )}
+                  </div>
                 </label>
               ))}
             </div>

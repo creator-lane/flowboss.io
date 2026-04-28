@@ -103,11 +103,14 @@ export function Pricing() {
     : 'or $199.99/yr (save $160) · cancel anytime';
   const gcHref = billing === 'annual' ? gcAnnualHref : gcMonthlyHref;
 
-  const subProPrice = billing === 'annual' ? '$99' : '$14.99';
+  // Trade Pro: was $99/yr but Apple's tier list doesn't carry $99.00, so
+  // both stores landed on $99.99/yr — keep web in lockstep so the in-app
+  // pricing matches what users see at checkout.
+  const subProPrice = billing === 'annual' ? '$99.99' : '$14.99';
   const subProInterval = billing === 'annual' ? '/yr' : '/mo';
   const subProSubtext = billing === 'annual'
-    ? 'Works out to $8.25/mo · save $80 vs monthly'
-    : 'or $99/yr (save $80) · cancel anytime';
+    ? 'Works out to $8.33/mo · save $80 vs monthly'
+    : 'or $99.99/yr (save $80) · cancel anytime';
   const subProAnnualHref = session ? '/checkout?plan=sub_pro_annual' : '/signup?plan=sub_pro_annual';
   const subProBtnHref = billing === 'annual' ? subProAnnualHref : subProHref;
 
@@ -355,7 +358,7 @@ export function Pricing() {
                 <p className="font-semibold text-gray-900 dark:text-white">You also want direct customers</p>
               </div>
               <p className="text-gray-600 dark:text-gray-400 leading-relaxed pl-8">
-                Trade Pro unlocks your own shop — direct jobs, invoicing, QBO, analytics. $14.99/mo or $99/yr.
+                Trade Pro unlocks your own shop — direct jobs, invoicing, QBO, analytics. $14.99/mo or $99.99/yr.
               </p>
             </div>
           </div>

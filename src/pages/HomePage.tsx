@@ -1473,7 +1473,7 @@ export function HomePage() {
                   <span className="text-4xl font-extrabold text-gray-900">$14.99</span>
                   <span className="text-gray-500 text-sm">/mo</span>
                 </div>
-                <p className="mt-1 text-xs text-gray-500">or $99/yr (save $80)</p>
+                <p className="mt-1 text-xs text-gray-500">or $99.99/yr (save $80)</p>
                 <ul className="mt-6 space-y-2.5 flex-1">
                   {subProFeatures.map((f, i) => (
                     <li key={f} className={`flex items-start gap-2.5 text-sm ${i === 0 ? 'font-semibold text-gray-900' : 'text-gray-700'}`}>
@@ -1531,7 +1531,7 @@ export function HomePage() {
                   <p className="font-semibold text-gray-900">You also want direct customers</p>
                 </div>
                 <p className="text-gray-600 leading-relaxed pl-9">
-                  Trade Pro unlocks your own shop — direct jobs, invoicing, QBO. $14.99/mo or $99/yr.
+                  Trade Pro unlocks your own shop — direct jobs, invoicing, QBO. $14.99/mo or $99.99/yr.
                 </p>
               </div>
             </div>

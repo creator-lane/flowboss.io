@@ -72,6 +72,14 @@ export function ActivationChecklist({ onAddCustomer, onAddJob, onCreateInvoice }
     onClick: () => void;
   };
 
+  // Ordering matters for activation. Old order put Stripe Connect at
+  // step 3 — a 5-10 minute KYC wall between "I just paid" and any
+  // sense of progress. Reordered so a contractor can send an invoice
+  // and mark it paid (cash, check, Venmo, whatever they already do)
+  // on day one without touching Stripe. Stripe slides to step 5 as
+  // the optional upgrade — "want to accept cards in one tap? add
+  // Stripe" — by which point they've earned the right to ask the
+  // contractor for 5 min of KYC.
   const steps: Step[] = [
     {
       key: 'customer',
@@ -92,20 +100,11 @@ export function ActivationChecklist({ onAddCustomer, onAddJob, onCreateInvoice }
       onClick: () => (onAddJob ? onAddJob() : navigate('/dashboard/jobs')),
     },
     {
-      key: 'stripe',
-      done: progress.stripe,
-      icon: CreditCard,
-      title: 'Connect Stripe to get paid',
-      helper: 'Takes 2 minutes. Without this, your customers can’t pay by card.',
-      actionLabel: 'Connect Stripe',
-      onClick: () => navigate('/dashboard/settings'),
-    },
-    {
       key: 'invoice',
       done: progress.invoice,
       icon: Send,
       title: 'Send your first invoice',
-      helper: 'Pull line items off a job, send via email or text. Customers click → pay on Stripe.',
+      helper: 'Pull line items off a job and send via email or text. Customer can pay any way you already accept — cash, check, Venmo, Zelle, or card if you connect Stripe (next step).',
       actionLabel: 'Create invoice',
       onClick: () => (onCreateInvoice ? onCreateInvoice() : navigate('/dashboard/invoices')),
     },
@@ -114,9 +113,18 @@ export function ActivationChecklist({ onAddCustomer, onAddJob, onCreateInvoice }
       done: progress.paid,
       icon: DollarSign,
       title: 'Get paid',
-      helper: 'When the customer pays, FlowBoss reconciles automatically. This is the magic moment.',
+      helper: 'Mark the invoice paid the moment money comes in. Cash, check, Venmo — any payment counts. Card payments via Stripe auto-reconcile when you finish step 5.',
       actionLabel: 'View invoices',
       onClick: () => navigate('/dashboard/invoices'),
+    },
+    {
+      key: 'stripe',
+      done: progress.stripe,
+      icon: CreditCard,
+      title: 'Connect Stripe (get paid faster, by card)',
+      helper: 'Optional upgrade. Connect your Stripe account so customers can pay by card in one click. Money lands in your bank, FlowBoss reconciles automatically. If you don\'t have Stripe yet, we set you up — takes 5 min.',
+      actionLabel: 'Connect Stripe',
+      onClick: () => navigate('/dashboard/settings'),
     },
   ];
 

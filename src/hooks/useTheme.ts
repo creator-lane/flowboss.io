@@ -10,9 +10,12 @@ function getInitialTheme(): Theme {
   const stored = localStorage.getItem(STORAGE_KEY);
   if (stored === 'dark' || stored === 'light') return stored;
 
-  // Respect OS preference
-  if (window.matchMedia('(prefers-color-scheme: dark)').matches) return 'dark';
-
+  // Default to light. We used to follow `prefers-color-scheme: dark`, but
+  // most field-tradesperson screenshots came back too dark — the product
+  // photography (project banners, sub avatars, materials) reads better on
+  // a light canvas, and the GC dashboard was designed white-first.
+  // Users on dark OS who actually want dark mode can flip the toggle once
+  // and it'll stick via STORAGE_KEY.
   return 'light';
 }
 

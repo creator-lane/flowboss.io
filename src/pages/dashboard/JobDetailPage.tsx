@@ -21,9 +21,13 @@ import {
   DollarSign,
   Copy,
   Loader2,
+  Pause,
+  Play,
   Save,
+  Timer as TimerIcon,
 } from 'lucide-react';
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
+import { startTimer, stopTimer, getTimer, getElapsedSync, formatElapsed } from '../../lib/jobTimer';
 import { CreateInvoiceModal } from '../../components/invoices/CreateInvoiceModal';
 import { EditableLineItems } from '../../components/jobs/EditableLineItems';
 import { useToast } from '../../components/ui/Toast';
@@ -383,6 +387,13 @@ export function JobDetailPage() {
           <p className="text-xs text-neutral-400 mt-2 dark:text-gray-500">Updating status...</p>
         )}
       </div>
+
+      {/* Job timer — visible when in progress or any time has been logged.
+          Mirrors mobile (apps/mobile/app/job/[id].tsx:653-672). Persists in
+          localStorage, ticks every second while running, survives navigation
+          inside the session. Tradesperson on web can clock the same job a
+          mobile teammate is also running — separate timers per surface. */}
+      <JobTimerCard jobId={id!} status={job.status} />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Schedule section */}
@@ -762,6 +773,99 @@ function PhotoGrid({ jobId, photos }: { jobId: string; photos: any[] }) {
         onConfirm={() => pendingDelete && removePhoto.mutate(pendingDelete)}
         onCancel={() => setPendingDelete(null)}
       />
+    </div>
+  );
+}
+
+/* ─── Job timer card ────────────────────────────────────────────────────
+//
+// Surfaces the persistent timer from lib/jobTimer.ts. Visible when:
+//   • Job status is IN_PROGRESS, OR
+//   • A timer with non-zero elapsed exists (so a paused timer still shows)
+// While running, ticks the displayed elapsed every second. Play/Pause
+// toggles via startTimer/stopTimer. The accumulated seconds persist in
+// localStorage so navigation back to the job restores the same timer.
+//
+// Same UX rhythm mobile uses: timer display + single play/pause button +
+// labor-hours breakdown so the tradesperson can see "3:45:21 = 3.76hr."
+*/
+
+function JobTimerCard({ jobId, status }: { jobId: string; status?: string }) {
+  const [running, setRunning] = useState(false);
+  const [elapsed, setElapsed] = useState(0);
+
+  // Hydrate from storage on mount.
+  useEffect(() => {
+    const entry = getTimer(jobId);
+    if (entry) {
+      setRunning(entry.isRunning);
+      setElapsed(getElapsedSync(entry));
+    }
+  }, [jobId]);
+
+  // Tick while running. Stop interval when paused.
+  useEffect(() => {
+    if (!running) return;
+    const id = setInterval(() => {
+      const entry = getTimer(jobId);
+      if (entry) setElapsed(getElapsedSync(entry));
+    }, 1000);
+    return () => clearInterval(id);
+  }, [running, jobId]);
+
+  // Auto-start when the job transitions to IN_PROGRESS and there's no
+  // existing timer (matches mobile behavior — clocks-in on status change).
+  useEffect(() => {
+    if (status !== 'IN_PROGRESS') return;
+    const entry = getTimer(jobId);
+    if (!entry || (!entry.isRunning && entry.elapsed === 0)) {
+      startTimer(jobId);
+      setRunning(true);
+    }
+  }, [status, jobId]);
+
+  // Don't render when there's nothing to show: not in progress and no
+  // accumulated time. Avoids a permanent "00:00:00" card on every job.
+  const visible = status === 'IN_PROGRESS' || running || elapsed > 0;
+  if (!visible) return null;
+
+  function toggle() {
+    if (running) {
+      stopTimer(jobId);
+      setRunning(false);
+    } else {
+      startTimer(jobId);
+      setRunning(true);
+    }
+  }
+
+  const hours = elapsed / 3600;
+
+  return (
+    <div className="bg-white border border-neutral-200 rounded-xl p-4 flex items-center gap-4 dark:bg-white/5 dark:border-white/10">
+      <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${running ? 'bg-brand-100 dark:bg-blue-500/20' : 'bg-neutral-100 dark:bg-white/10'}`}>
+        <TimerIcon className={`w-5 h-5 ${running ? 'text-brand-600 dark:text-blue-300' : 'text-neutral-500 dark:text-gray-400'}`} />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className={`text-2xl font-bold tabular-nums leading-none ${running ? 'text-brand-700 dark:text-blue-200' : 'text-neutral-800 dark:text-white'}`}>
+          {formatElapsed(elapsed)}
+        </p>
+        <p className="text-xs text-neutral-500 mt-1 dark:text-gray-400">
+          {running ? 'Running' : 'Paused'} &middot; {hours.toFixed(2)} hrs
+        </p>
+      </div>
+      <button
+        type="button"
+        onClick={toggle}
+        title={running ? 'Pause timer' : 'Start timer'}
+        className={`flex items-center justify-center w-10 h-10 rounded-lg transition-colors flex-shrink-0 ${
+          running
+            ? 'bg-amber-500 hover:bg-amber-600 text-white'
+            : 'bg-brand-500 hover:bg-brand-600 text-white'
+        }`}
+      >
+        {running ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+      </button>
     </div>
   );
 }

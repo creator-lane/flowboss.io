@@ -556,26 +556,13 @@ export function JobDetailPage() {
         )}
       </Section>
 
-      {/* Photos section */}
-      {Array.isArray(photos) && photos.length > 0 && (
-        <Section title="Photos" icon={Camera}>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-            {photos.map((photo: any) => (
-              <div
-                key={photo.id}
-                className="aspect-square rounded-lg overflow-hidden bg-gray-100 dark:bg-white/10"
-              >
-                <img
-                  src={photo.url || photo.publicUrl || photo.public_url}
-                  alt={photo.caption || 'Job photo'}
-                  className="w-full h-full object-cover"
-                  loading="lazy"
-                />
-              </div>
-            ))}
-          </div>
-        </Section>
-      )}
+      {/* Photos section — upload + view, mirroring the mobile capture flow.
+          Mobile uses expo-image-picker; web uses a hidden <input type="file"
+          accept="image/*"> which routes to the camera on iOS Safari /
+          Chrome Android. Drop target lets desktop drag-and-drop too. */}
+      <Section title="Photos" icon={Camera}>
+        <PhotoGrid jobId={id!} photos={photos} />
+      </Section>
 
       {/* Action buttons */}
       <div className="pt-4 pb-8 flex flex-wrap gap-3">
@@ -622,6 +609,158 @@ export function JobDetailPage() {
           setShowDeleteConfirm(false);
         }}
         onCancel={() => setShowDeleteConfirm(false)}
+      />
+    </div>
+  );
+}
+
+/* ─── Job photos: upload + view ─────────────────────────────────────────
+//
+// Mirrors the mobile capture flow — on phone browsers, the file input
+// with `accept="image/*"` and `capture="environment"` opens the rear
+// camera by default; desktop gets a normal file picker plus a drop
+// target. Each upload calls api.uploadJobPhoto which writes to the
+// shared `job-photos` Supabase bucket and inserts a `job_photos` row,
+// so a photo taken on the truck shows up here, and one dropped here
+// shows up on the truck.
+*/
+
+function PhotoGrid({ jobId, photos }: { jobId: string; photos: any[] }) {
+  const queryClient = useQueryClient();
+  const { addToast } = useToast();
+  const [uploading, setUploading] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState<{ id: string; url: string } | null>(null);
+  const list = Array.isArray(photos) ? photos : [];
+
+  const upload = useMutation({
+    mutationFn: (file: File) => api.uploadJobPhoto(jobId, file),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['job-photos', jobId] });
+    },
+    onError: (err: any) => addToast(err?.message || 'Upload failed', 'error'),
+  });
+
+  const removePhoto = useMutation({
+    mutationFn: ({ id, url }: { id: string; url: string }) => api.deleteJobPhoto(id, url),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['job-photos', jobId] });
+      setPendingDelete(null);
+    },
+    onError: (err: any) => {
+      addToast(err?.message || 'Delete failed', 'error');
+      setPendingDelete(null);
+    },
+  });
+
+  async function handleFiles(files: FileList | null) {
+    if (!files || !files.length) return;
+    setUploading(true);
+    try {
+      // Sequential rather than parallel — phones on cellular can't reliably
+      // saturate Supabase storage with N concurrent uploads, and sequential
+      // gives us predictable progress + clear error messages per file.
+      for (const file of Array.from(files)) {
+        if (!file.type.startsWith('image/')) {
+          addToast(`Skipped ${file.name} — not an image`, 'error');
+          continue;
+        }
+        await upload.mutateAsync(file);
+      }
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  function handleDrop(e: React.DragEvent) {
+    e.preventDefault();
+    handleFiles(e.dataTransfer?.files ?? null);
+  }
+
+  return (
+    <div className="space-y-3">
+      {list.length > 0 && (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+          {list.map((photo: any) => {
+            const url = photo.url || photo.publicUrl || photo.public_url || photo.photoUrl || photo.photo_url;
+            return (
+              <div
+                key={photo.id}
+                className="relative group aspect-square rounded-lg overflow-hidden bg-gray-100 dark:bg-white/10"
+              >
+                <a href={url} target="_blank" rel="noopener noreferrer" className="block w-full h-full">
+                  <img
+                    src={url}
+                    alt={photo.caption || 'Job photo'}
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                  />
+                </a>
+                <button
+                  type="button"
+                  onClick={() => setPendingDelete({ id: photo.id, url })}
+                  title="Delete photo"
+                  className="absolute top-1.5 right-1.5 p-1 rounded-md bg-black/50 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <label
+        onDragOver={(e) => e.preventDefault()}
+        onDrop={handleDrop}
+        className={`flex flex-col items-center justify-center gap-2 px-4 py-8 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${
+          uploading
+            ? 'border-brand-300 bg-brand-50/40 dark:bg-blue-500/10'
+            : 'border-gray-300 hover:border-brand-400 hover:bg-brand-50/40 dark:border-white/10 dark:hover:border-blue-400/40 dark:hover:bg-blue-500/10'
+        }`}
+      >
+        <input
+          type="file"
+          accept="image/*"
+          // capture="environment" routes to rear camera on iOS Safari /
+          // Chrome Android; desktop browsers ignore it and show the normal
+          // file picker — best of both worlds, no UA sniffing.
+          capture="environment"
+          multiple
+          className="sr-only"
+          onChange={(e) => {
+            handleFiles(e.target.files);
+            // Reset value so re-uploading the same file fires onChange again.
+            e.currentTarget.value = '';
+          }}
+          disabled={uploading}
+        />
+        {uploading ? (
+          <>
+            <Loader2 className="w-5 h-5 text-brand-500 animate-spin" />
+            <span className="text-sm text-brand-700 dark:text-blue-300">Uploading…</span>
+          </>
+        ) : (
+          <>
+            <Camera className="w-5 h-5 text-gray-400 dark:text-gray-500" />
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-200">
+              Take photo or drop image
+            </span>
+            <span className="text-xs text-gray-400 dark:text-gray-500">
+              JPG, PNG — multiple at once OK
+            </span>
+          </>
+        )}
+      </label>
+
+      <ConfirmDialog
+        open={!!pendingDelete}
+        title="Delete photo"
+        message="Remove this photo from the job? This can't be undone."
+        variant="danger"
+        confirmLabel="Delete"
+        loading={removePhoto.isPending}
+        onConfirm={() => pendingDelete && removePhoto.mutate(pendingDelete)}
+        onCancel={() => setPendingDelete(null)}
       />
     </div>
   );

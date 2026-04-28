@@ -1824,7 +1824,13 @@ export const api = {
     if (error) throw new Error(error.message);
   },
 
-  // -- Job Photos (read-only on web) -----------------------------------------
+  // -- Job Photos -----------------------------------------------------------
+  // Mirrors mobile's getJobPhotos / uploadJobPhoto / deleteJobPhoto
+  // (apps/mobile/lib/api.ts:2509-2580). Same Supabase storage bucket
+  // (`job-photos`), same `<userId>/<jobId>/<timestamp>.<ext>` path layout,
+  // same `job_photos` table — so a photo a tradesperson took on the truck
+  // shows up in the GC dashboard, and a doc dragged into the GC dashboard
+  // shows up in mobile's photo grid.
   getJobPhotos: async (jobId: string) => {
     const { data, error } = await supabase
       .from('job_photos')
@@ -1834,6 +1840,44 @@ export const api = {
 
     if (error) throw new Error(error.message);
     return { data: camelify(data || []) };
+  },
+
+  uploadJobPhoto: async (jobId: string, file: File) => {
+    const userId = await getUserId();
+    const timestamp = Date.now();
+    const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+    const filePath = `${userId}/${jobId}/${timestamp}.${ext}`;
+    const contentType = file.type || (ext === 'png' ? 'image/png' : 'image/jpeg');
+
+    const { error: uploadError } = await supabase.storage
+      .from('job-photos')
+      .upload(filePath, file, { contentType, upsert: false });
+    if (uploadError) throw new Error(uploadError.message);
+
+    const { data: urlData } = supabase.storage.from('job-photos').getPublicUrl(filePath);
+    const photoUrl = urlData.publicUrl;
+
+    const { data, error: insertError } = await supabase
+      .from('job_photos')
+      .insert({ job_id: jobId, user_id: userId, photo_url: photoUrl })
+      .select()
+      .single();
+    if (insertError) throw new Error(insertError.message);
+    return { data: camelify(data) };
+  },
+
+  deleteJobPhoto: async (photoId: string, photoUrl: string) => {
+    // Strip the public-URL prefix to recover the storage path. The bucket
+    // path uses the URL slug so this regex match is the canonical way the
+    // mobile app does it too — keeping the two surfaces 1:1 prevents
+    // orphaned blobs when the row is gone.
+    const match = photoUrl.match(/job-photos\/(.+)$/);
+    if (match) {
+      await supabase.storage.from('job-photos').remove([match[1]]);
+    }
+    const { error } = await supabase.from('job_photos').delete().eq('id', photoId);
+    if (error) throw new Error(error.message);
+    return { success: true };
   },
 
   // ── GC System ──────────────────────────────────────────────────────────

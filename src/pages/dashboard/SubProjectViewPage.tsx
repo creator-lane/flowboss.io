@@ -562,19 +562,14 @@ function TaskSection({ trade, projectId, accent }: { trade: any; projectId: stri
           <p className="text-[11px] text-gray-400 mt-3 dark:text-gray-500">Free on this project &mdash; no subscription needed.</p>
         </div>
       ) : (
-        <div className="divide-y divide-gray-100 dark:divide-white/10">
-          {tasks.map((task: any) => (
-            <TaskCard
-              key={task.id}
-              task={task}
-              accent={accent}
-              onToggle={(done) => toggleTask.mutate({ taskId: task.id, done })}
-              onSaveNote={(notes) => saveNote.mutate({ taskId: task.id, notes })}
-              onRemove={() => removeTask.mutate(task.id)}
-              onRename={(name) => renameTask.mutate({ taskId: task.id, name })}
-            />
-          ))}
-        </div>
+        <PhaseGroupedList
+          tasks={tasks}
+          accent={accent}
+          onToggle={(taskId, done) => toggleTask.mutate({ taskId, done })}
+          onSaveNote={(taskId, notes) => saveNote.mutate({ taskId, notes })}
+          onRemove={(taskId) => removeTask.mutate(taskId)}
+          onRename={(taskId, name) => renameTask.mutate({ taskId, name })}
+        />
       )}
 
       {/* Inline composer — single-line entry, no modal. Trades are on a
@@ -644,6 +639,215 @@ function TaskSection({ trade, projectId, accent }: { trade: any; projectId: stri
         tradeLabel={trade.trade || ''}
         projectId={projectId}
       />
+    </div>
+  );
+}
+
+/* ─── Phase-grouped task list (mobile-aligned) ─────────────────────────── */
+//
+// Mobile's project [id] screen organizes work as collapsible phase cards —
+// number badge → phase name → progress % → mini progress bar, with the
+// task checklist nested inside on expand. Web's flat list got chaotic
+// the moment a template applied 50+ tasks across 5 phases. This brings
+// the same accordion structure to web, so a sub looking at a Bathroom
+// Remodel sees: Demo & Rough-In (8/11), Shower Pan (3/7), Tile (0/12)…
+//
+// Tasks the sub added inline (no phase column) collect under a "Your
+// additions" group at the bottom — distinct from the templated phases
+// so it's clear which line items the sub created vs which came from the
+// starter scope.
+
+const PHASE_PROGRESS_TONE = (pct: number) => {
+  if (pct === 100) return { bar: '#22c55e', dot: 'bg-green-500', text: 'text-green-700 dark:text-green-300', soft: 'bg-green-100 dark:bg-green-500/20' };
+  if (pct >= 50)   return { bar: '#f59e0b', dot: 'bg-amber-500', text: 'text-amber-700 dark:text-amber-300', soft: 'bg-amber-100 dark:bg-amber-500/20' };
+  return            { bar: '#3b82f6', dot: 'bg-blue-500',  text: 'text-blue-700 dark:text-blue-300',   soft: 'bg-blue-100 dark:bg-blue-500/20' };
+};
+
+function PhaseGroupedList({
+  tasks,
+  accent,
+  onToggle,
+  onSaveNote,
+  onRemove,
+  onRename,
+}: {
+  tasks: any[];
+  accent: ReturnType<typeof getZoneAccentClasses>;
+  onToggle: (taskId: string, done: boolean) => void;
+  onSaveNote: (taskId: string, notes: string) => void;
+  onRemove: (taskId: string) => void;
+  onRename: (taskId: string, name: string) => void;
+}) {
+  // Group preserving the order phases first appeared in (sort_order is
+  // already monotonic per phase from applyTemplateToTrade). Tasks with no
+  // phase land in the catch-all bucket at the bottom.
+  const groups: { phase: string | null; tasks: any[] }[] = [];
+  for (const t of tasks) {
+    const phase: string | null = t.phase ?? null;
+    let g = groups.find((x) => x.phase === phase);
+    if (!g) {
+      g = { phase, tasks: [] };
+      groups.push(g);
+    }
+    g.tasks.push(t);
+  }
+  // Move the unphased "Your additions" group to the end if it exists
+  // alongside named phases. If there are ONLY unphased tasks (the sub
+  // hasn't applied a template), don't bother showing the group label —
+  // just render the flat list. This avoids labeling someone's hand-typed
+  // checklist as "Your additions" when there's nothing else to compare to.
+  const onlyUnphased = groups.length === 1 && groups[0].phase === null;
+  if (onlyUnphased) {
+    return (
+      <div className="divide-y divide-gray-100 dark:divide-white/10">
+        {groups[0].tasks.map((task: any) => (
+          <TaskCard
+            key={task.id}
+            task={task}
+            accent={accent}
+            onToggle={(done) => onToggle(task.id, done)}
+            onSaveNote={(notes) => onSaveNote(task.id, notes)}
+            onRemove={() => onRemove(task.id)}
+            onRename={(name) => onRename(task.id, name)}
+          />
+        ))}
+      </div>
+    );
+  }
+
+  // Push unphased to bottom for the mixed case.
+  groups.sort((a, b) => {
+    if (a.phase === null) return 1;
+    if (b.phase === null) return -1;
+    return 0;
+  });
+
+  // Pick the first not-fully-done phase as the default-expanded one (the
+  // "current" phase in mobile parlance). Memoized via key so toggling a
+  // task in an earlier phase doesn't auto-collapse the user's open phase.
+  const activePhaseIndex = (() => {
+    for (let i = 0; i < groups.length; i++) {
+      const allDone = groups[i].tasks.length > 0 && groups[i].tasks.every((t: any) => t.done);
+      if (!allDone) return i;
+    }
+    return 0;
+  })();
+
+  return (
+    <div className="divide-y divide-gray-100 dark:divide-white/10">
+      {groups.map((g, idx) => (
+        <PhaseGroup
+          key={g.phase ?? '__no_phase__'}
+          phaseName={g.phase}
+          phaseNumber={g.phase ? idx + 1 : null}
+          tasks={g.tasks}
+          totalPhases={groups.filter((x) => x.phase !== null).length}
+          defaultExpanded={idx === activePhaseIndex}
+          accent={accent}
+          onToggle={onToggle}
+          onSaveNote={onSaveNote}
+          onRemove={onRemove}
+          onRename={onRename}
+        />
+      ))}
+    </div>
+  );
+}
+
+function PhaseGroup({
+  phaseName,
+  phaseNumber,
+  tasks,
+  defaultExpanded,
+  accent,
+  onToggle,
+  onSaveNote,
+  onRemove,
+  onRename,
+}: {
+  phaseName: string | null;
+  phaseNumber: number | null;
+  tasks: any[];
+  totalPhases: number;
+  defaultExpanded: boolean;
+  accent: ReturnType<typeof getZoneAccentClasses>;
+  onToggle: (taskId: string, done: boolean) => void;
+  onSaveNote: (taskId: string, notes: string) => void;
+  onRemove: (taskId: string) => void;
+  onRename: (taskId: string, name: string) => void;
+}) {
+  const [expanded, setExpanded] = useState(defaultExpanded);
+  const done = tasks.filter((t: any) => t.done).length;
+  const total = tasks.length;
+  const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+  const tone = PHASE_PROGRESS_TONE(pct);
+  const isComplete = pct === 100;
+  const headerLabel = phaseName ?? 'Your additions';
+
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={() => setExpanded((x) => !x)}
+        className="w-full flex items-center gap-3 px-5 py-3 text-left hover:bg-gray-50/60 transition-colors dark:hover:bg-white/[0.02]"
+      >
+        {/* Phase number / status badge — the same visual rhythm as
+            mobile's phaseNumber / phaseNumberActive / checkmark cycle. */}
+        {phaseNumber !== null ? (
+          isComplete ? (
+            <div className="w-7 h-7 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0 dark:bg-green-500/20">
+              <CheckSquare className="w-4 h-4 text-green-600 dark:text-green-300" />
+            </div>
+          ) : (
+            <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-[12px] font-bold ${tone.soft} ${tone.text}`}>
+              {phaseNumber}
+            </div>
+          )
+        ) : (
+          <div className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0 dark:bg-white/10">
+            <Plus className="w-3.5 h-3.5 text-gray-500 dark:text-gray-400" />
+          </div>
+        )}
+
+        <div className="flex-1 min-w-0">
+          <h3 className={`text-sm font-semibold truncate ${isComplete ? 'text-green-700 dark:text-green-300' : 'text-gray-900 dark:text-white'}`}>
+            {headerLabel}
+          </h3>
+          <p className="text-[11px] text-gray-400 dark:text-gray-500">
+            {done}/{total} task{total === 1 ? '' : 's'} done
+          </p>
+        </div>
+
+        <div className={`text-[11px] font-bold flex-shrink-0 px-2 py-0.5 rounded-full ${tone.soft} ${tone.text}`}>
+          {pct}%
+        </div>
+        <ChevronRight className={`w-4 h-4 text-gray-300 dark:text-gray-600 flex-shrink-0 transition-transform ${expanded ? 'rotate-90' : ''}`} />
+      </button>
+
+      {/* Mini progress bar pinned under the header — same affordance mobile
+          uses to give a phase a sense of momentum even when collapsed. */}
+      <div className="h-0.5 bg-gray-100 dark:bg-white/10">
+        <div
+          className="h-full transition-all duration-500"
+          style={{ width: `${pct}%`, backgroundColor: tone.bar }}
+        />
+      </div>
+
+      {expanded && (
+        <div className="divide-y divide-gray-100 dark:divide-white/10">
+          {tasks.map((task: any) => (
+            <TaskCard
+              key={task.id}
+              task={task}
+              accent={accent}
+              onToggle={(d) => onToggle(task.id, d)}
+              onSaveNote={(notes) => onSaveNote(task.id, notes)}
+              onRemove={() => onRemove(task.id)}
+              onRename={(name) => onRename(task.id, name)}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

@@ -2266,7 +2266,8 @@ export const api = {
 
     const taskRows = payload.tasks.map((t, i) => ({
       trade_id: tradeId,
-      name: t.phaseName ? `${t.phaseName}: ${t.name}` : t.name,
+      name: t.name,
+      phase: t.phaseName ?? null,
       done: false,
       sort_order: baseSortOrder + i,
     }));

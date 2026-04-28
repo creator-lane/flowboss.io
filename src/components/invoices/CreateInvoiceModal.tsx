@@ -253,6 +253,27 @@ export function CreateInvoiceModal({
         queryClient.invalidateQueries({ queryKey: ['job-invoices', prefillJobId] });
       }
 
+      // Train the adaptive pricebook — bumps use_count on every line item
+      // that matches an existing pricebook row, and inserts new rows for
+      // descriptions that don't. The pricebook page sorts by use_count so
+      // high-frequency items float to the top, which is the whole point of
+      // "adaptive." Mobile does the same in app/invoice/create.tsx; web
+      // just never wired it. Don't await — it's a background training
+      // step, the invoice is already saved.
+      api
+        .recordPriceUsage(
+          items
+            .filter((i) => i.description.trim())
+            .map((i) => ({
+              description: i.description,
+              unitPrice: i.unit_price,
+              quantity: i.quantity,
+            })),
+          'invoice',
+          result?.data?.id,
+        )
+        .catch(() => {/* best-effort, don't block save */});
+
       onClose();
       if (result?.data?.id) {
         navigate(`/dashboard/invoices/${result.data.id}`);

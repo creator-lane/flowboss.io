@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from 'react';
-import { Link, useParams, useNavigate } from 'react-router-dom';
+import { Link, useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Lock, ShieldCheck, CreditCard, Eye, ArrowLeft, FileText, Loader2 } from 'lucide-react';
 
@@ -31,6 +31,15 @@ function formatCurrency(n: number) {
 export function InvoicePreviewPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  // ?print=1 mode strips the preview banner, the Pay button, and the
+  // contractor-only action footer, then auto-fires window.print() on
+  // mount. Browsers' "Save as PDF" destination produces a clean PDF
+  // no library needed, works in every modern browser, and the @media
+  // print rules below keep the output paginated and free of any
+  // screen-only chrome (sticky banner, gradients, hover states).
+  const printMode = searchParams.get('print') === '1';
 
   const { data, isLoading } = useQuery({
     queryKey: ['invoice', id],
@@ -50,6 +59,16 @@ export function InvoicePreviewPage() {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [id]);
+
+  // Print mode: fire the print dialog as soon as the invoice is hydrated.
+  // We wait for `invoice` so the page isn't empty when the print dialog
+  // opens, then add a small delay so paint completes before print.
+  useEffect(() => {
+    if (!printMode) return;
+    if (isLoading) return;
+    const t = setTimeout(() => window.print(), 250);
+    return () => clearTimeout(t);
+  }, [printMode, isLoading]);
 
   const lineItems: any[] = useMemo(
     () => invoice?.lineItems || invoice?.line_items || [],
@@ -97,28 +116,47 @@ export function InvoicePreviewPage() {
     invoice.id?.slice(0, 8);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 print:bg-white print:from-white print:to-white">
+      {/* Print stylesheet — paginated A4 / letter, no margins, no
+          backgrounds. Hides anything tagged .no-print so the customer-
+          preview header and contractor-only footer don't bleed into the
+          PDF. */}
+      <style>{`
+        @media print {
+          @page { margin: 0.5in; }
+          body { background: white !important; }
+          .no-print { display: none !important; }
+          .print-card {
+            box-shadow: none !important;
+            ring-width: 0 !important;
+            border: 1px solid #e5e7eb !important;
+          }
+        }
+      `}</style>
+
       {/* Preview banner — kept light so the page reads like a real
           customer-facing invoice, with a clear "this is a preview" label. */}
-      <div className="sticky top-0 z-50 bg-gradient-to-r from-violet-600 via-brand-600 to-blue-600 text-white shadow-md">
-        <div className="px-4 py-2 flex items-center justify-between gap-3 max-w-3xl mx-auto">
-          <div className="flex items-center gap-2 min-w-0 text-xs sm:text-sm font-semibold">
-            <Eye className="w-4 h-4 shrink-0" />
-            <span className="truncate">Preview — this is what your customer sees</span>
+      {!printMode && (
+        <div className="no-print sticky top-0 z-50 bg-gradient-to-r from-violet-600 via-brand-600 to-blue-600 text-white shadow-md">
+          <div className="px-4 py-2 flex items-center justify-between gap-3 max-w-3xl mx-auto">
+            <div className="flex items-center gap-2 min-w-0 text-xs sm:text-sm font-semibold">
+              <Eye className="w-4 h-4 shrink-0" />
+              <span className="truncate">Preview — this is what your customer sees</span>
+            </div>
+            <Link
+              to={`/dashboard/invoices/${id}`}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold text-white/90 hover:bg-white/15 transition-colors whitespace-nowrap"
+            >
+              <ArrowLeft className="w-3 h-3" />
+              Back to invoice
+            </Link>
           </div>
-          <Link
-            to={`/dashboard/invoices/${id}`}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold text-white/90 hover:bg-white/15 transition-colors whitespace-nowrap"
-          >
-            <ArrowLeft className="w-3 h-3" />
-            Back to invoice
-          </Link>
         </div>
-      </div>
+      )}
 
-      <div className="max-w-2xl mx-auto px-4 py-10 sm:py-14">
+      <div className="max-w-2xl mx-auto px-4 py-10 sm:py-14 print:max-w-full print:px-0 print:py-0">
         {/* Card */}
-        <div className="bg-white rounded-2xl shadow-xl shadow-gray-200/60 ring-1 ring-gray-200 overflow-hidden">
+        <div className="print-card bg-white rounded-2xl shadow-xl shadow-gray-200/60 ring-1 ring-gray-200 overflow-hidden">
           {/* Header */}
           <div className="px-6 sm:px-8 py-6 border-b border-gray-100">
             <div className="flex items-start justify-between gap-4">
@@ -192,8 +230,9 @@ export function InvoicePreviewPage() {
           )}
 
           {/* Pay box — disabled in preview, mirrors the real Stripe-hosted
-              page so the contractor knows what they're sending. */}
-          <div className="px-6 sm:px-8 py-6 bg-gradient-to-b from-white to-gray-50">
+              page so the contractor knows what they're sending. Hidden
+              in print mode (a printed invoice doesn't need a Pay button). */}
+          <div className={`${printMode ? 'no-print' : ''} px-6 sm:px-8 py-6 bg-gradient-to-b from-white to-gray-50`}>
             <div className="flex items-center gap-2 text-xs text-gray-500 mb-3">
               <Lock className="w-3.5 h-3.5" />
               Secure checkout · powered by Stripe
@@ -241,8 +280,9 @@ export function InvoicePreviewPage() {
           </div>
         </div>
 
-        {/* Action footer — only shown to the contractor (preview viewer). */}
-        <div className="mt-6 rounded-2xl bg-white ring-1 ring-gray-200 p-4 text-sm text-gray-600 flex items-center justify-between gap-3">
+        {/* Action footer — only shown to the contractor (preview viewer).
+            Hidden in print mode so the PDF doesn't carry contractor chrome. */}
+        <div className="no-print mt-6 rounded-2xl bg-white ring-1 ring-gray-200 p-4 text-sm text-gray-600 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2 min-w-0">
             <Eye className="w-4 h-4 text-brand-600 shrink-0" />
             <span className="truncate">Looks good? Send it from the invoice page.</span>

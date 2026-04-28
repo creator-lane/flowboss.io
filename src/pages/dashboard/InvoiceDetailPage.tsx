@@ -11,6 +11,7 @@ import {
   Link2,
   CheckCircle,
   Copy,
+  Download,
   Loader2,
   AlertCircle,
   Mail,
@@ -532,6 +533,23 @@ export function InvoiceDetailPage() {
                 <Eye className="w-4 h-4" />
                 Preview as customer
               </Link>
+
+              {/* Download PDF — opens the customer-style preview in a new
+                  tab with ?print=1, which strips chrome (banner, Pay
+                  button, contractor footer) and auto-fires the browser's
+                  print dialog. Customer picks "Save as PDF" → clean PDF
+                  for AP / records. Mobile parity: mobile uses expo-print
+                  to render the same shape; this is the web equivalent
+                  without an extra library. */}
+              <a
+                href={`/invoices/${id}/preview?print=1`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-neutral-200 text-neutral-700 rounded-lg text-sm font-semibold hover:bg-neutral-50 transition-colors dark:bg-white/5 dark:border-white/10 dark:text-gray-200 dark:hover:bg-white/10"
+              >
+                <Download className="w-4 h-4" />
+                Download PDF
+              </a>
 
               {/* Create Payment Link */}
               {!paymentLink ? (

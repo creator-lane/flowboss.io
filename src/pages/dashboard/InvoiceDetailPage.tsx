@@ -52,10 +52,24 @@ export function InvoiceDetailPage() {
   const [paymentLink, setPaymentLink] = useState('');
   const [generatingLink, setGeneratingLink] = useState(false);
   const [sendingEmail, setSendingEmail] = useState(false);
+  const [sendingViaQB, setSendingViaQB] = useState(false);
   const [showConfirmPaid, setShowConfirmPaid] = useState(false);
   const [copied, setCopied] = useState(false);
   const [actionError, setActionError] = useState('');
   const [actionSuccess, setActionSuccess] = useState('');
+
+  // QuickBooks status + the user's invoicing-provider preference. When
+  // both are "yes, QB" the Send-via-QuickBooks button shows up alongside
+  // Send Email — mirroring mobile (apps/mobile/app/invoice/[id].tsx:255).
+  // Connect / preference toggle lives on Settings.
+  const { data: qbStatus } = useQuery({
+    queryKey: ['quickbooks-status'],
+    queryFn: () => api.quickbooks.getStatus(),
+    staleTime: 60_000,
+  });
+  const qbConnected: boolean = (qbStatus as any)?.connected ?? false;
+  const invoicingProvider: 'stripe' | 'quickbooks' | null = (qbStatus as any)?.preferences?.invoicingProvider ?? null;
+  const sendViaQB = qbConnected && invoicingProvider === 'quickbooks';
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['invoice', id],
@@ -107,6 +121,32 @@ export function InvoiceDetailPage() {
       setTimeout(() => setActionError(''), 5000);
     },
   });
+
+  // Two-step send: sync the invoice into QB (creates if missing), then
+  // tell QB to email it with the built-in pay link. Mirrors mobile's
+  // apps/mobile/app/invoice/[id].tsx send flow.
+  const handleSendViaQB = async () => {
+    if (!id) return;
+    setActionError('');
+    setSendingViaQB(true);
+    try {
+      await api.quickbooks.syncInvoice(id);
+      await api.quickbooks.sendInvoiceViaQB(id);
+      addToast('Invoice sent via QuickBooks', 'success');
+      setActionSuccess('Sent via QuickBooks — payment will auto-reconcile in your books.');
+      setTimeout(() => setActionSuccess(''), 4000);
+      // Flip draft → sent so the badge reflects reality immediately.
+      const status = (invoice?.status || '').toLowerCase();
+      if (!status || status === 'draft') sendStatusMutation.mutate();
+      queryClient.invalidateQueries({ queryKey: ['invoice', id] });
+    } catch (err: any) {
+      addToast(err?.message || 'Failed to send via QuickBooks', 'error');
+      setActionError(err?.message || 'Failed to send via QuickBooks');
+      setTimeout(() => setActionError(''), 5000);
+    } finally {
+      setSendingViaQB(false);
+    }
+  };
 
   const handleSendEmail = async () => {
     setActionError('');
@@ -507,6 +547,32 @@ export function InvoiceDetailPage() {
                 </button>
               )}
 
+              {/* Send via QuickBooks — leads when QB is the user's chosen
+                  invoicing provider so the action that auto-reconciles in
+                  their books is the obvious one. Customer gets a real QB
+                  invoice email with a pay link, payment lands back in QB.
+                  Below the QB button: a small inline note explains
+                  what's happening. */}
+              {sendViaQB && (
+                <>
+                  <button
+                    onClick={handleSendViaQB}
+                    disabled={sendingViaQB}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-[#2CA01C] text-white rounded-lg text-sm font-semibold hover:bg-[#268D18] transition-colors disabled:opacity-60"
+                  >
+                    {sendingViaQB ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Link2 className="w-4 h-4" />
+                    )}
+                    {sendingViaQB ? 'Sending via QuickBooks…' : 'Send via QuickBooks'}
+                  </button>
+                  <div className="rounded-lg border border-[#2CA01C]/30 bg-[#2CA01C]/5 px-3 py-2.5 text-[11px] leading-relaxed text-[#1f6914] dark:text-[#7DD37A]">
+                    Customer gets a QuickBooks email with a built-in pay link. Payment auto-reconciles in your books.
+                  </div>
+                </>
+              )}
+
               {/* Send Email */}
               <button
                 onClick={handleSendEmail}
@@ -518,7 +584,7 @@ export function InvoiceDetailPage() {
                 ) : (
                   <Mail className="w-4 h-4" />
                 )}
-                {sendingEmail ? 'Sending...' : 'Send Email'}
+                {sendingEmail ? 'Sending...' : sendViaQB ? 'Or Send via FlowBoss' : 'Send Email'}
               </button>
 
               {/* Preview as customer — opens the same Stripe-style hosted

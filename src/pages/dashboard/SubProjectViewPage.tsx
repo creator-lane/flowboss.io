@@ -14,6 +14,7 @@ import {
   DollarSign,
   Phone,
   Mail,
+  Package,
   Plus,
   Sparkles,
   StickyNote,
@@ -629,6 +630,14 @@ function TaskSection({ trade, projectId, accent }: { trade: any; projectId: stri
         )}
       </div>
 
+      {/* Materials list — populated by template applies, editable inline.
+          Mobile pairs materials with each phase; web stores them flat per
+          trade (gc_trade_materials), so we render a single section
+          beneath the work plan rather than slotting them into phases.
+          Folded by default to keep the work plan card compact when
+          there's nothing in there yet. */}
+      <MaterialsSection tradeId={trade.id} projectId={projectId} />
+
       {/* Template picker modal — single instance per TaskSection, so a sub
           on multiple trades (Plumbing + HVAC) gets the right trade-specific
           library each time. */}
@@ -639,6 +648,201 @@ function TaskSection({ trade, projectId, accent }: { trade: any; projectId: stri
         tradeLabel={trade.trade || ''}
         projectId={projectId}
       />
+    </div>
+  );
+}
+
+/* ─── Materials section ────────────────────────────────────────────────── */
+//
+// Templates apply both tasks and materials, but the sub view shipped
+// without anywhere to *see* the materials — they sat in
+// gc_trade_materials read by no one. This component reads them, lets the
+// sub check off purchased rows, edit/remove inline, and add new lines.
+// Same RLS path as tasks (assigned_user_id branch on the trade row).
+
+function MaterialsSection({ tradeId, projectId }: { tradeId: string; projectId: string }) {
+  const queryClient = useQueryClient();
+  const { addToast } = useToast();
+  const [expanded, setExpanded] = useState(false);
+  const [newName, setNewName] = useState('');
+  const [newCost, setNewCost] = useState('');
+
+  const { data: materials = [] } = useQuery({
+    queryKey: ['gc-trade-materials', tradeId],
+    queryFn: async () => {
+      const { data } = await api.getGCTradeMaterials(tradeId);
+      return data as any[];
+    },
+    enabled: !!tradeId,
+    staleTime: 30_000,
+  });
+
+  const togglePurchased = useMutation({
+    mutationFn: ({ id, purchased }: { id: string; purchased: boolean }) =>
+      api.updateGCTradeMaterial(id, { purchased }),
+    onMutate: async ({ id, purchased }) => {
+      await queryClient.cancelQueries({ queryKey: ['gc-trade-materials', tradeId] });
+      const prev = queryClient.getQueryData(['gc-trade-materials', tradeId]);
+      queryClient.setQueryData(['gc-trade-materials', tradeId], (old: any[] = []) =>
+        old.map((m) => (m.id === id ? { ...m, purchased } : m)),
+      );
+      return { prev };
+    },
+    onError: (_e, _v, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(['gc-trade-materials', tradeId], ctx.prev);
+      addToast('Failed to update', 'error');
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ['gc-trade-materials', tradeId] }),
+  });
+
+  const removeMaterial = useMutation({
+    mutationFn: (id: string) => api.deleteGCTradeMaterial(id),
+    onMutate: async (id: string) => {
+      await queryClient.cancelQueries({ queryKey: ['gc-trade-materials', tradeId] });
+      const prev = queryClient.getQueryData(['gc-trade-materials', tradeId]);
+      queryClient.setQueryData(['gc-trade-materials', tradeId], (old: any[] = []) =>
+        old.filter((m) => m.id !== id),
+      );
+      return { prev };
+    },
+    onError: (_e, _v, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(['gc-trade-materials', tradeId], ctx.prev);
+      addToast('Failed to remove', 'error');
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ['gc-trade-materials', tradeId] }),
+  });
+
+  const addMaterial = useMutation({
+    mutationFn: ({ name, cost }: { name: string; cost: number }) =>
+      api.addGCTradeMaterial(tradeId, { name, quantity: 1, unit: 'ea', unit_cost: cost }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['gc-trade-materials', tradeId] });
+      queryClient.invalidateQueries({ queryKey: ['gc-project', projectId] });
+      setNewName('');
+      setNewCost('');
+    },
+    onError: (err: any) => addToast(err?.message || 'Failed to add material', 'error'),
+  });
+
+  function handleAddMaterial() {
+    const trimmed = newName.trim();
+    if (!trimmed || addMaterial.isPending) return;
+    const parsed = parseFloat(newCost);
+    addMaterial.mutate({ name: trimmed, cost: Number.isFinite(parsed) ? parsed : 0 });
+  }
+
+  const total = materials.reduce((s: number, m: any) => s + (Number(m.unit_cost) || 0) * (Number(m.quantity) || 1), 0);
+  const purchased = materials.filter((m: any) => m.purchased)
+    .reduce((s: number, m: any) => s + (Number(m.unit_cost) || 0) * (Number(m.quantity) || 1), 0);
+  const purchasedCount = materials.filter((m: any) => m.purchased).length;
+
+  if (materials.length === 0 && !expanded) {
+    // Don't render anything when there's no materials data yet — the
+    // template picker is the canonical "load a starter materials list"
+    // entry point. Avoid yet another empty state on the sub view.
+    return null;
+  }
+
+  return (
+    <div className="border-t border-gray-100 dark:border-white/10">
+      <button
+        type="button"
+        onClick={() => setExpanded((x) => !x)}
+        className="w-full flex items-center gap-3 px-5 py-3 text-left hover:bg-gray-50/60 transition-colors dark:hover:bg-white/[0.02]"
+      >
+        <div className="w-7 h-7 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0 dark:bg-purple-500/15">
+          <Package className="w-3.5 h-3.5 text-purple-600 dark:text-purple-300" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Materials</h3>
+          <p className="text-[11px] text-gray-400 dark:text-gray-500">
+            {purchasedCount}/{materials.length} purchased &middot; {formatCurrency(purchased)} of {formatCurrency(total)}
+          </p>
+        </div>
+        <ChevronRight className={`w-4 h-4 text-gray-300 dark:text-gray-600 flex-shrink-0 transition-transform ${expanded ? 'rotate-90' : ''}`} />
+      </button>
+
+      {expanded && (
+        <div>
+          {materials.length > 0 && (
+            <div className="divide-y divide-gray-100 dark:divide-white/10">
+              {materials.map((m: any) => {
+                const lineTotal = (Number(m.unit_cost) || 0) * (Number(m.quantity) || 1);
+                return (
+                  <div
+                    key={m.id}
+                    className={`flex items-center gap-3 px-5 py-2.5 transition-colors ${m.purchased ? 'bg-green-50/30 dark:bg-green-500/[0.04]' : ''}`}
+                  >
+                    <button
+                      onClick={() => togglePurchased.mutate({ id: m.id, purchased: !m.purchased })}
+                      className="flex-shrink-0"
+                      title={m.purchased ? 'Mark not purchased' : 'Mark purchased'}
+                    >
+                      {m.purchased ? (
+                        <CheckSquare className="w-4 h-4 text-green-500" />
+                      ) : (
+                        <Square className="w-4 h-4 text-gray-300 hover:text-gray-500" />
+                      )}
+                    </button>
+                    <div className="flex-1 min-w-0">
+                      <p className={`text-sm truncate ${m.purchased ? 'text-gray-400 line-through' : 'text-gray-900 dark:text-white'}`}>
+                        {m.name}
+                      </p>
+                      {m.category && (
+                        <p className="text-[11px] text-gray-400 dark:text-gray-500">{m.category}</p>
+                      )}
+                    </div>
+                    <span className={`text-xs font-semibold flex-shrink-0 ${m.purchased ? 'text-gray-400' : 'text-gray-700 dark:text-gray-200'}`}>
+                      {formatCurrency(lineTotal)}
+                    </span>
+                    <button
+                      onClick={() => removeMaterial.mutate(m.id)}
+                      title="Remove material"
+                      className="p-1 rounded text-gray-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors flex-shrink-0"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Inline composer — name + cost in one row, Enter to submit. */}
+          <form
+            onSubmit={(e) => { e.preventDefault(); handleAddMaterial(); }}
+            className="flex items-center gap-2 px-5 py-3 border-t border-gray-100 bg-gray-50/50 dark:border-white/10 dark:bg-white/[0.02]"
+          >
+            <Plus className="w-4 h-4 text-gray-400 flex-shrink-0 dark:text-gray-500" />
+            <input
+              type="text"
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              placeholder="Add a material&hellip;"
+              className="flex-1 bg-transparent text-sm placeholder:text-gray-400 focus:outline-none dark:text-white dark:placeholder:text-gray-500"
+              disabled={addMaterial.isPending}
+            />
+            <input
+              type="number"
+              inputMode="decimal"
+              value={newCost}
+              onChange={(e) => setNewCost(e.target.value)}
+              placeholder="$"
+              className="w-20 bg-transparent text-sm text-right placeholder:text-gray-400 focus:outline-none dark:text-white dark:placeholder:text-gray-500"
+              disabled={addMaterial.isPending}
+            />
+            {newName.trim() && (
+              <button
+                type="submit"
+                disabled={addMaterial.isPending}
+                className="text-xs font-semibold text-purple-600 hover:text-purple-700 disabled:opacity-50 transition-colors dark:text-purple-300"
+              >
+                {addMaterial.isPending ? 'Adding…' : 'Add'}
+              </button>
+            )}
+          </form>
+        </div>
+      )}
     </div>
   );
 }

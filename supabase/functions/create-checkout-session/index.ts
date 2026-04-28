@@ -117,7 +117,13 @@ serve(async (req) => {
       subscription_data: {
         trial_period_days: resolved.trialDays,
       },
-      success_url: `${siteUrl}/dashboard?checkout=success`,
+      // ?welcome=1 fires the PostCheckoutWelcome modal on first land
+       // /dashboard/home so a fresh paid user sees the celebration +
+      // gets pointed at the activation checklist below. ?checkout=success
+      // keeps the RequireSubscription grace-period polling flow intact —
+      // it watches for that param to wait for the webhook to write
+      // profiles.subscription_status before bouncing the user to /pricing.
+      success_url: `${siteUrl}/dashboard/home?checkout=success&welcome=1`,
       cancel_url: `${siteUrl}/pricing?checkout=canceled`,
       metadata: {
         supabase_user_id: user.id,

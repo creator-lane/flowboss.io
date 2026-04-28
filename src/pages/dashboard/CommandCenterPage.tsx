@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { api } from '../../lib/api';
 import { JOB_STATUS_BADGE } from '../../lib/constants';
 import { useProfile } from '../../hooks/useProfile';
@@ -34,6 +34,8 @@ import { LoginStreak } from '../../components/dashboard/LoginStreak';
 import { GracePeriodBanner } from '../../components/billing/GracePeriodBanner';
 import { ReconnectCard } from '../../components/dashboard/ReconnectCard';
 import { SpotlightTip } from '../../components/ui/SpotlightTip';
+import { ActivationChecklist } from '../../components/dashboard/ActivationChecklist';
+import { PostCheckoutWelcome } from '../../components/dashboard/PostCheckoutWelcome';
 import { DemoHint } from '../../demo/DemoHint';
 import { isOverdue as isInvoiceOverdue } from '../../lib/invoiceStatus';
 
@@ -97,6 +99,7 @@ function SectionSkeleton() {
 // ── Main Component ───────────────────────────────────────────────────
 
 export function CommandCenterPage() {
+  const navigate = useNavigate();
   const { isGC, isSub, isSolo, hasPriority, profile } = useProfile();
   const [showNewProject, setShowNewProject] = useState(false);
   const [showNewInvoice, setShowNewInvoice] = useState(false);
@@ -282,9 +285,25 @@ export function CommandCenterPage() {
 
   return (
     <div className="relative p-4 lg:p-6 max-w-5xl mx-auto space-y-6 dark:before:pointer-events-none dark:before:absolute dark:before:inset-0 dark:before:bg-[radial-gradient(circle_at_70%_10%,rgba(59,130,246,0.12),transparent_55%)] dark:before:-z-10">
+      {/* Post-checkout welcome modal — fires once on ?welcome=1 query
+          param after Stripe redirect. Self-cleans the param + persists
+          a localStorage flag so a refresh or second sub doesn't re-fire. */}
+      <PostCheckoutWelcome />
+
       {/* Grace Period banner — top priority, non-dismissable. Only renders
           if Stripe has flipped the account to past_due. */}
       <GracePeriodBanner />
+
+      {/* Activation Checklist — single most important UI for new paid
+          contractors. Auto-hides at 5/5 done or on user dismiss (only
+          available after 2/5 to keep brand-new users from accidentally
+          burying it). All three CTAs route through the home page's
+          existing modals so the user doesn't lose context. */}
+      <ActivationChecklist
+        onAddCustomer={() => navigate('/dashboard/customers')}
+        onAddJob={() => setShowNewJob(true)}
+        onCreateInvoice={() => setShowNewInvoice(true)}
+      />
 
       {/* Global error banner — partial data is still useful, but tell the
           user something's wrong so they don't think their dashboard is empty. */}

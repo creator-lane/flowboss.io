@@ -354,14 +354,19 @@ serve(async (req) => {
         const subscription = await stripe.subscriptions.retrieve(subscriptionId);
         const customerId = subscription.customer as string;
 
-        // Find user by stripe customer id
+        // Find user by stripe customer id. Pull subscription_status BEFORE
+        // updating so we can detect the trial→paid conversion (status was
+        // 'trialing' at the moment Stripe charged the trial-end invoice).
+        // That's the magic moment Geoff most wants to know about — the
+        // user didn't cancel, they're now a paying customer.
         const { data: profile } = await supabase
           .from('profiles')
-          .select('id')
+          .select('id, email, business_name, subscription_status, subscription_plan')
           .eq('stripe_customer_id', customerId)
           .single();
 
         if (profile) {
+          const wasTrialing = (profile as any).subscription_status === 'trialing';
           const tier = tierFromPriceId(priceIdFromSubscription(subscription));
           const update: Record<string, unknown> = {
             subscription_status: 'active',
@@ -372,6 +377,31 @@ serve(async (req) => {
           };
           if (tier) update.subscription_tier = tier;
           await supabase.from('profiles').update(update).eq('id', profile.id);
+
+          // Owner ping for trial→paid conversion. This is the most
+          // important conversion event in the SaaS funnel; Geoff wants
+          // every one of these in his inbox. Fire-and-forget. We don't
+          // ping on regular renewals (which would be noise after the
+          // first 14 days) — only the first paid invoice after a trial.
+          if (wasTrialing) {
+            try {
+              await fetch('https://besbtasjpqmfqjkudmgu.supabase.co/functions/v1/notify-owner', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  event: 'trial_converted',
+                  email: (profile as any).email || 'unknown',
+                  businessName: (profile as any).business_name ?? null,
+                  plan: (profile as any).subscription_plan ?? null,
+                  amount: typeof invoice.amount_paid === 'number' ? invoice.amount_paid / 100 : null,
+                  userId: (profile as any).id,
+                  stripeCustomerId: customerId,
+                }),
+              });
+            } catch (notifyErr) {
+              console.error('notify-owner trial-conversion ping failed:', notifyErr);
+            }
+          }
         }
       }
       break;
@@ -419,11 +449,12 @@ serve(async (req) => {
       // null and let useSubscriptionTier derive state from status+role.
       const { data: profile } = await supabase
         .from('profiles')
-        .select('id, business_role')
+        .select('id, business_role, email, business_name, subscription_plan, subscription_status')
         .eq('stripe_customer_id', customerId)
         .single();
 
       if (profile) {
+        const wasTrialing = (profile as any).subscription_status === 'trialing';
         const isGcRole = profile.business_role === 'gc' || profile.business_role === 'both';
         await supabase.from('profiles').update({
           subscription_status: 'canceled',
@@ -432,6 +463,31 @@ serve(async (req) => {
           // Subs: drop to 'sub_free' so they keep invited-project access.
           subscription_tier: isGcRole ? null : 'sub_free',
         }).eq('id', profile.id);
+
+        // Owner ping. Cancellations matter — Geoff wants every one in
+        // his inbox so he can ask for feedback. Annotate with whether
+        // they bailed during trial vs after paying so the email is
+        // useful at a glance.
+        try {
+          await fetch('https://besbtasjpqmfqjkudmgu.supabase.co/functions/v1/notify-owner', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              event: 'subscription_canceled',
+              email: (profile as any).email || 'unknown',
+              businessName: (profile as any).business_name ?? null,
+              plan: (profile as any).subscription_plan ?? null,
+              userId: (profile as any).id,
+              stripeCustomerId: customerId,
+              // Stuffed in trialDays as a flag: -1 means "they canceled
+              // during trial (didn't convert)". Anything else = canceled
+              // after paying. Lazy reuse of the existing schema field.
+              trialDays: wasTrialing ? -1 : null,
+            }),
+          });
+        } catch (notifyErr) {
+          console.error('notify-owner cancellation ping failed:', notifyErr);
+        }
       }
       break;
     }

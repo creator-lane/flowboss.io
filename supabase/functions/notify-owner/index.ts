@@ -34,7 +34,12 @@ const RESEND_KEY = Deno.env.get('RESEND_API_KEY');
 const OWNER_EMAIL = Deno.env.get('OWNER_EMAIL') || 'geoff@mobadvisors.com';
 const SUPABASE_PROJECT_REF = 'besbtasjpqmfqjkudmgu';
 
-type EventType = 'signup' | 'subscription' | 'invite_accept';
+type EventType =
+  | 'signup'
+  | 'subscription'        // checkout.session.completed (trial start, $0)
+  | 'trial_converted'     // first paid invoice after trial = real conversion
+  | 'subscription_canceled' // customer.subscription.deleted
+  | 'invite_accept';
 
 interface Payload {
   event: EventType;
@@ -59,8 +64,18 @@ const EVENT_LABELS: Record<EventType, { emoji: string; subject: string; lead: st
   },
   subscription: {
     emoji: '🎉',
-    subject: 'New FlowBoss subscription',
-    lead: 'Someone started a paid subscription.',
+    subject: 'New FlowBoss trial started',
+    lead: 'Someone started a paid subscription with a 14-day free trial.',
+  },
+  trial_converted: {
+    emoji: '💰',
+    subject: 'A trial just converted to paid',
+    lead: 'They didn\'t cancel — Stripe successfully billed the trial-end invoice. This is real revenue.',
+  },
+  subscription_canceled: {
+    emoji: '👋',
+    subject: 'A FlowBoss subscription was canceled',
+    lead: 'Someone canceled their FlowBoss subscription.',
   },
   invite_accept: {
     emoji: '🤝',
@@ -91,8 +106,17 @@ serve(async (req) => {
       return json({ error: 'event and email are required' }, 400);
     }
 
-    const cfg = EVENT_LABELS[body.event];
+    const cfg = { ...EVENT_LABELS[body.event] };
     if (!cfg) return json({ error: `unknown event: ${body.event}` }, 400);
+
+    // Cancellation special-casing: trialDays === -1 = canceled during the
+    // free trial (never converted to paid). Different signal from a paid
+    // customer canceling — the latter cost us actual revenue. Clearer
+    // emails make Geoff's "ask why" follow-up more targeted.
+    if (body.event === 'subscription_canceled' && body.trialDays === -1) {
+      cfg.subject = 'Trial canceled before converting';
+      cfg.lead = 'Someone canceled during their 14-day free trial — they never paid.';
+    }
 
     const planLabel = body.plan ? PLAN_LABELS[body.plan] || body.plan : null;
     const supabaseUserUrl = body.userId

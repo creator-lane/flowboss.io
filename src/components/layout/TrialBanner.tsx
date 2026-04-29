@@ -49,7 +49,22 @@ export function TrialBanner() {
   const settings: any = (data as any)?.data ?? data ?? {};
   const status = settings?.subscription_status ?? settings?.subscriptionStatus;
   const trialEnd = settings?.trial_end ?? settings?.trialEnd;
+  const plan: string | null =
+    settings?.subscription_plan ?? settings?.subscriptionPlan ?? null;
   const isTrialing = status === 'trialing' && !!trialEnd;
+
+  // Map Stripe plan slug → user-facing copy. Mirrors PLAN_LABELS in
+  // notify-owner edge function so messaging stays in sync across surfaces.
+  const PLAN_PRICE: Record<string, string> = {
+    monthly: '$29.99/mo',
+    annual: '$199.99/yr',
+    sub_pro_monthly: '$14.99/mo',
+    sub_pro_annual: '$99.99/yr',
+  };
+  const priceLabel = plan ? PLAN_PRICE[plan] : null;
+  const billDate = trialEnd
+    ? new Date(trialEnd).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+    : null;
 
   const remaining = useMemo(() => (trialEnd ? daysUntil(trialEnd) : null), [trialEnd]);
 
@@ -94,9 +109,20 @@ export function TrialBanner() {
         ? '1 day left in your free trial'
         : `${remaining} days left in your free trial`;
 
-  const subline = urgent
-    ? 'Pick a plan to keep your data, customers, and invoices flowing.'
-    : 'Pick a plan whenever you\'re ready — keep everything you\'ve set up.';
+  // Reframed: trial users have ALREADY picked a plan — telling them to
+  // "pick a plan" is wrong. The truthful framing: card on file will be
+  // charged $X on Y unless they cancel. That's the actual decision point.
+  const subline = (() => {
+    if (priceLabel && billDate) {
+      if (remaining === 0) {
+        return `${priceLabel} starting tomorrow. Cancel anytime in Settings.`;
+      }
+      return `${priceLabel} starting ${billDate}. Cancel anytime — no charge during the trial.`;
+    }
+    return urgent
+      ? 'Cancel anytime in Settings if FlowBoss isn\'t for you.'
+      : 'Cancel anytime — no charge during the 14-day trial.';
+  })();
 
   return (
     <div className={`bg-gradient-to-r ${tone} text-white`}>
@@ -111,7 +137,7 @@ export function TrialBanner() {
             to="/dashboard/settings"
             className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-white/15 hover:bg-white/25 text-[11px] font-bold transition-colors whitespace-nowrap"
           >
-            Pick a plan
+            Manage subscription
             <ArrowRight className="w-3 h-3" />
           </Link>
           <button

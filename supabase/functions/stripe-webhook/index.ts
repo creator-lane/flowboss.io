@@ -302,6 +302,47 @@ serve(async (req) => {
         if (tier) update.subscription_tier = tier;
 
         await supabase.from('profiles').update(update).eq('id', userId);
+
+        // Ping the owner — paid signup. Pull a few details so the
+        // notification carries the plan + amount + business name. Best-
+        // effort: failure here MUST NOT break the webhook acknowledgment
+        // (Stripe retries on non-200, and we don't want owner-notif
+        // outages causing duplicate sub upgrades).
+        try {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('business_name, stripe_customer_id, email')
+            .eq('id', userId)
+            .single();
+          const amountCents =
+            (session.amount_total as number | null) ??
+            ((session as any).amount_subtotal as number | undefined) ??
+            null;
+          const planLabels: Record<string, number> = {
+            monthly: 29.99,
+            annual: 199.99,
+            sub_pro_monthly: 14.99,
+            sub_pro_annual: 99.99,
+          };
+          const amount =
+            typeof amountCents === 'number' ? amountCents / 100 : (planLabels[plan] ?? null);
+          await fetch('https://besbtasjpqmfqjkudmgu.supabase.co/functions/v1/notify-owner', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              event: 'subscription',
+              email: (profile as any)?.email || session.customer_email || session.customer_details?.email || 'unknown',
+              businessName: (profile as any)?.business_name ?? null,
+              plan,
+              amount,
+              trialDays: 14,
+              userId,
+              stripeCustomerId: (profile as any)?.stripe_customer_id ?? (session.customer as string | null),
+            }),
+          });
+        } catch (notifyErr) {
+          console.error('notify-owner subscription ping failed:', notifyErr);
+        }
       }
       break;
     }

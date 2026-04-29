@@ -132,6 +132,8 @@ serve(async (req) => {
     }
 
     // --- Activity feed: the GC sees "X accepted Drywall" in real time -------
+    let subName: string | null = null;
+    let projectName: string | null = null;
     if (trade.gc_project_id) {
       try {
         const { data: prof } = await supabase
@@ -139,9 +141,15 @@ serve(async (req) => {
           .select('business_name, email')
           .eq('id', user.id)
           .maybeSingle();
-        const subName = (prof as any)?.business_name
+        subName = (prof as any)?.business_name
           || (prof as any)?.email?.split('@')[0]
           || (user.email ? user.email.split('@')[0] : 'A sub');
+        const { data: proj } = await supabase
+          .from('gc_projects')
+          .select('name')
+          .eq('id', trade.gc_project_id)
+          .maybeSingle();
+        projectName = (proj as any)?.name ?? null;
         await supabase.from('project_activity').insert({
           gc_project_id: trade.gc_project_id,
           actor_user_id: user.id,
@@ -153,6 +161,25 @@ serve(async (req) => {
       } catch (actErr) {
         console.error('project_activity insert failed', actErr);
       }
+    }
+
+    // --- Owner ping: a sub just accepted an invite ---------------------------
+    // Best-effort. If notify-owner is down, the accept still succeeds.
+    try {
+      await fetch('https://besbtasjpqmfqjkudmgu.supabase.co/functions/v1/notify-owner', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          event: 'invite_accept',
+          email: user.email || 'unknown',
+          businessName: subName,
+          projectName,
+          tradeOnInvite: updated.trade ?? null,
+          userId: user.id,
+        }),
+      });
+    } catch (notifyErr) {
+      console.error('notify-owner invite_accept ping failed:', notifyErr);
     }
 
     return json({

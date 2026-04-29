@@ -122,6 +122,22 @@ export function Signup() {
         // localStorage write failed — onboarding will just start blank
       }
 
+      // 3b. Ping the owner that someone just signed up. Fire-and-forget —
+      //     the user's onboarding/checkout shouldn't block on this. Backed
+      //     by the notify-owner edge function which sends Geoff an email
+      //     via Resend. If Resend is down, the signup still succeeds.
+      fetch('https://besbtasjpqmfqjkudmgu.supabase.co/functions/v1/notify-owner', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          event: 'signup',
+          email,
+          businessName: businessName || null,
+          plan,
+          userId: signUpData.user?.id ?? null,
+        }),
+      }).catch(() => {/* swallow */});
+
       // 4. If this is an invite signup, link the sub to the GC project (session exists here)
       if (isInvite && signUpData.user) {
         try {

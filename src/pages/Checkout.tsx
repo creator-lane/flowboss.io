@@ -110,7 +110,7 @@ export function Checkout() {
               14 days free
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight text-center">
-              Try {plan.name} free for 14 days
+              Try FlowBoss free for 14 days
             </h1>
             <p className="text-sm text-gray-500 mt-2 text-center dark:text-gray-400 max-w-xs">
               No charge today. Cancel anytime during the trial — you'll never be billed.

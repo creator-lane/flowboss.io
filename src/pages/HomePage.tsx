@@ -28,6 +28,7 @@ import {
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { SignatureStripe } from '../components/ui/SignatureStripe';
+import { MobileAppPrompt } from '../components/MobileAppPrompt';
 
 const screenshots = {
   schedule: '/screenshots/Screenshot_20260327-151517.png',
@@ -839,6 +840,11 @@ export function HomePage() {
 
   return (
     <>
+      {/* Mobile-only sticky bottom banner with App Store / Play Store CTAs.
+          Detects mobile UA + viewport, defers ~1.5s, dismissable. The
+          AppsFlyer Smart Banner SDK in index.html is the parallel
+          mechanism — this is the deterministic in-house fallback. */}
+      <MobileAppPrompt />
       {showDemo && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm" onClick={() => setShowDemo(false)}>
           <div className="relative w-full max-w-sm mx-4" onClick={(e) => e.stopPropagation()}>
@@ -1292,7 +1298,7 @@ export function HomePage() {
                 ))}
               </div>
 
-              <div className="mt-8 flex gap-3">
+              <div className="mt-8 flex flex-wrap gap-3">
                 <a
                   href="https://apps.apple.com/app/id6761025816"
                   className="inline-flex items-center gap-2 px-5 py-3 bg-gray-900 text-white font-semibold rounded-xl hover:bg-gray-800 text-sm"
@@ -1307,11 +1313,15 @@ export function HomePage() {
                 </a>
               </div>
             </div>
-            <div className="flex justify-center gap-4">
-              <div className="w-[200px] transform -rotate-3">
+            {/* Two phone mocks side-by-side. Was hard-coded to 200px each
+                which overflowed on small viewports (~416px combined > a
+                375px iPhone SE). Step the width down on narrow screens
+                so both phones fit fully on-screen with margin. */}
+            <div className="flex justify-center gap-3 sm:gap-4">
+              <div className="w-[140px] sm:w-[170px] md:w-[200px] transform -rotate-3 shrink-0">
                 <PhoneFrame src={screenshots.schedule} alt="Schedule" />
               </div>
-              <div className="w-[200px] transform rotate-3 mt-10">
+              <div className="w-[140px] sm:w-[170px] md:w-[200px] transform rotate-3 mt-10 shrink-0">
                 <PhoneFrame src={screenshots.invoice} alt="Invoice" />
               </div>
             </div>

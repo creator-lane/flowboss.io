@@ -4,10 +4,21 @@
 
 html {
   scroll-behavior: smooth;
+  /* Prevent horizontal scroll on mobile when wide hero mocks / floating
+     companion phones overhang the viewport. Without this, mobile users
+     get a horizontal scrollbar AND the body width grows past 100vw,
+     which causes the page to look "cut off" at narrow widths. */
+  overflow-x: hidden;
 }
 
 body {
   @apply bg-gray-100 text-gray-900 antialiased;
+  overflow-x: hidden;
+}
+
+/* Respect iOS safe-area at the bottom for sticky banners (MobileAppPrompt) */
+.safe-bottom {
+  padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
 }
 
 /* Dark mode body */

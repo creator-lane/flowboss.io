@@ -21,7 +21,7 @@
 // Required Supabase secrets:
 //   RESEND_API_KEY      — same key invoice/invite emails use
 //   OWNER_EMAIL         — Geoff's address; defaults to
-//                         geoff@mobadvisors.com if not set
+//                         geoff@flowboss.io if not set
 
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 
@@ -31,7 +31,7 @@ const corsHeaders = {
 };
 
 const RESEND_KEY = Deno.env.get('RESEND_API_KEY');
-const OWNER_EMAIL = Deno.env.get('OWNER_EMAIL') || 'geoff@mobadvisors.com';
+const OWNER_EMAIL = Deno.env.get('OWNER_EMAIL') || 'geoff@flowboss.io';
 const SUPABASE_PROJECT_REF = 'besbtasjpqmfqjkudmgu';
 
 type EventType =

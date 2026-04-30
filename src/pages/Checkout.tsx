@@ -3,6 +3,7 @@ import { Link, useSearchParams, Navigate } from 'react-router-dom';
 import { Wrench, ArrowRight, Lock, ShieldCheck, Sparkles } from 'lucide-react';
 import { useAuth } from '../lib/auth';
 import { AuthShell, AuthCard } from '../components/ui/AuthShell';
+import { trackBeginCheckout } from '../lib/analytics';
 
 type Plan = {
   name: string;
@@ -57,6 +58,14 @@ export function Checkout() {
     if (!session) return;
     setLoading(true);
     setError('');
+    // GA4 / Ads `begin_checkout` recommended event. Fires the moment the
+    // user commits to going to Stripe — captures intent even if the
+    // network request below fails or Stripe redirect never lands. Value
+    // is the headline price (post-trial); GA will aggregate by plan.
+    trackBeginCheckout({
+      plan: planKey,
+      value: parseFloat(plan.price.replace(/[^0-9.]/g, '')) || 0,
+    });
     try {
       const response = await fetch(
         'https://besbtasjpqmfqjkudmgu.supabase.co/functions/v1/create-checkout-session',

@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../lib/auth';
 import { useToast } from '../components/ui/Toast';
 import { AuthShell, AuthCard } from '../components/ui/AuthShell';
+import { trackSignUp } from '../lib/analytics';
 
 export function Signup() {
   const { session, loading } = useAuth();
@@ -137,6 +138,12 @@ export function Signup() {
           userId: signUpData.user?.id ?? null,
         }),
       }).catch(() => {/* swallow */});
+
+      // 3c. GA4 + Google Ads `sign_up` recommended event. Fires on every
+      //     successful signup — the same event ID lights up GA's funnel
+      //     reports and (once configured in Google Ads) counts as a
+      //     conversion for any campaign driving traffic to /signup.
+      trackSignUp({ method: 'email', plan });
 
       // 4. If this is an invite signup, link the sub to the GC project (session exists here)
       if (isInvite && signUpData.user) {

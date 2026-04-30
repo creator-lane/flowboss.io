@@ -13,6 +13,7 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Sparkles, ArrowDown, X } from 'lucide-react';
+import { trackTrialStarted } from '../../lib/analytics';
 
 const STORAGE_KEY = 'fb_post_checkout_welcome_shown';
 
@@ -36,6 +37,18 @@ export function PostCheckoutWelcome() {
     }
 
     setOpen(true);
+
+    // GA4 `trial_started` custom event. We DON'T fire `purchase` here —
+    // Stripe's Checkout success means the trial started, not that
+    // money moved. The real `purchase` event is reported server-side
+    // from stripe-webhook on `invoice.paid` (~14 days later when the
+    // trial converts). That keeps Ads conversion value accurate.
+    const sessionId = searchParams.get('session_id');
+    const planFromQuery = searchParams.get('plan');
+    trackTrialStarted({
+      plan: planFromQuery,
+      transactionId: sessionId,
+    });
 
     // Strip the query param so a refresh doesn't re-fire (and a back-nav
     // back to /dashboard/home doesn't carry it). We persist via STORAGE_KEY

@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from './supabase';
+import { identify } from './analytics';
 import type { Session, User } from '@supabase/supabase-js';
 
 interface AuthContextType {
@@ -24,10 +25,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setLoading(false);
+      // Tag GA4 with the user_id once we know who they are. Lets GA stitch
+      // sessions across devices/browsers for the same logged-in user.
+      identify(session?.user?.id ?? null);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
+      identify(session?.user?.id ?? null);
     });
 
     return () => subscription.unsubscribe();

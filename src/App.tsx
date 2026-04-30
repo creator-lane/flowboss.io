@@ -12,6 +12,7 @@ import { RequireSubscription } from './components/auth/RequireSubscription';
 import { DashboardLayout } from './components/layout/DashboardLayout';
 import { ProGate } from './components/upgrade/ProGate';
 import { LazyChunkBoundary } from './components/LazyChunkBoundary';
+import { RouteChangeTracker } from './components/RouteChangeTracker';
 
 // Lazy marketing / auxiliary / auth-flow pages — infrequently visited,
 // should not ship in the entry bundle.
@@ -76,7 +77,12 @@ function Lazy({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   return (
-    <Routes>
+    <>
+      {/* Fires GA4 page_view on every SPA route change. Without this,
+          gtag's auto-pageview only fires on hard loads and the entire
+          dashboard is invisible to analytics. */}
+      <RouteChangeTracker />
+      <Routes>
       {/* Marketing site */}
       <Route element={<Layout />}>
         <Route path="/" element={<HomePage />} />
@@ -181,6 +187,7 @@ export default function App() {
 
       {/* Global 404 catch-all */}
       <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+      </Routes>
+    </>
   );
 }

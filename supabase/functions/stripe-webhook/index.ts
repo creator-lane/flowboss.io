@@ -255,6 +255,93 @@ function priceIdFromSubscription(sub: Stripe.Subscription): string | null {
   return sub.items?.data?.[0]?.price?.id ?? null;
 }
 
+// ──────────────────────────────────────────────────────────────────────
+// GA4 Measurement Protocol — server-side `purchase` event.
+//
+// Why server-side: the trial→paid conversion happens 14 days after the
+// user closed their browser. There's no live session to fire a
+// browser-side gtag event from. Stripe knows the moment money moves,
+// so the webhook is the only reliable place to emit a `purchase`
+// event with accurate revenue value.
+//
+// Required secrets:
+//   GA4_MEASUREMENT_ID   — `G-9V3QXTMG28` (matches index.html)
+//   GA4_API_SECRET       — created in GA4 Admin → Data streams →
+//                          [Web stream] → Measurement Protocol API
+//                          secrets. One per environment.
+//
+// The browser-side `trial_started` event still fires from
+// PostCheckoutWelcome — that's the funnel intent moment. This server
+// event is the funnel value moment.
+// ──────────────────────────────────────────────────────────────────────
+async function ga4Purchase(opts: {
+  userId: string;
+  amount: number;          // dollars
+  currency?: string;
+  transactionId: string;
+  plan: string | null;
+}): Promise<void> {
+  const measurementId = Deno.env.get('GA4_MEASUREMENT_ID') || 'G-9V3QXTMG28';
+  const apiSecret = Deno.env.get('GA4_API_SECRET');
+  if (!apiSecret) {
+    console.log('[stripe-webhook] GA4_API_SECRET not set, skipping ga4 purchase event');
+    return;
+  }
+  // GA4 needs a stable client_id. Without a browser-stitched cookie,
+  // we synthesize one deterministically from the Supabase user id so
+  // GA can collapse repeat purchases by the same user. Format
+  // mirrors what gtag.js writes to the _ga cookie (xxx.yyy).
+  const clientId = `${userId32(opts.userId)}.0`;
+  const url = `https://www.google-analytics.com/mp/collect?measurement_id=${encodeURIComponent(measurementId)}&api_secret=${encodeURIComponent(apiSecret)}`;
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        client_id: clientId,
+        user_id: opts.userId,
+        non_personalized_ads: false,
+        events: [
+          {
+            name: 'purchase',
+            params: {
+              transaction_id: opts.transactionId,
+              value: opts.amount,
+              currency: opts.currency ?? 'USD',
+              items: opts.plan
+                ? [{
+                  item_id: opts.plan,
+                  item_name: opts.plan,
+                  price: opts.amount,
+                  quantity: 1,
+                }]
+                : [],
+            },
+          },
+        ],
+      }),
+    });
+    if (!res.ok) {
+      const txt = await res.text().catch(() => '');
+      console.error('[stripe-webhook] GA4 MP non-2xx:', res.status, txt.slice(0, 240));
+    }
+  } catch (err) {
+    console.error('[stripe-webhook] GA4 MP fetch failed:', err);
+  }
+}
+
+// Cheap deterministic 10-digit hash of the Supabase UUID for use as
+// a GA client_id high-bits (the _ga cookie format is `<random>.<ts>`,
+// random is conventionally a 10-digit unsigned int).
+function userId32(uuid: string): number {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < uuid.length; i++) {
+    h ^= uuid.charCodeAt(i);
+    h = (h + ((h << 1) + (h << 4) + (h << 7) + (h << 8) + (h << 24))) >>> 0;
+  }
+  return h % 1_000_000_000;
+}
+
 serve(async (req) => {
   const signature = req.headers.get('stripe-signature')!;
   const body = await req.text();
@@ -384,6 +471,10 @@ serve(async (req) => {
           // ping on regular renewals (which would be noise after the
           // first 14 days) — only the first paid invoice after a trial.
           if (wasTrialing) {
+            const amountDollars = typeof invoice.amount_paid === 'number' ? invoice.amount_paid / 100 : 0;
+            const planSlug = (profile as any).subscription_plan ?? null;
+            const userIdStr = (profile as any).id as string;
+
             try {
               await fetch('https://besbtasjpqmfqjkudmgu.supabase.co/functions/v1/notify-owner', {
                 method: 'POST',
@@ -392,15 +483,26 @@ serve(async (req) => {
                   event: 'trial_converted',
                   email: (profile as any).email || 'unknown',
                   businessName: (profile as any).business_name ?? null,
-                  plan: (profile as any).subscription_plan ?? null,
-                  amount: typeof invoice.amount_paid === 'number' ? invoice.amount_paid / 100 : null,
-                  userId: (profile as any).id,
+                  plan: planSlug,
+                  amount: amountDollars,
+                  userId: userIdStr,
                   stripeCustomerId: customerId,
                 }),
               });
             } catch (notifyErr) {
               console.error('notify-owner trial-conversion ping failed:', notifyErr);
             }
+
+            // GA4 server-side `purchase` — the real revenue event.
+            // Fires once per trial conversion, with the actual dollar
+            // value Stripe billed. Google Ads imports GA4 conversions,
+            // so this also drives Ads bidding optimization.
+            ga4Purchase({
+              userId: userIdStr,
+              amount: amountDollars,
+              transactionId: invoice.id,
+              plan: planSlug,
+            }).catch((err) => console.error('ga4 purchase failed:', err));
           }
         }
       }

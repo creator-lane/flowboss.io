@@ -20,3 +20,10 @@ verify_jwt = false
 # Same reason as create-checkout-session above — gateway JWT verification
 # doesn't support ES256 yet. Function validates auth internally.
 verify_jwt = false
+
+[functions.notify-owner]
+# Public — fires from /signup before the user has a session, and from
+# server-side webhooks that don't carry a Supabase JWT. Payload only
+# contains metadata that gets emailed to OWNER_EMAIL; no DB writes,
+# no PII echoed back to the caller.
+verify_jwt = false

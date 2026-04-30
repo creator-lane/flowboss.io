@@ -3,9 +3,28 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Get FlowBoss — Free for 14 Days</title>
-  <meta name="description" content="Download FlowBoss — the field service app built for plumbers, HVAC techs, and electricians.">
-  <!-- Google Ads (gtag.js) -->
+  <title>FlowBoss — Run Your Trade, Not Your Paperwork</title>
+  <meta name="description" content="FlowBoss — the field service app built for plumbers, HVAC techs, and electricians.">
+
+  <!--
+    /go is a paid-traffic landing slot. It used to host its own card with
+    a (broken) AppsFlyer OneLink that only made sense for mobile installs.
+    Now that the web product is live, single-funnel-to-homepage is the
+    higher-converting move:
+      - Desktop visitors get the homepage with the trial CTA they can
+        actually convert through.
+      - Mobile visitors get the homepage AND the AppsFlyer Smart Banner
+        SDK loaded in the root index.html, which auto-prompts the
+        Play/App Store install — so the mobile-install flow still works
+        without the broken OneLink in the middle.
+      - All UTM / fbclid / gclid params survive so Google Ads + GA4
+        attribution stay clean.
+    Implemented as both a meta refresh (works without JS) and a JS
+    redirect (instant). Fallback link visible if both fail.
+  -->
+
+  <!-- Google Ads (gtag.js) — preserved so the click ping still fires
+       even though the page itself is just a redirect. -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=AW-17189957809"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
@@ -13,39 +32,47 @@
     gtag('js', new Date());
     gtag('config', 'AW-17189957809');
   </script>
+
+  <script>
+    // Build the destination: flowboss.io homepage + every search param
+    // we received. utm_source defaults to 'go' if the campaign didn't
+    // tag one explicitly, so we can still tell paid /go traffic apart
+    // from organic homepage traffic in GA.
+    (function () {
+      try {
+        var params = new URLSearchParams(window.location.search);
+        if (!params.has('utm_source')) params.set('utm_source', 'go');
+        var qs = params.toString();
+        var dest = 'https://flowboss.io/' + (qs ? '?' + qs : '');
+        // Replace so back-button doesn't trap the user on /go.
+        window.location.replace(dest);
+      } catch (e) {
+        window.location.replace('https://flowboss.io/?utm_source=go');
+      }
+    })();
+  </script>
+
+  <!-- No-JS / pre-script fallback: 0-second meta refresh. -->
+  <meta http-equiv="refresh" content="0; url=https://flowboss.io/?utm_source=go">
+
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f8fafc; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
-    .card { max-width: 420px; margin: 24px; padding: 48px 32px; background: white; border-radius: 24px; box-shadow: 0 4px 24px rgba(0,0,0,0.08); text-align: center; }
-    .icon { width: 64px; height: 64px; background: #2563eb; border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; }
-    .icon svg { width: 32px; height: 32px; color: white; }
-    h1 { font-size: 28px; font-weight: 800; color: #111827; margin-bottom: 12px; line-height: 1.2; }
-    p { font-size: 16px; color: #6b7280; line-height: 1.6; margin-bottom: 32px; }
-    .btn { display: block; width: 100%; padding: 16px; background: #2563eb; color: white; font-size: 18px; font-weight: 700; border: none; border-radius: 14px; cursor: pointer; text-decoration: none; margin-bottom: 12px; }
-    .btn:hover { background: #1d4ed8; }
-    .btn-secondary { background: #111827; }
-    .btn-secondary:hover { background: #1f2937; }
-    .sub { font-size: 13px; color: #9ca3af; margin-top: 16px; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f8fafc; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
+    .card { max-width: 360px; padding: 32px 24px; background: white; border-radius: 20px; box-shadow: 0 4px 24px rgba(0,0,0,0.06); text-align: center; }
+    .spinner { width: 36px; height: 36px; border: 3px solid #e5e7eb; border-top-color: #2563eb; border-radius: 50%; margin: 0 auto 16px; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    h1 { font-size: 18px; font-weight: 700; color: #111827; margin-bottom: 8px; }
+    p { font-size: 14px; color: #6b7280; line-height: 1.5; }
+    a { color: #2563eb; text-decoration: none; font-weight: 600; }
+    a:hover { text-decoration: underline; }
   </style>
 </head>
 <body>
+  <!-- Visible only if both the JS redirect and the meta refresh fail. -->
   <div class="card">
-    <div class="icon">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 11-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 004.486-6.336l-3.276 3.277a3.004 3.004 0 01-2.25-2.25l3.276-3.276a4.5 4.5 0 00-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085"/></svg>
-    </div>
-    <h1>Run Your Trade.<br>Not Your Paperwork.</h1>
-    <p>Jobs, invoices, route optimization, and payments — everything a plumber, HVAC tech, or electrician needs in one app.</p>
-    <a class="btn" id="cta" href="https://go.flowboss.io/TmZH/b0pzt8v4">Download FlowBoss Free</a>
-    <a class="btn btn-secondary" href="https://flowboss.io">Learn More</a>
-    <div class="sub">14-day free trial. No credit card required.</div>
+    <div class="spinner"></div>
+    <h1>Loading FlowBoss…</h1>
+    <p>If this page doesn't redirect automatically, <a href="https://flowboss.io/?utm_source=go">tap here to continue</a>.</p>
   </div>
-  <script>
-    // Pass through all URL params to the OneLink
-    var params = window.location.search;
-    if (params) {
-      var cta = document.getElementById('cta');
-      cta.href = cta.href + params;
-    }
-  </script>
 </body>
 </html>

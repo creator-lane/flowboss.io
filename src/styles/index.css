@@ -16,6 +16,17 @@ body {
   overflow-x: hidden;
 }
 
+/* Reserve room at the page bottom when the sticky MobileAppPrompt is
+   visible. The banner is fixed bottom-0, ~92px tall + safe-area inset.
+   Without padding the body, it covers the last section's CTAs and the
+   footer. The component toggles `body.fb-app-prompt-visible` on/off so
+   the padding only applies when the prompt is actually showing — when
+   the user dismisses, the padding is removed. Mobile-scoped because
+   the prompt itself only renders on mobile. */
+body.fb-app-prompt-visible {
+  padding-bottom: calc(7rem + env(safe-area-inset-bottom));
+}
+
 /* Respect iOS safe-area at the bottom for sticky banners (MobileAppPrompt) */
 .safe-bottom {
   padding-bottom: max(0.75rem, env(safe-area-inset-bottom));

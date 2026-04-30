@@ -62,6 +62,18 @@ export function MobileAppPrompt() {
     return () => window.clearTimeout(id);
   }, []);
 
+  // Toggle a body class while the prompt is visible so global CSS can
+  // reserve bottom padding for the page (otherwise the fixed banner
+  // covers the footer and the last CTA buttons). Cleanup on unmount /
+  // dismiss removes the class so the layout returns to normal.
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    const cls = 'fb-app-prompt-visible';
+    if (visible) document.body.classList.add(cls);
+    else document.body.classList.remove(cls);
+    return () => document.body.classList.remove(cls);
+  }, [visible]);
+
   function dismiss() {
     try {
       localStorage.setItem(STORAGE_KEY, '1');
